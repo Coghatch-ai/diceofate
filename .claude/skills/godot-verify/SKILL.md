@@ -55,7 +55,7 @@ $GODOT --path . --resolution 640x360 -s tools/verify_render.gd -- levels/foo.tsc
 Notes:
 - **Not headless** — it needs a display; a small window flashes for under a second. If no display is available, say so explicitly and report layer 3 as not run.
 - The sampled frame is saved to `.godot/verify_render_last.png` for the human to inspect; never paste or read the image into chat.
-- Run it on the main scene AND on any level/entity scene changed in this task (levels must render standalone too).
+- Run it on `main.tscn` only (or any scene explicitly designed as a standalone entry point). Levels and entity scenes do not render standalone in a Main-shell architecture — Main provides the camera (skill: godot-main-scene). Layers 1–2 still run on all changed scenes; layer 3 only on entry-point scenes.
 
 ## Pass criteria (all three required)
 
@@ -74,7 +74,8 @@ Only then may you report the change as verified. If you cannot run the binary (n
 | `SCRIPT ERROR: Parse Error` during layer 1 | The attached .gd fails to compile; fix the script, not the scene |
 | `ERROR: ... Invalid UID` | Hand-written uid string; remove the `uid="..."` attribute and let the editor assign one on save |
 | Layer 2 hangs | Scene waits on input/window; `--quit-after N` missing or a script blocks `_ready` — check for infinite loops |
-| `VERIFY-RENDER: FAIL ... flat color` | Camera aimed at nothing (wrong transform — see hand-authoring rule in CLAUDE.md), no current Camera3D in the viewport, or `background_mode = Sky` with no Sky resource attached |
+| `VERIFY-RENDER: FAIL ... flat color` on `main.tscn` | Camera aimed at nothing (wrong transform — see hand-authoring rule in CLAUDE.md), no current Camera3D in the viewport, or `background_mode = Sky` with no Sky resource attached |
+| Layer 3 flat color on a level or entity scene | Expected in Main-shell architecture — levels and entities have no camera (Main provides it). Layer 3 does not apply to these scenes; only layers 1–2 are required |
 | Layer 3 looks wrong but says OK | Spread check only proves *something* rendered; composition/look is still the human's call — they must RUN the scene (F5/F6), not judge from the editor viewport |
 
 ## RTK note

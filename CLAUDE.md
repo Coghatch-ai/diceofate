@@ -7,23 +7,34 @@ POC for a game developer framework using Godot 4.x. The goal is to build small t
 ```
 main.tscn         entry point + main.gd, at project root (skill: godot-main-scene)
 design/           design docs — one per agreed slice (written by game-designer only)
+library/          addon research catalog — one doc per investigated need (written by addon-researcher only)
 entities/         one scene+script per entity, entities/<name>/
 levels/           level scenes
 shaders/post/     post-process shaders
 resources/        .tres resources
 tools/            framework tooling (verify_scene.gd) — not game code
 .claude/
-  agents/         game-designer (Opus), godot-dev (Sonnet), godot-refactor (Haiku)
-  skills/         godot-* skills, scoped to this project
+  agents/         game-designer (Opus), godot-dev (Sonnet), godot-refactor (Haiku), skill-researcher (Opus), bug-triage (Opus), addon-researcher (Sonnet)
+  skills/         godot-* skills, scoped to this project (skills/eval/ is researcher scratch — never committed)
 ```
 
 ## How to work on this project
 
 Pipeline: idea → **game-designer** (Opus — interviews the user, cuts scope, writes `design/<slug>.md`) → **godot-dev** (Sonnet — implements the doc) → **godot-verify** (3-layer checks) → human **runs** it (F5/F6). The editor viewport is NOT verification — it uses the editor's camera and hides camera/lighting bugs.
 
+Quick path: a request may skip the designer ONLY if all four checks pass — covered by existing skills/design docs, ~one entity touched, observable in one F5 run, no new conventions/input actions. Entry point is the `/quick` skill, which encodes the check, the godot-dev dispatch, and the report shape (Result / Files / Verify / Friction). godot-dev always reports **friction** (improvised pattern, first-try verify failure, scope overrun, ambiguous guidance); non-empty friction → the orchestrator offers bug-triage (ask, never auto-run — same gate as bugs).
+
+Discoverability: the user may not know the framework's entry points exist — surface them in replies instead of routing silently. When a request matches a route, name it in one line before (or while) acting: small concrete change in prose → "this fits `/quick`"; vague or multi-step feature → game-designer; a bug just surfaced or was fixed → offer bug-triage; a pattern no skill covers → skill-researcher; a generic system the ecosystem has surely solved → addon-researcher. Suggest, don't lecture: one line, at most one route per reply, and skip it when the user already invoked the route themselves.
+
 Role boundary: the orchestrator (main session) investigates and updates framework documentation only (`.claude/`, CLAUDE.md); ALL changes to game/project files (scenes, scripts, project.godot, tools) go through the agents. When something breaks, the deliverable is the framework fix, not a hand-patched file.
 
+Bug learning loop: after a bug is found (and usually fixed by godot-dev), the orchestrator ASKS the user whether to triage it properly — never auto-runs it. On yes, spawn **bug-triage** (Opus) with the symptom, diagnosis, and fix. It finds the root cause and reaches one verdict: update an existing skill, recommend skill-researcher (missing skill), update documentation (CLAUDE.md / agent prompts), or no change — "no change" is a valid, expected outcome, not a failure. Framework edits need the user's approval inside the triage run; a researcher recommendation comes back to the orchestrator to dispatch.
+
 This is a framework/workflow to speed up development — not a vibe-coding tool. Requests that can't be built and verified in one small step go through game-designer first; it is expected to push back on scope. Keep tasks small and discrete.
+
+Self-improvement (skill gaps): when a task has no matching godot-* skill — godot-dev reports the gap, or the orchestrator sees it before dispatching — the orchestrator spawns **skill-researcher** (Opus). It searches the external skill library (GodotPrompter clone at `/tmp/GodotPrompter`; re-clone if missing), evaluates candidates in `.claude/skills/eval/<name>/` against project conventions, and asks the human to adopt or reject (same human-gate as game-designer). On adopt it rewrites — never copies — the skill into this project's skill format at `.claude/skills/godot-<name>/` (one canonical path, GDScript-only, MIT attribution) and registers it in the Skills list below. The eval copy is always deleted afterwards. We import only what a current task needs, never wholesale.
+
+Buy-vs-build (addons): when a request is a generic, solved-elsewhere system (dialogue, inventory, save/load, state machines, pathfinding, debug overlays…), the orchestrator spawns **addon-researcher** (Sonnet) BEFORE game-designer designs it from scratch. It searches for free, license-compatible Godot 4 addons (Asset Library, GitHub), writes the evaluation to `library/<slug>.md` — the durable catalog; it checks existing `library/` verdicts before re-researching — and asks the human to adopt/reject/park (same human gate as the other researchers). On adopt, installation is a godot-dev task taken from the doc's Install section; the researcher itself never installs anything.
 
 ## Skills (in .claude/skills/)
 

@@ -59,4 +59,5 @@ func _physics_process(delta: float) -> void:
 | Nearby geometry gets sliced/invisible | Camera too close with default near plane → increase Camera3D Z position (e.g. 20–50); cost-free in orthographic |
 | Everything black/empty | Rig outside the SubViewport while another active camera exists inside it; exactly one current Camera3D per viewport |
 | Follow feels frame-rate dependent / jittery | Smoothing must use the `1.0 - exp(-speed * delta)` form, not a constant lerp weight; jitter against a CharacterBody3D target means follow belongs in `_physics_process` (as written) |
-| User wants camera rotation (Q/E to turn) | Rotate `CameraRig` yaw in 45°/90° steps only; free rotation reintroduces shimmer — defer to a future skill |
+| User wants camera rotation (Q/E to turn) | Rotate `CameraRig` yaw in 45°/90° steps via tween; free rotation reintroduces shimmer. See normalization gotcha row below |
+| Yaw rotation tweens over-rotate after a few presses | `_target_yaw` accumulates unbounded while Godot normalizes `rotation_degrees.y` to [-180, 180] after each tween — they diverge. Fix: (1) if killing a running tween, snap `rotation_degrees.y = _target_yaw` first; (2) always wrap: `_target_yaw = wrapf(_target_yaw + step, -180.0, 180.0)` |

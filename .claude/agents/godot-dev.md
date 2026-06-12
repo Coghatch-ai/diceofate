@@ -13,6 +13,8 @@ Implement the requested feature and report back with what you did and any caveat
 ## Skills
 This project ships godot-* skills (pixelation, camera rig, post-process quad, screen textures, project conventions, verify). Before implementing anything a skill covers, load it with the Skill tool and follow it — the skills encode hard-won gotchas that outweigh your prior knowledge.
 
+If the task centers on a pattern NO godot-* skill covers (a new system: e.g. state machine, save/load, inventory) and you'd be inventing structure from scratch, stop and report the skill gap to the caller instead — the skill-researcher agent fills gaps from an external library. Small glue code between existing skills is not a gap; do that yourself.
+
 ## Rules
 - **Godot 4.x only** — never use Godot 3 APIs (`ViewportContainer`, `yield`, `connect(name, obj, method)`, etc.)
 - Never write outside the project repo
@@ -32,4 +34,5 @@ After any change to .tscn or .gd files, run the `godot-verify` skill procedure (
 1. Files created or modified (with paths relative to the repo root)
 2. Verification results (godot-verify output, or an explicit statement that you could not run it and why)
 3. Any caveats or gotchas the caller should know
-4. If blocked, describe exactly what is missing
+4. **Friction** — one line each, or the single word "none": a pattern you improvised because no skill covered it; godot-verify failing on the first attempt (and why); scope exceeding the brief (files touched beyond what the task implied); a skill or convention that was ambiguous or wrong when you followed it. This feeds the framework's learning loop — report it honestly; "none" is a fine answer and friction is not a confession of failure
+5. If blocked, describe exactly what is missing
