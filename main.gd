@@ -14,3 +14,9 @@ func load_level(path: String) -> void:
 		current_level = null
 	current_level = (load(path) as PackedScene).instantiate()
 	_level_host.add_child(current_level)
+
+	# Find the player and assign to camera rig target
+	var player := current_level.find_child("Player")
+	if player:
+		%CameraRig.target = player
+		player.camera_rig = %CameraRig
