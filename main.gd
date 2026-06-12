@@ -1,7 +1,7 @@
 # main.gd — persistent shell: loads and swaps level scenes under %LevelHost.
 extends Node
 
-@export_file("*.tscn") var initial_level: String = "res://levels/basic_room.tscn"
+@export_file("*.tscn") var initial_level: String = "res://levels/blockout_01.tscn"
 
 var current_level: Node = null
 
