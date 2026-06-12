@@ -12,7 +12,7 @@ entities/         one scene+script per entity, entities/<name>/
 levels/           level scenes
 shaders/post/     post-process shaders
 resources/        .tres resources
-tools/            framework tooling (verify_scene.gd) — not game code
+tools/            framework tooling (validate.sh, verify_scene.gd, verify_render.gd) — not game code
 .claude/
   agents/         game-designer (Opus), godot-dev (Sonnet), godot-refactor (Haiku), skill-researcher (Opus), bug-triage (Opus), addon-researcher (Sonnet)
   skills/         godot-* skills, scoped to this project (skills/eval/ is researcher scratch — never committed)
@@ -44,8 +44,9 @@ Buy-vs-build (addons): when a request is a generic, solved-elsewhere system (dia
 - `godot-camera-rig` — orthographic fixed-angle follow camera
 - `godot-postprocess-quad` — fullscreen quad rig for screen-space effects
 - `godot-screen-textures` — depth/normal/screen texture reading in shaders
-- `godot-verify` — 3-layer verification: property names, smoke run, render check (mandatory after scene/script changes); validators at `tools/verify_scene.gd` + `tools/verify_render.gd`
+- `godot-verify` — 3-layer verification: property names, smoke run, render check (mandatory after scene/script changes); validators at `tools/verify_scene.gd` + `tools/verify_render.gd`; layers 1–2 also run inside `tools/validate.sh`
 - `godot-composition` — composition over inheritance ("SOLID for Godot"): component nodes, signals up / calls down, and the rules for when to modularize (and when not to)
+- `godot-code-rules` — strict GDScript rules (typing, warnings-as-errors, size caps, headers, @warning_ignore/SEAM policy) + the `tools/validate.sh` gate; load before touching any .gd
 
 ## Project conventions
 
@@ -55,12 +56,12 @@ Buy-vs-build (addons): when a request is a generic, solved-elsewhere system (dia
 - Folders: scenes/, entities/, levels/, shaders/post/, resources/.
 - Naming: node names PascalCase; files and folders snake_case; one scene per entity in entities/<name>/.
 - Input actions: move_left, move_right, move_forward, move_back, jump.
-- Shader contract: single post-process shader at res://shaders/post/post_process.gdshader; helpers get_linear_depth(), get_normal() (skill: godot-screen-textures).
+- Shader contract: skills godot-postprocess-quad (single quad + shader file) and godot-screen-textures (helper names get_linear_depth(), get_normal()).
 - Entry point: `res://main.tscn` + `res://main.gd` at the project root (set as `run/main_scene`). F5 launches Main; F6 launches individual scenes. No generic `scenes/` folder — every scene lives in its domain folder (levels/, entities/, …); only the entry point sits at root.
-- Level loading: levels are instanced and freed under `Main/LevelHost` (a plain Node, `unique_name_in_owner = true`). Never use `change_scene_to_file()` — it replaces the whole tree and destroys the persistent shell.
-- Level swap uses `free()` (synchronous), not `queue_free()`. `queue_free()` leaves both levels alive for one frame, causing camera and WorldEnvironment conflicts.
-- Migration note: when godot-3d-pixelation runs, `LevelHost` must move inside `SubViewportContainer → SubViewport` under Main. The script's `%LevelHost` unique-name reference will still resolve correctly after the move.
-- Hand-authored .tscn: NEVER write `transform = Transform3D(...)` matrices by hand — a transposed basis is still a valid rotation and renders a black screen with zero errors (this happened). Use `position = Vector3(...)` and `rotation_degrees = Vector3(...)` properties instead; both load correctly in .tscn.
-- An Environment with `background_mode = 2` (Sky) MUST have an actual Sky resource (e.g. ProceduralSkyMaterial) attached, or the background renders black.
+- Level loading: levels swap under `Main/LevelHost`; never `change_scene_to_file()` — loading rules, free()-vs-queue_free(), and the pixelation migration note live in skill godot-main-scene.
+- Hand-authoring .tscn files: rules (Transform3D ban, Sky resource requirement) live in skill godot-verify, "Hand-authoring .tscn rules".
 - Composition over inheritance (skill: godot-composition): entities = engine-node base + component children; signals up, calls down; shared components in entities/components/<name>/. Modularize ON DEMAND only — second consumer, two-jobs script, or a design doc naming a mechanic reusable. Mechanical extractions go to the godot-refactor agent (Haiku), which must verify before AND after.
-- Rule for AI sessions: read this section before structural changes; record new project-wide decisions here, not in chat.
+- Code rules: strict typed GDScript (warnings-as-errors in project.godot + gdlint/gdformat via gdlintrc) — skill godot-code-rules; gate: `tools/validate.sh`, mandatory before reporting any .gd/.tscn change. Never weaken the warning levels or lint caps to pass the gate.
+- Rule for AI sessions: read this section before structural changes; load godot-code-rules before writing or editing any .gd file; record new project-wide decisions here, not in chat.
+- Active roadmap: docs/roadmap/first_game.md. Before starting any task, identify which phase it belongs to. Refuse tasks in the 'out of scope' list or in phases after an unpassed gate.
+- Roadmap status ownership: only the verifier updates phase status (✅/🔨/📋) and gate pass/fail, only after running that phase's gate check in the editor. Builders never self-mark phases done.

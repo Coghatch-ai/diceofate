@@ -44,7 +44,8 @@ This skill is the keystone: it makes project-wide decisions once, applies them t
 - Naming: node names PascalCase; files and folders snake_case; one scene per entity in entities/<name>/.
 - Input actions: move_left, move_right, move_forward, move_back, jump.
 - Shader contract: single post-process shader at res://shaders/post/post_process.gdshader; helpers get_linear_depth(), get_normal() (skill: godot-screen-textures).
-- Rule for AI sessions: read this section before structural changes; record new project-wide decisions here, not in chat.
+- Code rules: strict typed GDScript (skill: godot-code-rules) — warnings-as-errors, gdlint/gdformat, validate gate.
+- Rule for AI sessions: read this section before structural changes; load godot-code-rules before writing or editing any .gd file; record new project-wide decisions here, not in chat.
 ```
 
 ## Verification checklist

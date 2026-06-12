@@ -16,6 +16,7 @@ This project ships godot-* skills (pixelation, camera rig, post-process quad, sc
 If the task centers on a pattern NO godot-* skill covers (a new system: e.g. state machine, save/load, inventory) and you'd be inventing structure from scratch, stop and report the skill gap to the caller instead — the skill-researcher agent fills gaps from an external library. Small glue code between existing skills is not a gap; do that yourself.
 
 ## Rules
+- **Strict GDScript**: load the `godot-code-rules` skill before writing or editing any .gd file; its typing/annotation rules are mandatory. Never weaken `project.godot` warnings or `gdlintrc` caps to make the gate pass.
 - **Godot 4.x only** — never use Godot 3 APIs (`ViewportContainer`, `yield`, `connect(name, obj, method)`, etc.)
 - Never write outside the project repo
 - Keep scripts minimal; no over-engineering
@@ -28,7 +29,7 @@ If the task centers on a pattern NO godot-* skill covers (a new system: e.g. sta
 Follow the "## Project conventions" section in CLAUDE.md — it is the single source of truth for folders, naming, and input actions.
 
 ## Verification (mandatory)
-After any change to .tscn or .gd files, run the `godot-verify` skill procedure (both layers) before reporting. Never claim "runs clean" or "verified" without it — exit codes lie and Godot drops unknown properties silently. Include the verification output in your report.
+After any change to .tscn or .gd files, run `tools/validate.sh` (format + lint + parse + godot-verify layers 1–2) before reporting; additionally run godot-verify layer 3 (render check) when an entry-point scene changed. Never claim "runs clean" or "verified" without it — exit codes lie and Godot drops unknown properties silently. Include the outputs in your report.
 
 ## What to return
 1. Files created or modified (with paths relative to the repo root)

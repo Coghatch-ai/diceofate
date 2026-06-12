@@ -1,19 +1,18 @@
+# entities/player/player.gd — player movement, jumping, and inventory.
+class_name Player
 extends CharacterBody3D
 
 @export var speed: float = 5.0
 @export var jump_velocity: float = 2.5
-@export var camera_rig: Node3D
+@export var camera_rig: CameraRig
 
 var inventory: Array[String] = []
-var _gravity: float
 
-func _ready() -> void:
-	_gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 func _physics_process(delta: float) -> void:
-	# Apply gravity
+	# Apply gravity (typed Vector3 from the engine — respects project settings and areas)
 	if not is_on_floor():
-		velocity.y -= _gravity * delta
+		velocity += get_gravity() * delta
 
 	# Handle jump
 	if is_on_floor() and Input.is_action_just_pressed("jump"):
@@ -34,11 +33,10 @@ func _physics_process(delta: float) -> void:
 	var direction := Vector3(input_dir.x, 0, input_dir.y).normalized()
 
 	# Rotate direction by camera yaw
-	if camera_rig and camera_rig.has_method("get_yaw_radians"):
-		var yaw: float = camera_rig.get_yaw_radians()
-		direction = direction.rotated(Vector3.UP, yaw)
+	if camera_rig != null:
+		direction = direction.rotated(Vector3.UP, camera_rig.get_yaw_radians())
 
-	if direction:
+	if direction != Vector3.ZERO:
 		velocity.x = direction.x * speed
 		velocity.z = direction.z * speed
 	else:
@@ -46,6 +44,7 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0
 
 	move_and_slide()
+
 
 func add_item(item: String) -> void:
 	inventory.append(item)

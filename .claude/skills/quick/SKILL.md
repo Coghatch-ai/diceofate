@@ -20,13 +20,13 @@ If any check fails, do not dispatch. Report in one line *which* check failed and
 
 ## Dispatch (on pass)
 
-Spawn **godot-dev** with: the task in 1–2 sentences, which godot-* skills to load, the relevant `design/` doc if one applies, and the reminder that godot-verify is mandatory.
+Spawn **godot-dev** with: the task in 1–2 sentences, which godot-* skills to load (always include godot-code-rules when the task touches .gd files), the relevant `design/` doc if one applies, and the reminder that the `tools/validate.sh` gate is mandatory.
 
 ## Report (always this shape)
 
 - **Result** — what changed, player-visible, one sentence
 - **Files** — paths touched
-- **Verify** — godot-verify outcome, quoted from godot-dev's report
+- **Verify** — `tools/validate.sh` outcome (plus render check when run), quoted from godot-dev's report
 - **Friction** — from godot-dev's Friction line, or "none"
 
 End by telling the user what to look at on F5.

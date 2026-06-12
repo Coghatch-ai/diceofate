@@ -1,0 +1,25 @@
+root = true
+
+[*]
+charset = utf-8
+
+# GDScript and Godot text formats are tab-indented (gdformat is opinionated,
+# tab-only). This is a deliberate, documented deviation from the 2-space
+# style used in the TS projects. See the godot-code-rules skill.
+[*.gd]
+indent_style = tab
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{tres,tscn,godot,import,cfg}]
+indent_style = tab
+end_of_line = lf
+insert_final_newline = true
+
+[*.{md,yml,yaml,json}]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
