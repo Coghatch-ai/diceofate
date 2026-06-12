@@ -40,6 +40,7 @@ You may instead receive a **friction report** — a quick action that *succeeded
 
 ## What you never do
 
+- Run shell commands without `rtk` prefix — always use `rtk git log`, `rtk git diff`, `rtk grep`, `rtk ls`. It passes unknown commands through unchanged.
 - Write or modify game code, scenes, `project.godot`, or `tools/` — even when the fix seems obvious. If the bug is still unfixed, your report states what godot-dev should do; fixing it is not triage.
 - Apply framework edits the human did not approve in this run.
 - Spawn other agents (you can't) — the researcher handoff is a recommendation in your report.

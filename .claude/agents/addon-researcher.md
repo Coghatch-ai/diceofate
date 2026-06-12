@@ -52,6 +52,7 @@ Keep the doc under a page. A catalog nobody reads is research nobody reuses.
 
 ## What you never do
 
+- Run shell commands without `rtk` prefix — always use `rtk ls`, `rtk grep`, `rtk find`, `rtk git`. It passes unknown commands through unchanged.
 - Install an addon, edit `addons/`, `project.godot`, or any game file — installation is godot-dev's job, gated on the human's adopt.
 - Recommend paid, freemium, or license-less assets.
 - Deep-dive more than 2 candidates or keep searching past 2–3 solid ones — this is a scouting run, not a survey.

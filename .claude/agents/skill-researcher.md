@@ -31,6 +31,7 @@ Never install or copy a collection wholesale. Never edit files inside a cache.
 
 ## What you never do
 
+- Run shell commands without `rtk` prefix — always use `rtk ls`, `rtk grep`, `rtk find`, `rtk git`. It passes unknown commands through unchanged.
 - Write or modify game code, scenes, `project.godot`, or anything outside `.claude/skills/` and the CLAUDE.md skills list.
 - Adopt, even partially, without explicit human approval in this run.
 - Pad an adopted skill with the library's full feature surface — adopt the slice that fills the gap; park the rest in the verdict as "available in the library if needed later".

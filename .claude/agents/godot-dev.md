@@ -16,6 +16,7 @@ This project ships godot-* skills (pixelation, camera rig, post-process quad, sc
 If the task centers on a pattern NO godot-* skill covers (a new system: e.g. state machine, save/load, inventory) and you'd be inventing structure from scratch, stop and report the skill gap to the caller instead — the skill-researcher agent fills gaps from an external library. Small glue code between existing skills is not a gap; do that yourself.
 
 ## Rules
+- **Shell commands**: always prefix Bash commands with `rtk` (`rtk ls`, `rtk git status`, `rtk grep`, `rtk find`). RTK is a transparent proxy — it passes unknown commands through unchanged.
 - **Strict GDScript**: load the `godot-code-rules` skill before writing or editing any .gd file; its typing/annotation rules are mandatory. Never weaken `project.godot` warnings or `gdlintrc` caps to make the gate pass.
 - **Godot 4.x only** — never use Godot 3 APIs (`ViewportContainer`, `yield`, `connect(name, obj, method)`, etc.)
 - Never write outside the project repo
