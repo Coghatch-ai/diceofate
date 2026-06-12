@@ -1,0 +1,101 @@
+[gd_scene load_steps=15 format=3 uid="uid://bl8yqkv3y7v0o"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(8, 0.2, 8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.4, 0.4, 0.35, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(8, 0.2, 8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+size = Vector3(8, 3, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.6, 0.55, 0.5, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bed"]
+size = Vector3(2, 0.5, 1.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bed"]
+albedo_color = Color(0.3, 0.5, 0.7, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wardrobe"]
+size = Vector3(1.5, 2.5, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wardrobe"]
+albedo_color = Color(0.5, 0.3, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_chair"]
+size = Vector3(0.6, 0.8, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_chair"]
+albedo_color = Color(0.7, 0.3, 0.3, 1)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+
+[sub_resource type="Sky" id="Sky_sky"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_env"]
+background_mode = 2
+sky = SubResource("Sky_sky")
+ambient_light_source = 3
+
+[node name="BasicRoom" type="Node3D"]
+
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.1, 0)
+
+[node name="FloorMesh" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="WallNorth" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.5, -4)
+mesh = SubResource("BoxMesh_wall")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="WallSouth" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.5, 4)
+mesh = SubResource("BoxMesh_wall")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="WallEast" type="MeshInstance3D" parent="."]
+position = Vector3(4, 1.5, 0)
+rotation_degrees = Vector3(0, 90, 0)
+mesh = SubResource("BoxMesh_wall")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="WallWest" type="MeshInstance3D" parent="."]
+position = Vector3(-4, 1.5, 0)
+rotation_degrees = Vector3(0, 90, 0)
+mesh = SubResource("BoxMesh_wall")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="Bed" type="MeshInstance3D" parent="."]
+position = Vector3(-3, 0.25, -3)
+mesh = SubResource("BoxMesh_bed")
+surface_material_override/0 = SubResource("StandardMaterial3D_bed")
+
+[node name="Wardrobe" type="MeshInstance3D" parent="."]
+position = Vector3(3, 1.25, -3)
+mesh = SubResource("BoxMesh_wardrobe")
+surface_material_override/0 = SubResource("StandardMaterial3D_wardrobe")
+
+[node name="Chair" type="MeshInstance3D" parent="."]
+position = Vector3(1, 0.4, 1)
+mesh = SubResource("BoxMesh_chair")
+surface_material_override/0 = SubResource("StandardMaterial3D_chair")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+position = Vector3(0, 5, 0)
+rotation_degrees = Vector3(-45, -30, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_env")

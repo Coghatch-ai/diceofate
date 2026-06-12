@@ -18,8 +18,8 @@ The Godot binary on this machine: `/Applications/Godot.app/Contents/MacOS/Godot`
 ## Layer 1 — property validation (catches silent drops)
 
 ```bash
-$GODOT --headless --path . --script tools/verify_scene.gd                      # all scenes
-$GODOT --headless --path . --script tools/verify_scene.gd -- scenes/main.tscn  # one scene
+$GODOT --headless --path . --script tools/verify_scene.gd                            # all scenes
+$GODOT --headless --path . --script tools/verify_scene.gd -- levels/basic_room.tscn  # one scene
 ```
 
 `tools/verify_scene.gd` instantiates each scene and checks every property assignment in the `.tscn` text against the live object's `get_property_list()`. Output:

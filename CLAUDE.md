@@ -13,7 +13,7 @@ shaders/post/     post-process shaders
 resources/        .tres resources
 tools/            framework tooling (verify_scene.gd) — not game code
 .claude/
-  agents/         game-designer (Opus), godot-dev (Sonnet) — own context windows
+  agents/         game-designer (Opus), godot-dev (Sonnet), godot-refactor (Haiku)
   skills/         godot-* skills, scoped to this project
 ```
 
@@ -34,6 +34,7 @@ This is a framework/workflow to speed up development — not a vibe-coding tool.
 - `godot-postprocess-quad` — fullscreen quad rig for screen-space effects
 - `godot-screen-textures` — depth/normal/screen texture reading in shaders
 - `godot-verify` — 3-layer verification: property names, smoke run, render check (mandatory after scene/script changes); validators at `tools/verify_scene.gd` + `tools/verify_render.gd`
+- `godot-composition` — composition over inheritance ("SOLID for Godot"): component nodes, signals up / calls down, and the rules for when to modularize (and when not to)
 
 ## Project conventions
 
@@ -50,4 +51,5 @@ This is a framework/workflow to speed up development — not a vibe-coding tool.
 - Migration note: when godot-3d-pixelation runs, `LevelHost` must move inside `SubViewportContainer → SubViewport` under Main. The script's `%LevelHost` unique-name reference will still resolve correctly after the move.
 - Hand-authored .tscn: NEVER write `transform = Transform3D(...)` matrices by hand — a transposed basis is still a valid rotation and renders a black screen with zero errors (this happened). Use `position = Vector3(...)` and `rotation_degrees = Vector3(...)` properties instead; both load correctly in .tscn.
 - An Environment with `background_mode = 2` (Sky) MUST have an actual Sky resource (e.g. ProceduralSkyMaterial) attached, or the background renders black.
+- Composition over inheritance (skill: godot-composition): entities = engine-node base + component children; signals up, calls down; shared components in entities/components/<name>/. Modularize ON DEMAND only — second consumer, two-jobs script, or a design doc naming a mechanic reusable. Mechanical extractions go to the godot-refactor agent (Haiku), which must verify before AND after.
 - Rule for AI sessions: read this section before structural changes; record new project-wide decisions here, not in chat.

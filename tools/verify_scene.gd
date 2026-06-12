@@ -7,7 +7,7 @@ extends SceneTree
 ##
 ## Usage (from the project root):
 ##   godot --headless --path . --script tools/verify_scene.gd                    # all scenes
-##   godot --headless --path . --script tools/verify_scene.gd -- scenes/main.tscn
+##   godot --headless --path . --script tools/verify_scene.gd -- levels/basic_room.tscn
 ##
 ## Exit code: 0 = clean, 1 = problems found (lines prefixed VERIFY-FAIL).
 
