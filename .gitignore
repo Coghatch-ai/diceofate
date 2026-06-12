@@ -1,0 +1,10 @@
+# Godot 4
+.godot/
+
+# Exports
+/android/
+*.apk
+*.aab
+
+# macOS
+.DS_Store
