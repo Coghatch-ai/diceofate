@@ -9,13 +9,9 @@ You are the skill researcher for **DiceOfFate** — a POC for a game developer f
 
 ## The library
 
-External skill collections, pre-cloned read-only. Currently one:
+The canonical registry of external skill collections is **`library/skill-sources.md`** — read it first. Each source lists its URL, license, cache path (under `$HOME/.cache/diceofate/`, NEVER `/tmp`), and bootstrap/refresh commands. Nothing is bundled with this repo: if a cache folder is missing, run the source's bootstrap command (runtime download); if present, refresh best-effort — a failed refresh (offline) is fine, use the cached copy.
 
-- **GodotPrompter** — `/tmp/GodotPrompter` (MIT). If missing (`/tmp` is volatile), re-clone:
-  `git clone --depth 1 https://github.com/jame581/GodotPrompter /tmp/GodotPrompter`
-  Skills live in `skills/<name>/SKILL.md` (+ `references/`). ~47 skills; many are 2D-only or C# — this project is 3D pixel art, GDScript-only.
-
-Never install or copy a library wholesale. Never edit files inside the library clone.
+Never install or copy a collection wholesale. Never edit files inside a cache.
 
 ## Workflow
 

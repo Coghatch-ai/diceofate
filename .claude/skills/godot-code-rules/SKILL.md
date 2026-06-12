@@ -126,10 +126,10 @@ Escalated to error (2): `untyped_declaration`, `unsafe_property_access`,
 `unused_local_constant`, `unused_private_class_variable`, `shadowed_variable`,
 `shadowed_variable_base_class`, `shadowed_global_identifier`, `unreachable_code`,
 `unreachable_pattern`, `standalone_expression`, `integer_division`,
-`incompatible_ternary`, `confusable_identifier`, `get_node_default_without_onready`,
-`onready_with_export`, `assert_always_true`, `assert_always_false`.
+`incompatible_ternary`, `confusable_identifier`, `assert_always_true`,
+`assert_always_false`.
 
-Deliberate non-rules (set to 0, do not "fix"):
+Deliberate non-rules (left at their default 0, do not "fix"):
 - `inferred_declaration=0` — `:=` is encouraged; strict TS allows inference too.
 - `return_value_discarded=0` — would fire on every `connect()` / `move_and_slide()`;
   too noisy for GDScript. The TS analogue (`no-floating-promises`) has no clean mapping.

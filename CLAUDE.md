@@ -7,7 +7,7 @@ POC for a game developer framework using Godot 4.x. The goal is to build small t
 ```
 main.tscn         entry point + main.gd, at project root (skill: godot-main-scene)
 design/           design docs — one per agreed slice (written by game-designer only)
-library/          addon research catalog — one doc per investigated need (written by addon-researcher only)
+library/          warm knowledge, never auto-loaded: addon research catalog (addon-researcher) + skill-sources.md (external skill collection registry)
 entities/         one scene+script per entity, entities/<name>/
 levels/           level scenes
 shaders/post/     post-process shaders
@@ -32,7 +32,7 @@ Bug learning loop: after a bug is found (and usually fixed by godot-dev), the or
 
 This is a framework/workflow to speed up development — not a vibe-coding tool. Requests that can't be built and verified in one small step go through game-designer first; it is expected to push back on scope. Keep tasks small and discrete.
 
-Self-improvement (skill gaps): when a task has no matching godot-* skill — godot-dev reports the gap, or the orchestrator sees it before dispatching — the orchestrator spawns **skill-researcher** (Opus). It searches the external skill library (GodotPrompter clone at `/tmp/GodotPrompter`; re-clone if missing), evaluates candidates in `.claude/skills/eval/<name>/` against project conventions, and asks the human to adopt or reject (same human-gate as game-designer). On adopt it rewrites — never copies — the skill into this project's skill format at `.claude/skills/godot-<name>/` (one canonical path, GDScript-only, MIT attribution) and registers it in the Skills list below. The eval copy is always deleted afterwards. We import only what a current task needs, never wholesale.
+Self-improvement (skill gaps): when a task has no matching godot-* skill — godot-dev reports the gap, or the orchestrator sees it before dispatching — the orchestrator spawns **skill-researcher** (Opus). It searches the external skill collections registered in `library/skill-sources.md` (downloaded at runtime to `~/.cache/diceofate/` on first use — never bundled, never in /tmp), evaluates candidates in `.claude/skills/eval/<name>/` against project conventions, and asks the human to adopt or reject (same human-gate as game-designer). On adopt it rewrites — never copies — the skill into this project's skill format at `.claude/skills/godot-<name>/` (one canonical path, GDScript-only, MIT attribution) and registers it in the Skills list below. The eval copy is always deleted afterwards. We import only what a current task needs, never wholesale.
 
 Buy-vs-build (addons): when a request is a generic, solved-elsewhere system (dialogue, inventory, save/load, state machines, pathfinding, debug overlays…), the orchestrator spawns **addon-researcher** (Sonnet) BEFORE game-designer designs it from scratch. It searches for free, license-compatible Godot 4 addons (Asset Library, GitHub), writes the evaluation to `library/<slug>.md` — the durable catalog; it checks existing `library/` verdicts before re-researching — and asks the human to adopt/reject/park (same human gate as the other researchers). On adopt, installation is a godot-dev task taken from the doc's Install section; the researcher itself never installs anything.
 
