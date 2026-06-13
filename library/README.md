@@ -14,6 +14,15 @@ Contents:
   parked) is research we don't repeat. Doc template lives in
   `.claude/agents/addon-researcher.md`. The framework UI lists this folder in the
   sidebar with the verdict of each doc.
+- **Transcript digests** (`transcripts/<slug>.md`) — one digest per saved video
+  transcript, written by the **transcript-researcher** agent. When we're about to build
+  in a domain a transcript covers, the video's main points are distilled once, verified
+  against our stack, and mapped to what we already know — so a 40KB transcript becomes a
+  one-page checked list of "covered / partial / gap" instead of a re-read. Raw
+  transcripts are dropped into the project's `transcripts/` folder (the UI can create
+  them there); once harvested the raw moves to `transcripts/archive/` (kept as the
+  full-text backup) and the distilled digest lands here. The template lives in
+  `.claude/agents/transcript-researcher.md`.
 - **[skill-sources.md](skill-sources.md)** — registry of external skill collections used
   by the **skill-researcher** agent. These are never bundled with the repo; they are
   downloaded at runtime to a per-user cache on first use. The registry is the canonical

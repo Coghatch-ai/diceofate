@@ -7,14 +7,15 @@ POC for a game developer framework using Godot 4.x. The goal is to build small t
 ```
 main.tscn         entry point + main.gd, at project root (skill: godot-main-scene)
 design/           design docs — one per agreed slice (written by game-designer only)
-library/          warm knowledge, never auto-loaded: addon research catalog (addon-researcher) + skill-sources.md (external skill collection registry)
+transcripts/      raw video transcript drop zone (input for transcript-researcher); harvested raws move to transcripts/archive/ (full-text backup, kept) — the UI can create files here
+library/          warm knowledge, never auto-loaded: addon research catalog (addon-researcher) + skill-sources.md (external skill collection registry) + transcripts/ (durable transcript digests, transcript-researcher)
 entities/         one scene+script per entity, entities/<name>/
 levels/           level scenes
 shaders/post/     post-process shaders
 resources/        .tres resources
 tools/            framework tooling (validate.sh, verify_scene.gd, verify_render.gd) — not game code
 .claude/
-  agents/         game-designer (Opus), godot-dev (Sonnet), godot-refactor (Haiku), skill-researcher (Opus), bug-triage (Opus), addon-researcher (Sonnet)
+  agents/         game-designer (Opus), godot-dev (Sonnet), godot-refactor (Haiku), skill-researcher (Opus), bug-triage (Opus), addon-researcher (Sonnet), transcript-researcher (Opus)
   skills/         godot-* skills, scoped to this project (skills/eval/ is researcher scratch — never committed)
 ```
 
@@ -24,7 +25,7 @@ Pipeline: idea → **game-designer** (Opus — interviews the user, cuts scope, 
 
 Quick path: a request may skip the designer ONLY if all four checks pass — covered by existing skills/design docs, ~one entity touched, observable in one F5 run, no new conventions/input actions. Entry point is the `/quick` skill, which encodes the check, the godot-dev dispatch, and the report shape (Result / Files / Verify / Friction). godot-dev always reports **friction** (improvised pattern, first-try verify failure, scope overrun, ambiguous guidance); non-empty friction → the orchestrator offers bug-triage (ask, never auto-run — same gate as bugs).
 
-Discoverability: the user may not know the framework's entry points exist — surface them in replies instead of routing silently. When a request matches a route, name it in one line before (or while) acting: small concrete change in prose → "this fits `/quick`"; vague or multi-step feature → game-designer; a bug just surfaced or was fixed → offer bug-triage; a pattern no skill covers → skill-researcher; a generic system the ecosystem has surely solved → addon-researcher. Suggest, don't lecture: one line, at most one route per reply, and skip it when the user already invoked the route themselves.
+Discoverability: the user may not know the framework's entry points exist — surface them in replies instead of routing silently. When a request matches a route, name it in one line before (or while) acting: small concrete change in prose → "this fits `/quick`"; vague or multi-step feature → game-designer; a bug just surfaced or was fixed → offer bug-triage; a pattern no skill covers → skill-researcher; a generic system the ecosystem has surely solved → addon-researcher; about to build in a domain a saved transcript covers → transcript-researcher. Suggest, don't lecture: one line, at most one route per reply, and skip it when the user already invoked the route themselves.
 
 Role boundary: the orchestrator (main session) investigates and updates framework documentation only (`.claude/`, CLAUDE.md); ALL changes to game/project files (scenes, scripts, project.godot, tools) go through the agents. When something breaks, the deliverable is the framework fix, not a hand-patched file.
 
@@ -36,6 +37,8 @@ Self-improvement (skill gaps): when a task has no matching godot-* skill — god
 
 Buy-vs-build (addons): when a request is a generic, solved-elsewhere system (dialogue, inventory, save/load, state machines, pathfinding, debug overlays…), the orchestrator spawns **addon-researcher** (Sonnet) BEFORE game-designer designs it from scratch. It searches for free, license-compatible Godot 4 addons (Asset Library, GitHub), writes the evaluation to `library/<slug>.md` — the durable catalog; it checks existing `library/` verdicts before re-researching — and asks the human to adopt/reject/park (same human gate as the other researchers). On adopt, installation is a godot-dev task taken from the doc's Install section; the researcher itself never installs anything.
 
+Source-driven harvest (transcripts): the other loops are *need-driven* — they start when we hit a gap. This one is *source-driven*: a human (or the web UI) drops a raw video transcript into the `transcripts/` folder, and when we're about to build in a domain it covers, the orchestrator spawns **transcript-researcher** (Opus) FIRST. It distills the video's main points, verifies each against our stack, checks whether we already have it learned (skills/conventions/`design/`/`library/`), writes a durable digest to `library/transcripts/<slug>.md`, then moves the consumed raw to `transcripts/archive/` (the digest is the distilled record; the archived raw is the kept full-text backup — disposing of an archived raw is a separate, manual decision). It returns the genuine gaps as recommendations. It is the front of the funnel that feeds skill-researcher — it never adopts a skill or writes game code; the orchestrator dispatches the recommended skill-researcher / addon-researcher / game-designer follow-up (same human gate). A gap it surfaces is a recommendation, not an action.
+
 ## Skills (in .claude/skills/)
 
 - `godot-project-conventions` — run FIRST in any new setup; records conventions here in CLAUDE.md
@@ -44,6 +47,7 @@ Buy-vs-build (addons): when a request is a generic, solved-elsewhere system (dia
 - `godot-camera-rig` — orthographic fixed-angle follow camera
 - `godot-postprocess-quad` — fullscreen quad rig for screen-space effects
 - `godot-screen-textures` — depth/normal/screen texture reading in shaders
+- `godot-pixel-lighting` — pixel-readability-first lighting: hard sun shadows (normal-bias tuned), Sky-ambient balance, Filmic tonemap+exposure on the SubViewport Environment (no ACES/AgX/auto-exposure/SSAO)
 - `godot-verify` — 3-layer verification: property names, smoke run, render check (mandatory after scene/script changes); validators at `tools/verify_scene.gd` + `tools/verify_render.gd`; layers 1–2 also run inside `tools/validate.sh`
 - `godot-composition` — composition over inheritance ("SOLID for Godot"): component nodes, signals up / calls down, and the rules for when to modularize (and when not to)
 - `godot-code-rules` — strict GDScript rules (typing, warnings-as-errors, size caps, headers, @warning_ignore/SEAM policy) + the `tools/validate.sh` gate; load before touching any .gd
