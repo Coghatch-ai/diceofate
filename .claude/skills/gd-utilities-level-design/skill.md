@@ -1,6 +1,6 @@
 ---
 name: gd-utilities-level-design
-description: Game Design utilities — level-design interview principles for the level-designer agent. Distilled from theory (Langeskov/Lilford): verticality, space contrast, and shape variety. Use when starting a level-designer interview, before asking the user any scene questions, to ensure the brief captures variety and doesn't produce flat/boxy/monotonous blockouts.
+description: Game Design utilities — level-design interview principles for the level-designer agent. Distilled from theory (Langeskov/Lilford): verticality, space contrast, and shape variety. Use when starting a level-designer interview, before asking the user any scene questions, to establish the level's concept FIRST (what it is about) and then ensure the brief captures variety and doesn't produce flat/boxy/monotonous blockouts.
 ---
 
 # GD Utilities — Level Design Principles
@@ -8,6 +8,12 @@ description: Game Design utilities — level-design interview principles for the
 Distilled from: `library/transcripts/level-design-principles-langeskov.md`
 
 Three principles to bake into every level-designer interview. Ask one follow-up per principle — don't skip any, even for a small blockout. Small spaces can still be rich.
+
+---
+
+## 0. Concept first — before everything
+
+Never open with parameters. The **first** question is always *what the level is about* — the kind of space, the vibe, what the player does there — grounded in the layout you just read back. Get the overall idea before the name, the scale, or any principle below. Everything that follows is shaped by it: a crypt and a market hall want opposite verticality, contrast, and props. Do not guess the concept to save a question.
 
 ---
 
@@ -45,8 +51,9 @@ The draw-level grid constrains the *input tool*, not the *build output*. Door, w
 
 ## Apply-order
 
-Load this skill first, then run the interview. The three principles map to three extra questions woven into the existing interview order:
+Load this skill first, then run the interview. Concept comes before any parameter; the three principles map to three extra questions woven into the existing interview order:
 
+0. **Concept** (§0) — establish what the level is about FIRST, before name / scale / anything else.
 1. Scale → Wall height → **Verticality question** (§1)
 2. Door/window/item meaning → **Shape variety question** (§3, per tile code)
 3. Theme/colours → **Space contrast question** (§2)
