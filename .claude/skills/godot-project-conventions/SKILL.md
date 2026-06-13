@@ -62,3 +62,4 @@ This skill is the keystone: it makes project-wide decisions once, applies them t
 | Conventions section exists but conflicts with these defaults | Existing project decisions win; report differences, don't overwrite |
 | Project must export to web | Compatibility renderer forced → normal-based outline features unavailable; record the limitation in CLAUDE.md |
 | Input actions already exist with other names | Map skill names onto the existing ones in CLAUDE.md instead of duplicating actions |
+| Tab/Enter/arrow input action does nothing at runtime (verify passes) | Wrong `physical_keycode` integer. Non-printable keys use Godot's `KEY_*` values, which verify can't validate — only an F5 play-test catches it. KEY_TAB=4194306, KEY_ENTER=4194309, KEY_ESCAPE=4194305, KEY_SPACE=32; arrows L/U/R/D=4194319/4194320/4194321/4194322; modifiers SHIFT=4194325/CTRL=4194326/ALT=4194328. Printable letters/digits use the ASCII value (A=65, 0=48). |

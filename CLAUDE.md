@@ -59,7 +59,7 @@ Source-driven harvest (transcripts): the other loops are *need-driven* — they 
 - Camera: orthographic, fixed angle (skill: godot-camera-rig). Do not switch to perspective without flagging the texel-snapping consequence.
 - Folders: scenes/, entities/, levels/, shaders/post/, resources/.
 - Naming: node names PascalCase; files and folders snake_case; one scene per entity in entities/<name>/.
-- Input actions: move_left, move_right, move_forward, move_back, jump, cycle_level (Tab — cycles blockout levels via main.gd's load_level(); design: level-switcher.md).
+- Input actions: move_left, move_right, move_forward, move_back, jump, cycle_level (Tab — cycles basic_room → blockout_01 → blockout_02 via main.gd's load_level(); design: level-switcher.md).
 - Shader contract: skills godot-postprocess-quad (single quad + shader file) and godot-screen-textures (helper names get_linear_depth(), get_normal()).
 - Entry point: `res://main.tscn` + `res://main.gd` at the project root (set as `run/main_scene`). F5 launches Main; F6 launches individual scenes. No generic `scenes/` folder — every scene lives in its domain folder (levels/, entities/, …); only the entry point sits at root.
 - Level loading: levels swap under `Main/LevelHost`; never `change_scene_to_file()` — loading rules, free()-vs-queue_free(), and the pixelation migration note live in skill godot-main-scene.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://bl8yqkv3y7v0o"]
+[gd_scene load_steps=19 format=3 uid="uid://bl8yqkv3y7v0o"]
 
 [ext_resource type="PackedScene" uid="uid://bwxk8v5y3p2r1" path="res://entities/player/player.tscn" id="1"]
 [ext_resource type="PackedScene" path="res://entities/interactable/interactable.tscn" id="2"]
@@ -39,6 +39,9 @@ albedo_color = Color(0.5, 0.3, 0.2, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wardrobe"]
 size = Vector3(1.5, 2.5, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wardrobe_interact"]
+size = Vector3(2.5, 2.5, 2.0)
 
 [sub_resource type="BoxMesh" id="BoxMesh_chair"]
 size = Vector3(0.6, 0.8, 0.6)
@@ -136,6 +139,9 @@ shape = SubResource("BoxShape3D_wardrobe")
 [node name="InteractableArea" parent="Wardrobe" instance=ExtResource("3")]
 type = 0
 message_text = "Hello from the wardrobe"
+
+[node name="CollisionShape3D" parent="Wardrobe/InteractableArea" index="0"]
+shape = SubResource("BoxShape3D_wardrobe_interact")
 
 [node name="Chair" type="MeshInstance3D" parent="."]
 position = Vector3(1, 0.4, 1)

@@ -5,6 +5,6 @@
 /android/
 *.apk
 *.aab
-
+docs/
 # macOS
 .DS_Store

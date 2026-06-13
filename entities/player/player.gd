@@ -3,7 +3,7 @@ class_name Player
 extends CharacterBody3D
 
 @export var speed: float = 5.0
-@export var jump_velocity: float = 2.5
+@export var jump_velocity: float = 3
 @export var camera_rig: CameraRig
 
 var inventory: Array[String] = []

@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="PackedScene" uid="uid://bwxk8v5y3p2r1" path="res://entities/player/player.tscn" id="1"]
 
@@ -6,7 +6,7 @@
 size = Vector3(20, 0.2, 20)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.45, 0.55, 0.4, 1)
+albedo_color = Color(0.35, 0.45, 0.35, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(20, 0.2, 20)
@@ -15,7 +15,7 @@ size = Vector3(20, 0.2, 20)
 size = Vector3(20, 3, 0.4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_walls"]
-albedo_color = Color(0.55, 0.5, 0.65, 1)
+albedo_color = Color(0.5, 0.5, 0.65, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wall_ns"]
 size = Vector3(20, 3, 0.4)
@@ -27,22 +27,31 @@ size = Vector3(20, 3, 0.4)
 size = Vector3(20, 3, 0.4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_platform1"]
-size = Vector3(5, 0.5, 5)
+size = Vector3(4, 0.5, 4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_platform1"]
-albedo_color = Color(0.7, 0.6, 0.25, 1)
+albedo_color = Color(0.7, 0.55, 0.25, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_platform1"]
-size = Vector3(5, 0.5, 5)
+size = Vector3(4, 0.5, 4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_platform2"]
-size = Vector3(3, 3, 3)
+size = Vector3(4, 1.5, 4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_platform2"]
-albedo_color = Color(0.25, 0.5, 0.7, 1)
+albedo_color = Color(0.25, 0.6, 0.7, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_platform2"]
-size = Vector3(3, 3, 3)
+size = Vector3(4, 1.5, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_platform3"]
+size = Vector3(4, 3.0, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_platform3"]
+albedo_color = Color(0.7, 0.25, 0.3, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_platform3"]
+size = Vector3(4, 3.0, 4)
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 
@@ -53,11 +62,8 @@ sky_material = SubResource("ProceduralSkyMaterial_sky")
 background_mode = 2
 sky = SubResource("Sky_sky")
 ambient_light_source = 3
-ambient_light_energy = 1.0
-tonemap_mode = 3
-tonemap_exposure = 1.0
 
-[node name="Blockout01" type="Node3D"]
+[node name="Blockout02" type="Node3D"]
 
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.1, 0)
@@ -112,7 +118,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_walls")
 shape = SubResource("BoxShape3D_wall_ew")
 
 [node name="Platform1" type="StaticBody3D" parent="."]
-position = Vector3(-5, 0.25, -5)
+position = Vector3(-6, 0.25, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Platform1"]
 mesh = SubResource("BoxMesh_platform1")
@@ -122,7 +128,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_platform1")
 shape = SubResource("BoxShape3D_platform1")
 
 [node name="Platform2" type="StaticBody3D" parent="."]
-position = Vector3(5, 1.5, 5)
+position = Vector3(0, 0.75, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Platform2"]
 mesh = SubResource("BoxMesh_platform2")
@@ -131,18 +137,22 @@ surface_material_override/0 = SubResource("StandardMaterial3D_platform2")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Platform2"]
 shape = SubResource("BoxShape3D_platform2")
 
+[node name="Platform3" type="StaticBody3D" parent="."]
+position = Vector3(6, 1.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Platform3"]
+mesh = SubResource("BoxMesh_platform3")
+surface_material_override/0 = SubResource("StandardMaterial3D_platform3")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform3"]
+shape = SubResource("BoxShape3D_platform3")
+
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-45, -30, 0)
-light_color = Color(1, 0.95, 0.9, 1)
-light_energy = 1.0
 shadow_enabled = true
-shadow_bias = 0.05
-shadow_normal_bias = 1.0
-directional_shadow_mode = 2
-directional_shadow_max_distance = 50.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_env")
 
 [node name="Player" parent="." instance=ExtResource("1")]
-position = Vector3(0, 1, 0)
+position = Vector3(0, 1, -6)
