@@ -12,17 +12,25 @@ not a single addon verdict. Explicitly a prototype path: okay quality, fast, not
 A **local model** is `parked` (see bottom) until volume/consistency justifies the setup.
 
 This is the framework's answer when a task is **blocked on missing art** — the asset
-analogue of `addon-researcher` for missing systems. Surfaced in the web UI under the
-**Get Assets** tab; the loop also lives in `CLAUDE.md` → "Sourcing art assets".
+analogue of `addon-researcher` for missing systems. The **asset-advisor** agent is the
+specialist that drives it: it writes the tailored generation prompt (before) and verifies
+the uploaded PNG (after). Surfaced in the web UI under the **Get Assets** tab; the loop
+also lives in `CLAUDE.md` → "Sourcing art assets".
 
 ## The loop
 
-1. Pick a source + a prompt below (the Get Assets tab has copy-paste buttons).
-2. Generate, download the PNG, save to `assets/textures/<name>.png` (snake_case).
+1. Open **Get Assets** (the 🎨 button in the composer). It lists any open `Asset: <name>`
+   requests the orchestrator filed (each with a tailored generation prompt) alongside the
+   generators below. No open request? Use the ad-hoc upload (name it yourself).
+2. Generate the PNG on a source below, then **upload it in the modal** — the forge server
+   writes it to `assets/textures/<name>.png` (snake_case) and the upload asks the orchestrator
+   to run **asset-advisor** (verify-after), which checks the PNG and, on PASS, dispatches the
+   wiring to godot-dev (on FAIL it returns a corrected prompt to re-gen). (You can also drop
+   the file there by hand — then ask for an asset-advisor check.)
 3. Import in Godot: **Filter = Nearest, Mipmaps = Off** (pixel-art crispness). The grass
    shader already forces `filter_nearest` at the sampler; this import setting matters for
    `StandardMaterial3D` users (ground/tree).
-4. Wire it (a godot-dev task — not done by the orchestrator):
+4. Wire it (a godot-dev task — auto-dispatched on upload, not done by the orchestrator):
    - Grass → in `resources/grass_blade_material.tres`, bind the texture to
      `shader_parameter/blade_texture` and set `shader_parameter/use_texture = true`.
    - Tree / ground → replace the flat `StandardMaterial3D` albedo in

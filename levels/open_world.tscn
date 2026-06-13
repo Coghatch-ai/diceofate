@@ -1,0 +1,84 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bwxk8v5y3p2r1" path="res://entities/player/player.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://entities/grass_field/grass_field.tscn" id="2"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.35, 0.45, 0.25, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="BoxMesh" id="BoxMesh_trunk"]
+size = Vector3(0.3, 1.0, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_trunk"]
+shading_mode = 2
+albedo_color = Color(0.4, 0.25, 0.1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_canopy"]
+radius = 0.9
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_canopy"]
+shading_mode = 2
+albedo_color = Color(0.2, 0.55, 0.15, 1)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+
+[sub_resource type="Sky" id="Sky_sky"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_env"]
+background_mode = 2
+sky = SubResource("Sky_sky")
+ambient_light_source = 3
+ambient_light_energy = 1.0
+tonemap_mode = 3
+tonemap_exposure = 1.0
+
+[node name="OpenWorld" type="Node3D"]
+
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.1, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Tree" type="Node3D" parent="."]
+position = Vector3(5, 0, -5)
+
+[node name="Trunk" type="MeshInstance3D" parent="Tree"]
+position = Vector3(0, 0.5, 0)
+mesh = SubResource("BoxMesh_trunk")
+surface_material_override/0 = SubResource("StandardMaterial3D_trunk")
+
+[node name="Canopy" type="MeshInstance3D" parent="Tree"]
+position = Vector3(0, 1.75, 0)
+mesh = SubResource("SphereMesh_canopy")
+surface_material_override/0 = SubResource("StandardMaterial3D_canopy")
+
+[node name="GrassField" parent="." instance=ExtResource("2")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-45, -30, 0)
+light_color = Color(1, 0.95, 0.9, 1)
+light_energy = 1.0
+shadow_enabled = true
+shadow_bias = 0.05
+shadow_normal_bias = 1.0
+directional_shadow_mode = 2
+directional_shadow_max_distance = 50.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_env")
+
+[node name="Player" parent="." instance=ExtResource("1")]
+position = Vector3(0, 1, 0)

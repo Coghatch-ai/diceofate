@@ -8,7 +8,8 @@ var _levels: Array[String] = [
 	"res://levels/basic_room.tscn",
 	"res://levels/blockout_01.tscn",
 	"res://levels/blockout_02.tscn",
-	"res://levels/blockout_03.tscn"
+	"res://levels/blockout_03.tscn",
+	"res://levels/open_world.tscn"
 ]
 var _level_index: int = 0
 

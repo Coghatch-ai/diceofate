@@ -6,5 +6,8 @@
 *.apk
 *.aab
 docs/
+
+# Xenodot Forge task board (the orchestrator's working store)
+.xenodot/
 # macOS
 .DS_Store

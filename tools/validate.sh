@@ -4,10 +4,18 @@
 # Steps 4–5 are godot-verify layers 1–2; layer 3 (render) needs a display and
 # stays in the godot-verify skill.
 #
-# Usage (from the project root or anywhere):  tools/validate.sh
+# Usage (from the project root or anywhere):
+#   tools/validate.sh                              # runs main scene
+#   tools/validate.sh levels/open_world.tscn       # runs given scene
 # Exit 0 = gate passed ("validate: OK").
 set -u
 cd "$(dirname "$0")/.." || exit 1
+
+SCENE_ARG="${1:-}"
+SCENE_RES=""
+if [ -n "$SCENE_ARG" ]; then
+	SCENE_RES="res://$SCENE_ARG"
+fi
 
 GODOT="${GODOT:-/Applications/Godot.app/Contents/MacOS/Godot}"
 PATH="$HOME/.local/bin:$PATH"
@@ -60,7 +68,7 @@ fi
 echo "validate: PASS scenes"
 
 # 5. smoke run (godot-verify layer 2) — any ERROR/WARNING line = failure
-smoke=$("$GODOT" --headless --path . --quit-after 3 2>&1 | grep -E "SCRIPT ERROR|ERROR|WARNING")
+smoke=$("$GODOT" --headless --path . ${SCENE_RES:+"$SCENE_RES"} --quit-after 3 2>&1 | grep -E "SCRIPT ERROR|ERROR|WARNING")
 if [ -n "$smoke" ]; then
 	echo "$smoke"
 	fail "smoke"

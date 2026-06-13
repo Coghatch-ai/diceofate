@@ -1,4 +1,22 @@
 {
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Glob(**)",
+      "Grep(**)",
+      "Write(.claude/**)",
+      "Edit(.claude/**)",
+      "Write(library/**)",
+      "Edit(library/**)",
+      "Write(design/**)",
+      "Edit(design/**)",
+      "Write(docs/**)",
+      "Edit(docs/**)",
+      "Write(CLAUDE.md)",
+      "Edit(CLAUDE.md)",
+      "Bash(**)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {

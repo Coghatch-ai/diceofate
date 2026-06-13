@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/material/grass_billboard.gdshader" id="1"]
+
+[resource]
+shader = ExtResource("1")
+shader_parameter/blade_color = Color(0.25, 0.55, 0.2, 1)
+shader_parameter/alpha_scissor_threshold = 0.5
+shader_parameter/use_texture = false
