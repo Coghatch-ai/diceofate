@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://levels/guided_level.gd" id="1"]
+
+[node name="MainAppartment" type="Node3D"]
+
+[node name="GuidedLevel" type="Node3D" parent="."]
+script = ExtResource("1")
+grid_path = "res://levels/drawn/main_appartment.json"

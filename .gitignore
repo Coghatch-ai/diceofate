@@ -9,5 +9,7 @@ docs/
 
 # Xenodot Forge task board (the orchestrator's working store)
 .xenodot/
+# Claude Code per-project runtime data (memory/sessions) — not repo content
+.claude/projects/
 # macOS
 .DS_Store
