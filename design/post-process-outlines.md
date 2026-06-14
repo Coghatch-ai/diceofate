@@ -25,8 +25,8 @@
 - F5 run: basic_room geometry shows black outlines at cube edges and where floor meets walls. Outlines remain 1-pixel thick after window resize (they render at internal resolution).
 
 **Skill notes**
-- `godot-postprocess-quad`: follow exactly for MeshInstance3D setup (size 2x2, flip faces, cull margin 16384, POSITION snap in vertex()).
-- `godot-screen-textures`: use exact uniform names (`depth_texture`, `normal_texture`) and helpers (`get_linear_depth`, `get_normal`). Pass `INV_PROJECTION_MATRIX` to helper. Use `filter_nearest` for pixel-art.
+- `godot-screen-effects`: follow exactly for MeshInstance3D setup (size 2x2, flip faces, cull margin 16384, POSITION snap in vertex()).
+- `godot-screen-effects`: use exact uniform names (`depth_texture`, `normal_texture`) and helpers (`get_linear_depth`, `get_normal`). Pass `INV_PROJECTION_MATRIX` to helper. Use `filter_nearest` for pixel-art.
 - Renderer is Forward+ (confirmed in CLAUDE.md) so `hint_normal_roughness_texture` is available.
 - Quad lives inside SubViewport via the camera rig instance — effect applies before upscaling, which is correct.
 

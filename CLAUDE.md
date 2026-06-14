@@ -49,13 +49,10 @@ Drawing levels (blockout from a sketch): the web UI's **Draw level** tool (🗺)
 - `godot-main-scene` — Main scene entry point; owns the persistent shell, loads/swaps levels
 - `godot-3d-pixelation` — SubViewport low-res render setup
 - `godot-camera-rig` — orthographic fixed-angle follow camera
-- `godot-postprocess-quad` — fullscreen quad rig for screen-space effects
-- `godot-screen-textures` — depth/normal/screen texture reading in shaders
+- `godot-screen-effects` — screen-space post-process: fullscreen quad rig + depth/normal/screen buffer reads (outlines, edge detection, fog); `reference/` holds postprocess-quad + screen-textures
 - `godot-texture-import-pixel-art` — NEAREST filter + no-mipmap `.import` sidecars, `filter_nearest` shader hint, `texture_filter=1` trap, Make-Unique on imported mesh materials
 - `godot-pixel-lighting` — pixel-readability lighting: hard sun shadows, sky-ambient balance, Filmic tonemap
-- `godot-multimesh-billboard` — dense billboard foliage via MultiMeshInstance3D (grass, trees)
-- `godot-pixel-art-wind` — noise-driven vertex sway for billboard foliage
-- `godot-pixel-art-quantization` — low-framerate "handdrawn" look via TIME quantization
+- `godot-foliage` — animated billboard grass/foliage (MultiMeshInstance3D): base rig + wind sway + handdrawn TIME quantization; `reference/` holds billboard + wind + quantization
 - `godot-gridmap-level` — build drawn-grid / tile-based levels via GridMap + MeshLibrary (computed, grid-snapped) instead of hand-authored Transform3D boxes; the draw-level build method
 - `godot-verify` — mandatory 3-layer check after any scene/script change; gate before reporting done
 - `godot-composition` — component-node pattern; load before modularizing or adding shared behavior
@@ -70,7 +67,7 @@ Drawing levels (blockout from a sketch): the web UI's **Draw level** tool (🗺)
 - Generated art: every generated PNG lives in `assets/textures/<name>.png` (snake_case). Godot calls *any* imported PNG a **texture** (`CompressedTexture2D`) once it's sampled by a shader/material — a grass-blade cutout, a tree billboard, and a seamless ground tile are all "textures", not just tileable surfaces — so they all live in `assets/textures/`, never loose in `assets/`. The *source PNG* is an image/sprite; the imported thing is a texture; the `.tres` in `resources/` that uses it is a material. Sourcing + verifying these is the **asset-advisor** / asset-sourcing loop (see "Sourcing art assets").
 - Naming: node names PascalCase; files and folders snake_case; one scene per entity in entities/<name>/.
 - Input actions: move_left, move_right, move_forward, move_back, jump, cycle_level (Tab — cycles basic_room → blockout_01 → blockout_02 via main.gd's load_level(); design: level-switcher.md).
-- Shader contract: `shaders/post/` for screen-space post-process (skill: godot-postprocess-quad; helpers: godot-screen-textures `get_linear_depth()`, `get_normal()`). `shaders/material/` for spatial/vertex material shaders (grass, foliage, toon — NOT post-process).
+- Shader contract: `shaders/post/` for screen-space post-process (skill: godot-screen-effects — the quad rig + `get_linear_depth()` / `get_normal()` helpers). `shaders/material/` for spatial/vertex material shaders (grass, foliage, toon — NOT post-process).
 - Entry point: `res://main.tscn` + `res://main.gd` at the project root (set as `run/main_scene`). F5 launches Main; F6 launches individual scenes. No generic `scenes/` folder — every scene lives in its domain folder (levels/, entities/, …); only the entry point sits at root.
 - Level loading: levels swap under `Main/LevelHost`; never `change_scene_to_file()` — loading rules, free()-vs-queue_free(), and the pixelation migration note live in skill godot-main-scene.
 - Hand-authoring .tscn files: rules (Transform3D ban, Sky resource requirement) live in skill godot-verify, "Hand-authoring .tscn rules".

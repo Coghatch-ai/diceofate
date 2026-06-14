@@ -1,6 +1,6 @@
 ---
 name: godot-gridmap-level
-description: Build a tile-based 3D level in Godot 4 from a drawn grid (levels/drawn/current.json) using GridMap + MeshLibrary, so geometry is computed and grid-snapped instead of hand-authored. Use this skill whenever a level comes from the Draw-level pipeline (a brief that cites levels/drawn/current.json), whenever a level has more than ~10 wall/floor pieces, or whenever hand-typed Transform3D walls clip, mis-size, or have a collider that no longer matches the visible mesh. Covers MeshLibrary tile authoring, the @tool importer that reads the grid, the hybrid (GridMap structure + instanced prop scenes), and the verify additions. Do NOT use it for a tiny hand-built blockout of a few boxes — that stays hand-authored.
+description: Build a tile-based 3D level from a drawn grid (levels/drawn/current.json) with GridMap + MeshLibrary so geometry is computed and grid-snapped, not hand-authored. Use for any Draw-level brief citing current.json, a level with more than ~10 wall/floor pieces, or when hand-typed Transform3D walls clip, mis-size, or drift off their colliders. Covers MeshLibrary tile authoring, the @tool grid importer, the GridMap+instanced-props hybrid, and verify additions. NOT for a tiny hand-built blockout of a few boxes.
 ---
 
 # godot-gridmap-level — grid-snapped levels via GridMap + MeshLibrary
@@ -46,6 +46,8 @@ Then `Scene → Export As… → MeshLibrary…` and save a `.tres` (project con
 Gotchas:
 - **Materials must live on the MESH, not the node.** Godot's MeshLibrary export uses only the mesh's own material; a `surface_material_override` on the node is ignored. For **per-zone wall colours**, make a separate tile item per colour (`wall_cool`, `wall_cream`, `wall_grey`), each with its colour baked into its mesh material. The importer maps a **room id** (from the `rooms` list) → wall tile id.
 - Collision shape comes from the tile's `StaticBody3D`/`CollisionShape3D` child and is welded to that item — **mesh and collider are one unit, forever in sync.**
+- **Sub-cell-height tiles (window sills, low walls, counters):** a tile shorter than `wall_height` must be Y-shifted so it seats on the floor, not floating at the cell centre. Set the `MeshInstance3D` origin to `Vector3(0, -(wall_height - tile_height) / 2, 0)` inside the tile source scene before exporting. Without this, a 1.5 m sill in a 3 m cell floats 0.75 m off the floor.
+- **Layered tiles (sill + glass pane):** a window tile can carry two `BoxMesh` surfaces in one MeshLibrary item — a solid sill (opaque `StandardMaterial3D`) and a taller glass pane (transparent `StandardMaterial3D`, `albedo_color.a ≈ 0.3`, `transparency = BaseMaterial3D.TRANSPARENCY_ALPHA`). Share the item's single `StaticBody3D`/`CollisionShape3D` sized to the sill — the glass pane is visual only. This is standard MeshLibrary authoring, not a GridMap limitation.
 
 ### 2. GridMap node + cell size
 
@@ -63,6 +65,8 @@ A small `@tool` script populates the GridMap from the grid **in the editor**, th
 
 Shape (typed GDScript — load `godot-code-rules` before writing it):
 
+> **SEAM:** `JSON.parse_string` returns untyped `Variant`. This project's strict config (`unsafe_cast=2`) requires a type-guard (`if not parsed is Dictionary`) plus `@warning_ignore("unsafe_cast")` on every subsequent cast. The bare `var grid: Dictionary = JSON.parse_string(...)` pattern fails `tools/validate.sh` on first try.
+
 ```gdscript
 @tool
 extends GridMap
@@ -76,13 +80,23 @@ extends GridMap
 
 func _build_from_grid() -> void:
 	var file: FileAccess = FileAccess.open("res://levels/drawn/current.json", FileAccess.READ)
-	var grid: Dictionary = JSON.parse_string(file.get_as_text())
-	var w: int = int(grid["width"])
-	var cells: Array = grid["cells"]
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary:
+		push_error("gridmap importer: grid JSON is not a Dictionary")
+		return
+	# SEAM: JSON.parse_string returns Variant; strict config (unsafe_cast=2) requires explicit casts.
+	@warning_ignore("unsafe_cast")
+	var grid: Dictionary = parsed as Dictionary
+	@warning_ignore("unsafe_cast")
+	var w: int = int(grid["width"] as float)
+	@warning_ignore("unsafe_cast")
+	var cells: Array = grid["cells"] as Array
 	clear()
 	for i: int in range(cells.size()):
-		var code: int = int(cells[i])
+		@warning_ignore("unsafe_cast")  # SEAM: Array element is Variant
+		var code: int = int(cells[i] as float)
 		var col: int = i % w
+		@warning_ignore("integer_division")  # SEAM: intentional integer division
 		var row: int = i / w
 		var item: int = _item_for(code, col, row)  # zone → tile id (incl. per-zone colour)
 		if item >= 0:
@@ -90,6 +104,40 @@ func _build_from_grid() -> void:
 ```
 
 `_item_for()` maps tile code (and zone, for per-zone colour) to a MeshLibrary item id; returns `-1` for floor/door/empty (door = passable gap; place a separate frame mesh if the brief wants one). Keep it deterministic.
+
+### 4b. Headless build path (no editor open)
+
+When the scene must be generated without an editor session — the normal case for a Draw-level godot-dev dispatch — write a `@tool extends SceneTree` script under `tools/build_<name>.gd` instead:
+
+```gdscript
+@tool
+extends SceneTree
+
+func _init() -> void:
+	var root: Node3D = Node3D.new()
+	root.name = "LevelName"
+	var grid_map: GridMap = GridMap.new()
+	grid_map.name = "LevelMap"
+	grid_map.mesh_library = load("res://resources/your_tiles.meshlib.tres")
+	grid_map.cell_size = Vector3(cell_x, wall_height, cell_z)
+	grid_map.cell_center_x = false
+	grid_map.cell_center_y = false
+	grid_map.cell_center_z = false
+	_populate_from_grid(grid_map)  # use the SEAM casting pattern from step 4
+	root.add_child(grid_map)
+	grid_map.owner = root
+	# add floor slab, DirectionalLight3D, WorldEnvironment, Player...
+	var packed: PackedScene = PackedScene.new()
+	packed.pack(root)
+	ResourceSaver.save(packed, "res://levels/level_name.tscn")
+	quit()
+```
+
+Run headlessly: `$GODOT --headless --path . --script tools/build_<name>.gd`
+
+**Rule: pick one build path per scene.** Do not author both a headless builder and an editor `@tool` importer for the same scene — they duplicate the JSON-parsing logic and diverge over time.
+- **Editor path (step 4):** attach the `@tool extends GridMap` script, flip `rebuild = true` in the inspector, save, commit the baked `.tscn`. Best when iterating in the editor.
+- **Headless path (step 4b):** write `tools/build_<name>.gd`, run once to generate the `.tscn`, keep for future rebuilds. Best for agent-driven builds with no editor open.
 
 ## Verify additions (on top of godot-verify)
 

@@ -14,7 +14,7 @@
 - Target assignment / follow behavior — no player entity exists yet; camera stays static (parked).
 - Camera rotation input (Q/E to turn) — skill explicitly defers this (parked).
 - Texel snapping / shimmer mitigation — future slice.
-- Post-process quad on camera — separate skill (godot-postprocess-quad).
+- Post-process quad on camera — separate skill (godot-screen-effects).
 
 **Acceptance**
 - `$GODOT --headless --path . --script tools/verify_scene.gd -- entities/camera_rig/camera_rig.tscn main.tscn` prints `VERIFY: OK`.

@@ -13,8 +13,8 @@
 - Append `"res://levels/open_world.tscn"` to `_levels` in `main.gd`; Player wiring uses existing `find_child("Player")` unchanged.
 
 **Scope (out)** — each a separate follow-up slice on the same shader once its skill lands:
-- Noise-driven wind (skill `godot-pixel-art-wind`, not yet built).
-- Time quantization / low-framerate look (skill `godot-pixel-art-quantization`, not yet built).
+- Noise-driven wind (skill `godot-foliage`, not yet built).
+- Time quantization / low-framerate look (skill `godot-foliage`, not yet built).
 - Player radial displacement (needs player position fed to shader; skill planned).
 - Fake-perspective UV scaling (only matters once blades animate; bundle with wind slice).
 - Real tree asset, ground texture, walls, more vegetation — Phase 7/later.
@@ -26,7 +26,7 @@
 - Grass blades face the camera and don't render edge-on as the player circles them.
 
 **Skill notes**
-- `godot-multimesh-billboard` (being written — gate this build on it existing in `.claude/skills/`) — spawn, billboard orientation, alpha-scissor. This slice cannot be built until it is adopted.
+- `godot-foliage` (being written — gate this build on it existing in `.claude/skills/`) — spawn, billboard orientation, alpha-scissor. This slice cannot be built until it is adopted.
 - `godot-3d-pixelation` — renders inside existing SubViewport (nearest, AA off); shader must read crisp at low res.
 - `godot-camera-rig` — orthographic fixed angle; billboarding must account for no vanishing point (use camera basis, not look-at).
 - `godot-pixel-lighting` — reuse `blockout_01`'s sun + Filmic Environment; grass disables shadow casting.
@@ -35,8 +35,8 @@
 - `godot-code-rules` — GrassField GDScript must be strict typed; load before writing.
 
 **Later**
-- Wind slice (`godot-pixel-art-wind`): two-noise non-repeating, rotate quads around wind-perpendicular axis.
-- Quantization slice (`godot-pixel-art-quantization`): `mod` per-instance time phase shift, low-framerate look.
+- Wind slice (`godot-foliage`): two-noise non-repeating, rotate quads around wind-perpendicular axis.
+- Quantization slice (`godot-foliage`): `mod` per-instance time phase shift, low-framerate look.
 - Player-displacement slice: radial mask from player→blade distance; view-space axis split.
 - Multi-character displacement: fixed `vec4[64]` + zero-radius sentinel + manager node.
 - Hybrid smoothed toon shading (tension with hard-pixel lighting — revisit when characters are added).
