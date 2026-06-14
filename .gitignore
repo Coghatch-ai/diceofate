@@ -6,6 +6,7 @@
 *.apk
 *.aab
 docs/
+assets/
 
 # Xenodot Forge task board (the orchestrator's working store)
 .xenodot/
