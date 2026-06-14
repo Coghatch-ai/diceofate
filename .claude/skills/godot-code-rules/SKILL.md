@@ -117,6 +117,7 @@ Hard rules:
 | `UNSAFE_CALL_ARGUMENT` | Wrap engine Variants in a constructor: `float(ProjectSettings.get_setting(...))` |
 | `INTEGER_DIVISION` | `float()` one operand, or reason + `@warning_ignore("integer_division")` if integral math is intended |
 | `UNUSED_PARAMETER` | Prefix with `_` |
+| `SHADOWED_VARIABLE_BASE_CLASS` | Rename the var/param — it collides with a base-class member (e.g. `root` on a `tools/` SceneTree script → `scene_root`). Match the name already used elsewhere in the file. |
 | Step 5 fails on an engine WARNING unrelated to your change | Still a failure — investigate; the smoke grep is deliberately strict |
 
 ## Warnings reference (ground truth = project.godot [debug])
