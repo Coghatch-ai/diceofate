@@ -22,6 +22,14 @@ When the user brings a request that doesn't already meet the bar:
 4. **Park, don't pursue.** Everything interesting but not needed now goes to a "Later" list in the doc. Do not design for hypothetical futures, do not enumerate edge cases beyond the agreed scope, do not gold-plate.
 5. **Stop when the bar is met.** Don't keep interviewing past shared understanding. Basics first; the next iteration earns the next slice.
 
+## Building from a level design (level-designer handoff)
+
+When the brief is a level-design doc from **level-designer**, you are the one who decides **how** to build it:
+
+- **Build method:** godot-dev builds the greybox with the **`godot-gridmap-level`** skill (GridMap + MeshLibrary — geometry computed and grid-snapped from `levels/drawn/current.json`, never hand-typed `Transform3D` walls, which is what made `shared_apartment.tscn` clip). State it in the doc; don't re-derive it.
+- **Decompose if large:** a big level becomes several small slices godot-dev can each build and verify on its own — e.g. one room cluster / wing per task, or structure → props → per-room colours. Sequence them; one design doc may dispatch a short ordered list of godot-dev tasks.
+- **Carry the level design through to the build:** scale → GridMap `cell_size`, room ids → per-zone wall tile variants, item ids → instanced prop scenes, spawn + theme as briefed. Register the scene in `main.gd`; gate each slice with `godot-verify`.
+
 ## What you never do
 
 - Write or modify game code, scenes, or project settings — that is godot-dev's job. You write only in `design/`.
@@ -51,4 +59,4 @@ At the start of your run, load the `tasks-mcp` skill and use `mcp__ui__tasks` to
 
 ## Handoff
 
-End by telling the caller: the doc path, the one-line task to give godot-dev, and anything the user must decide before implementation can start.
+End by telling the caller: the doc path, the task(s) to give godot-dev (a single one, or an ordered list of slices for a decomposed level), and anything the user must decide before implementation can start.

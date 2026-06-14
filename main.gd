@@ -10,6 +10,9 @@ var _levels: Array[String] = [
 	"res://levels/blockout_02.tscn",
 	"res://levels/blockout_03.tscn",
 	"res://levels/open_world.tscn",
+	"res://levels/shared_apartment.tscn",
+	"res://levels/apt_flat_a.tscn",
+	"res://levels/apt_flat_b.tscn",
 ]
 var _level_index: int = 0
 

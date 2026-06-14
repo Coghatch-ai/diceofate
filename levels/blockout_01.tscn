@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene format=3 uid="uid://dk3tf6kky0kbp"]
 
 [ext_resource type="PackedScene" uid="uid://bwxk8v5y3p2r1" path="res://entities/player/player.tscn" id="1"]
 
@@ -53,96 +53,91 @@ sky_material = SubResource("ProceduralSkyMaterial_sky")
 background_mode = 2
 sky = SubResource("Sky_sky")
 ambient_light_source = 3
-ambient_light_energy = 1.0
 tonemap_mode = 3
-tonemap_exposure = 1.0
 
-[node name="Blockout01" type="Node3D"]
+[node name="Blockout01" type="Node3D" unique_id=1185867060]
 
-[node name="Floor" type="StaticBody3D" parent="."]
-position = Vector3(0, -0.1, 0)
+[node name="Floor" type="StaticBody3D" parent="." unique_id=448824092]
+editor_description = "test"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=1916074054]
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("StandardMaterial3D_floor")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=545478999]
 shape = SubResource("BoxShape3D_floor")
 
-[node name="WallNorth" type="StaticBody3D" parent="."]
-position = Vector3(0, 1.5, -10)
+[node name="WallNorth" type="StaticBody3D" parent="." unique_id=1269729358]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -10)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth" unique_id=2034497125]
 mesh = SubResource("BoxMesh_wall_ns")
 surface_material_override/0 = SubResource("StandardMaterial3D_walls")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth" unique_id=1932045019]
 shape = SubResource("BoxShape3D_wall_ns")
 
-[node name="WallSouth" type="StaticBody3D" parent="."]
-position = Vector3(0, 1.5, 10)
+[node name="WallSouth" type="StaticBody3D" parent="." unique_id=141716806]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 10)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth" unique_id=814114582]
 mesh = SubResource("BoxMesh_wall_ns")
 surface_material_override/0 = SubResource("StandardMaterial3D_walls")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth" unique_id=1624472408]
 shape = SubResource("BoxShape3D_wall_ns")
 
-[node name="WallEast" type="StaticBody3D" parent="."]
-position = Vector3(10, 1.5, 0)
-rotation_degrees = Vector3(0, 90, 0)
+[node name="WallEast" type="StaticBody3D" parent="." unique_id=884557118]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10, 1.5, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast" unique_id=1659376476]
 mesh = SubResource("BoxMesh_wall_ew")
 surface_material_override/0 = SubResource("StandardMaterial3D_walls")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast" unique_id=1546191680]
 shape = SubResource("BoxShape3D_wall_ew")
 
-[node name="WallWest" type="StaticBody3D" parent="."]
-position = Vector3(-10, 1.5, 0)
-rotation_degrees = Vector3(0, 90, 0)
+[node name="WallWest" type="StaticBody3D" parent="." unique_id=583007212]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -10, 1.5, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest" unique_id=1763426592]
 mesh = SubResource("BoxMesh_wall_ew")
 surface_material_override/0 = SubResource("StandardMaterial3D_walls")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest" unique_id=167411226]
 shape = SubResource("BoxShape3D_wall_ew")
 
-[node name="Platform1" type="StaticBody3D" parent="."]
-position = Vector3(-5, 0.25, -5)
+[node name="Platform1" type="StaticBody3D" parent="." unique_id=550651964]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0.25, -5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Platform1"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Platform1" unique_id=1248140072]
 mesh = SubResource("BoxMesh_platform1")
 surface_material_override/0 = SubResource("StandardMaterial3D_platform1")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform1" unique_id=890462750]
 shape = SubResource("BoxShape3D_platform1")
 
-[node name="Platform2" type="StaticBody3D" parent="."]
-position = Vector3(5, 1.5, 5)
+[node name="Platform2" type="StaticBody3D" parent="." unique_id=1812466791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.5, 5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Platform2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Platform2" unique_id=519831264]
 mesh = SubResource("BoxMesh_platform2")
 surface_material_override/0 = SubResource("StandardMaterial3D_platform2")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform2" unique_id=1108428804]
 shape = SubResource("BoxShape3D_platform2")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-45, -30, 0)
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=111612762]
+transform = Transform3D(0.8660254, 0.35355338, -0.35355338, 0, 0.70710677, 0.70710677, 0.5, -0.6123724, 0.6123724, 0, 0, 0)
 light_color = Color(1, 0.95, 0.9, 1)
-light_energy = 1.0
 shadow_enabled = true
 shadow_bias = 0.05
 shadow_normal_bias = 1.0
-directional_shadow_mode = 2
 directional_shadow_max_distance = 50.0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1385245389]
 environment = SubResource("Environment_env")
 
-[node name="Player" parent="." instance=ExtResource("1")]
-position = Vector3(0, 1, 0)
+[node name="Player" parent="." unique_id=126392124 instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

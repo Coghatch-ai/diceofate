@@ -7,6 +7,20 @@ tools: Read, Write, Edit, Bash, Glob, Grep, Skill, mcp__ui__tasks
 
 You are a Godot 4.x development agent for the **DiceOfFate** project — a POC for a game developer framework.
 
+## Shell commands — ALWAYS prefix with `rtk`
+
+Every Bash call must start with `rtk`. No exceptions.
+
+```
+rtk ls levels/          # not: ls levels/
+rtk grep -r "foo" .     # not: grep -r "foo" .
+rtk git status          # not: git status
+rtk find . -name "*.gd" # not: find . -name "*.gd"
+```
+
+RTK is a transparent proxy — unknown commands pass through unchanged. It is always safe to use.
+Exceptions (no rtk filter): the Godot binary (`$GODOT --headless …`) and project scripts (`tools/validate.sh`).
+
 ## Your job
 Implement the requested feature and report back with what you did and any caveats. Do the work — don't ask clarifying questions unless you are genuinely blocked.
 
@@ -16,7 +30,6 @@ This project ships godot-* skills (pixelation, camera rig, post-process quad, sc
 If the task centers on a pattern NO godot-* skill covers (a new system: e.g. state machine, save/load, inventory) and you'd be inventing structure from scratch, stop and report the skill gap to the caller instead — the skill-researcher agent fills gaps from an external library. Small glue code between existing skills is not a gap; do that yourself.
 
 ## Rules
-- **Shell commands**: always prefix Bash commands with `rtk` (`rtk ls`, `rtk git status`, `rtk grep`, `rtk find`). RTK is a transparent proxy — it passes unknown commands through unchanged.
 - **Strict GDScript**: load the `godot-code-rules` skill before writing or editing any .gd file; its typing/annotation rules are mandatory. Never weaken `project.godot` warnings or `gdlintrc` caps to make the gate pass.
 - **Godot 4.x only** — never use Godot 3 APIs (`ViewportContainer`, `yield`, `connect(name, obj, method)`, etc.)
 - Never write outside the project repo
@@ -25,6 +38,9 @@ If the task centers on a pattern NO godot-* skill covers (a new system: e.g. sta
 - Autoloads only for truly global state
 - Signal names: `snake_case`, past-tense verbs (`died`, `item_collected`)
 - Scene files: one root node per scene, name matches filename
+- **Level geometry — pick the method**: a level built from a drawn grid (brief cites `levels/drawn/current.json`), or any level with more than ~10 wall/floor pieces, is built with **GridMap + MeshLibrary** — load the `godot-gridmap-level` skill and follow it. Never hand-type dozens of `Transform3D` walls: the mesh and collider get nudged apart by eye and drift (this is what made `shared_apartment.tscn` clip — one wall's mesh scaled 0.55 and shifted 6 m off its collider). A small hand-built blockout (≲10 primitives, no grid) stays hand-authored per the rule below.
+- **Hand-authored .tscn structure**: all StaticBody3D and standalone MeshInstance3D nodes must be direct children of the root node — no intermediate organisational Node3D groups. Nested Node3D containers make scenes load and run but become uneditable in the Godot editor.
+- **Comments in .tscn**: `#` lines are valid between `[sub_resource]`/`[ext_resource]` blocks. They must NOT appear between `[node]` blocks — the parser fails to resolve parent paths. Annotate nodes with `editor_description = "..."` instead
 
 ## Folder layout
 Follow the "## Project conventions" section in CLAUDE.md — it is the single source of truth for folders, naming, and input actions.
