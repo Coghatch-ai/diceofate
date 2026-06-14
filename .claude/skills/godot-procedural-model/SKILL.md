@@ -39,7 +39,7 @@ Append one entry to `_props` in `tools/gen_models.gd` and re-run. Schema:
 
 ## Wire it in
 
-A generated `.glb` is a discrete prop: instance it in place of the greybox `BoxMesh` node, per skill `godot-mesh-import-pixel-art`. Don't wrap a surface texture on a whole prop (that's the surface path — `godot-procedural-texture` / `godot-texture-import-pixel-art`).
+A generated `.glb` is a discrete prop: instance it in place of the greybox `BoxMesh` node, per skill `godot-mesh-import-pixel-art`. Instance it under a `StaticBody3D` holder with a per-prop `BoxShape3D` collider sized to its mesh AABB — **props get collision by default** (skill `godot-gridmap-level` step 3), so the player can't walk through furniture. Don't wrap a surface texture on a whole prop (that's the surface path — `godot-procedural-texture` / `godot-texture-import-pixel-art`).
 
 ## Verify
 

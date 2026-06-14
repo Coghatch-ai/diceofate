@@ -4,7 +4,62 @@
 const CELL_SIZE := Vector3(1.5, 3.0, 1.5)
 
 
+## Accumulate the merged AABB of all MeshInstance3D descendants in node's subtree.
+## xform is the cumulative Transform3D from the prop holder's local space to node's local space.
+## Returns AABB with size == Vector3.ZERO when no mesh is found (caller checks .has_surface).
+static func _mesh_aabb(node: Node, xform: Transform3D) -> AABB:
+	var result := AABB()
+	var found := false
+	if node is MeshInstance3D:
+		# SEAM: node is confirmed MeshInstance3D by is-check; cast required by strict config.
+		@warning_ignore("unsafe_cast")
+		var mi := node as MeshInstance3D
+		if mi.mesh != null:
+			var local_aabb: AABB = mi.mesh.get_aabb()
+			# Transform AABB corners into holder-local space and re-expand.
+			var world_aabb := AABB()
+			var corners: Array[Vector3] = [
+				local_aabb.position,
+				local_aabb.position + Vector3(local_aabb.size.x, 0.0, 0.0),
+				local_aabb.position + Vector3(0.0, local_aabb.size.y, 0.0),
+				local_aabb.position + Vector3(0.0, 0.0, local_aabb.size.z),
+				local_aabb.position + Vector3(local_aabb.size.x, local_aabb.size.y, 0.0),
+				local_aabb.position + Vector3(local_aabb.size.x, 0.0, local_aabb.size.z),
+				local_aabb.position + Vector3(0.0, local_aabb.size.y, local_aabb.size.z),
+				local_aabb.end,
+			]
+			var first_corner: Vector3 = xform * corners[0]
+			world_aabb = AABB(first_corner, Vector3.ZERO)
+			for idx: int in range(1, corners.size()):
+				world_aabb = world_aabb.expand(xform * corners[idx])
+			result = world_aabb
+			found = true
+	for child: Object in node.get_children():
+		if not child is Node:
+			continue
+		# SEAM: child confirmed Node by is-check; cast required by strict config.
+		@warning_ignore("unsafe_cast")
+		var child_node := child as Node
+		# SEAM: child_node may or may not be Node3D; check before accessing transform.
+		@warning_ignore("unsafe_cast")
+		var child_3d := child_node as Node3D
+		var child_xform: Transform3D
+		if child_3d != null:
+			child_xform = xform * child_3d.transform
+		else:
+			child_xform = xform
+		var child_aabb: AABB = _mesh_aabb(child_node, child_xform)
+		if child_aabb.size != Vector3.ZERO:
+			if not found:
+				result = child_aabb
+				found = true
+			else:
+				result = result.merge(child_aabb)
+	return result
+
+
 ## Short helper: instance one .glb prop at (world_x, 0, world_z) with Y rotation rot_y_deg.
+## Holder is a StaticBody3D with a CollisionShape3D (BoxShape3D) sized from the model AABB.
 ## Near-uniform scale (1,1,1) — props authored at real-world proportions; no per-axis stretch.
 static func _ip(
 	parent: Node3D,
@@ -19,12 +74,13 @@ static func _ip(
 	if packed == null:
 		push_error("build_shared_apartment: cannot load '%s'" % glb_path)
 		return
-	var holder: Node3D = Node3D.new()
+	var holder: StaticBody3D = StaticBody3D.new()
 	holder.name = node_name
 	holder.position = Vector3(world_x, 0.0, world_z)
 	holder.rotation_degrees = Vector3(0.0, rot_y_deg, 0.0)
 	parent.add_child(holder)
 	holder.owner = parent
+
 	var model: Node3D = packed.instantiate() as Node3D
 	if model == null:
 		push_error("build_shared_apartment: instantiate failed for '%s'" % glb_path)
@@ -33,8 +89,30 @@ static func _ip(
 	holder.add_child(model)
 	model.owner = parent
 
+	# Compute merged AABB of all MeshInstance3D descendants in holder-local space.
+	# model sits at the holder local origin with its own transform.
+	var aabb: AABB = _mesh_aabb(model, model.transform)
 
-## Props: child Node3D instances (hybrid §3). Y-min=0 → floor_y_offset=0. Scale ~(1,1,1).
+	# Build a unique BoxShape3D per prop (sharing one resource would change all props together).
+	var col_shape: CollisionShape3D = CollisionShape3D.new()
+	col_shape.name = "PropCollision"
+	var box_shape: BoxShape3D = BoxShape3D.new()
+	if aabb.size != Vector3.ZERO:
+		box_shape.size = aabb.size
+		# Offset CollisionShape3D to the AABB centre (aabb.position is the min corner).
+		col_shape.position = aabb.position + aabb.size * 0.5
+	else:
+		# Fallback: unit box at origin (model had no mesh or AABB was degenerate).
+		push_warning(
+			"build_shared_apartment: no AABB for '%s'; using unit collision box" % model_name
+		)
+		box_shape.size = Vector3(1.0, 1.0, 1.0)
+	col_shape.shape = box_shape
+	holder.add_child(col_shape)
+	col_shape.owner = parent
+
+
+## Props: child StaticBody3D instances (with CollisionShape3D). Y-min=0 → floor_y_offset=0.
 ## pos formula: (col+0.5)*CELL_SIZE.x / (row+0.5)*CELL_SIZE.z; multi-cell → group centre.
 static func add_bedroom_b_props(parent: Node3D) -> void:
 	_ip(parent, "BedA", "single_bed", 18.5 * CELL_SIZE.x, 3.5 * CELL_SIZE.z, 0.0)
