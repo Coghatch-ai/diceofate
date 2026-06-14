@@ -3,7 +3,7 @@ name: godot-texture-import-pixel-art
 description: Correctly import pixel-art textures in Godot 4 — NEAREST filter, no mipmaps, uncompressed. Use whenever a PNG/texture is added to assets/textures/ and bound to a material or shader uniform. Also covers the Make-Unique gotcha on imported mesh materials and the texture_filter enum trap.
 ---
 
-Pixel-art textures must arrive at the GPU raw and unscaled. Godot's defaults (bilinear filter, mipmap generation, lossy compression) destroy crisp texels. The `.import` sidecar is the authoritative override — it takes effect on the next import, survives editor restarts, and is committed alongside the asset. The shader uniform hint `filter_nearest` is a second layer that prevents the sampler from ignoring the material setting.
+Pixel-art textures must arrive at the GPU raw and unscaled. Godot's defaults (bilinear filter, mipmap generation, lossy compression) destroy crisp texels. The `.import` sidecar is the authoritative override — it takes effect on the next import and survives editor restarts. The shader uniform hint `filter_nearest` is a second layer that prevents the sampler from ignoring the material setting.
 
 ## Requirements
 
@@ -15,7 +15,7 @@ Pixel-art textures must arrive at the GPU raw and unscaled. Godot's defaults (bi
 
 - Textures live at `assets/textures/<name>.png` (snake_case). Never place PNGs directly in `assets/` — the convention is `assets/textures/`.
 - ShaderMaterial uniforms use the `filter_nearest` hint (see Step 2). StandardMaterial3D albedo_texture uses `texture_filter = 1` (see Step 3).
-- All `.import` sidecars are committed to git — they are project state, not generated artefacts.
+- `assets/` is gitignored — PNGs and `.import` sidecars are not versioned. Godot regenerates sidecars on first open. Do not add sidecar commit steps.
 
 ## Steps
 
@@ -83,6 +83,16 @@ texture_filter = 1       # 1 = NEAREST (correct)
 albedo_texture = ExtResource("...")
 ```
 
+**3b. Tiling a surface texture (walls, floors, large faces)**
+
+Default `BoxMesh` / `PlaneMesh` UVs map one full 0–1 copy of the image onto *each* face. A single non-tiling image is therefore stretched edge-to-edge across the whole face — a 3 m wall and a 0.7 m box show the same texels, and a small image smears. This is the "3D pixel art looks horrendous" failure when a sprite-sized PNG is wrapped on a primitive. For a surface that should *repeat*:
+
+- Enable **Texture Repeat** (StandardMaterial3D → Sampling) — without it the texture clamps at the edge instead of tiling.
+- Set **`uv1_scale`** proportional to the face size in metres so texel density is consistent across props (e.g. a 3 m wall at 1 tile/m → `uv1_scale = Vector3(3, 3, 1)`; Godot's own fix for a plain box's stretched default UVs is `uv1_scale = Vector3(3, 2, 1)`).
+- The texture must be **seamless/tileable** and **opaque** — alpha on a surface texture makes the face render cut-out/transparent.
+
+A 32×32 PNG is sprite-sized: correct on a billboard (`godot-foliage`) or as one tile, wrong wrapped over a whole prop. A discrete prop (furniture, item) is a **sourced `.glb` model**, not a texture on a box — see `godot-mesh-import-pixel-art`. (The pixel-art *look* itself comes from the SubViewport downscale + orthographic camera, not the texture — see `godot-3d-pixelation` / `godot-camera-rig`.)
+
 **4. Make-Unique on imported mesh materials**
 
 When a mesh is imported (e.g. a `.glb` tree), its surface materials are shared resources. Clicking a material in the editor shows it greyed out — you cannot edit it. Fix:
@@ -103,7 +113,7 @@ Then F5 and inspect at pixel scale (zoom in editor or use the SubViewport output
 
 ## Verification checklist
 
-- [ ] `.import` sidecar committed with `mipmaps/generate=false` and `compress/mode=0`
+- [ ] `.import` sidecar exists on disk with `mipmaps/generate=false` and `compress/mode=0` (not committed — `assets/` is gitignored)
 - [ ] Texture reloaded in editor (no import errors in Output panel)
 - [ ] Shader uniform has `filter_nearest` hint
 - [ ] StandardMaterial3D node has `texture_filter = 1` (not 3)
@@ -116,8 +126,9 @@ Then F5 and inspect at pixel scale (zoom in editor or use the SubViewport output
 |---|---|
 | Texture looks blurry / smeared in scene | Check `texture_filter` in `.tscn` — must be `1`, not `3` |
 | Texture looks scratched / moire pattern | `mipmaps/generate=true` in `.import` — set to `false`, re-import |
+| Image stretched / smeared across a whole face (wrong size, not blur) | Default box UVs put one 0–1 copy per face — enable Texture Repeat + set `uv1_scale` to tile (step 3b). A whole prop wants a `.glb` model, not a box texture. |
 | Material greyed out in Inspector | See Step 4: Make Unique on mesh, then on surface material |
-| Import sidecar has no `uid` / Godot re-imports every run | Normal on first import; Godot fills in `uid` and `dest_files` — commit after first import |
+| Import sidecar has no `uid` / Godot re-imports every run | Normal on first import; Godot fills in `uid` and `dest_files` automatically — no commit needed (`assets/` is gitignored) |
 | Shader still blurring despite `filter_nearest` hint | Check the `.import` sidecar: `compress/mode=0` required; some compress modes ignore sampler hints |
 | Texture invisible after wiring | Check `use_texture` boolean uniform is `true`; check the PNG path matches `res://assets/textures/<name>.png` exactly |
 

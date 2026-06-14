@@ -1,29 +1,33 @@
-# Library — warm knowledge (not loaded by default)
+# Library — warm knowledge (never auto-loaded)
 
-Nothing in this folder is loaded into an agent's context automatically. These are
-"warm" files: durable research and registries that the **self-improvement loops**
-consult on demand — and that a human can read to understand past verdicts. Hot
-knowledge (always loaded or trigger-loaded) lives in CLAUDE.md and `.claude/skills/`;
-this folder is everything worth keeping that should NOT cost tokens on every task.
+Nothing here loads into an agent's context automatically. These are durable **records** and **source lists** the self-improvement loops consult on demand, and that a human reads to understand past decisions. Hot knowledge (always- or trigger-loaded) lives in `CLAUDE.md` and `.claude/skills/`; this folder is everything worth keeping that should NOT cost tokens on every task.
 
-Contents:
+## The one convention — role decides home
 
-- **Addon research catalog** — one doc per investigated need (`<slug>.md`), written by
-  the **addon-researcher** agent only (humans may edit verdicts). Before building a
-  generic system, check here — a past verdict (adopted / rejected — build it ourselves /
-  parked) is research we don't repeat. Doc template lives in
-  `.claude/agents/addon-researcher.md`. The framework UI lists this folder in the
-  sidebar with the verdict of each doc.
-- **Transcript digests** (`transcripts/<slug>.md`) — one digest per saved video
-  transcript, written by the **transcript-researcher** agent. When we're about to build
-  in a domain a transcript covers, the video's main points are distilled once, verified
-  against our stack, and mapped to what we already know — so a 40KB transcript becomes a
-  one-page checked list of "covered / partial / gap" instead of a re-read. Raw
-  transcripts are dropped into the project's `transcripts/` folder (the UI can create
-  them there); once harvested the raw moves to `transcripts/archive/` (kept as the
-  full-text backup) and the distilled digest lands here. The template lives in
-  `.claude/agents/transcript-researcher.md`.
-- **[skill-sources.md](skill-sources.md)** — registry of external skill collections used
-  by the **skill-researcher** agent. These are never bundled with the repo; they are
-  downloaded at runtime to a per-user cache on first use. The registry is the canonical
-  list of URLs, licenses, and cache paths, so a fresh clone of this repo self-bootstraps.
+Every framework artifact is one of four roles. The role decides the home; each home carries its own index, so the next agent can find it without re-researching.
+
+| The thing is… | Role | Home | Index (where the next agent looks) |
+|---|---|---|---|
+| knowledge an agent **loads to learn how** | skill | `.claude/skills/godot-<name>/` | the `## Skills` list in `CLAUDE.md` |
+| code an agent **runs** | tool | `tools/<name>` | `tools/CAPABILITIES.md` |
+| a **verdict / definition kept** so we don't re-research | record | `library/<kind>/<slug>.md` | the folder (+ the UI sidebar) |
+| **where to fetch** external raw material | source list | `library/sources/<thing>.md` | the file itself |
+| always-relevant **routing / convention** | — | `CLAUDE.md` (one line) | — |
+
+Decide by what the thing *does*: **run it → `tools/`; load it to learn → `.claude/skills/`; remember a decision → `library/<kind>/`; a fetch-list → `library/sources/`; always-on → `CLAUDE.md`.** The form follows the role — a skill is multi-file so it is a folder; an index is a flat list so it is one file; records are many small docs so they are a folder of them.
+
+## What's in this folder
+
+**Records** — one doc per thing we evaluated; never re-researched once a verdict exists. Foldered by kind:
+
+- `addons/<slug>.md` — addon buy-vs-build verdicts (**addon-researcher**; template in `.claude/agents/addon-researcher.md`). The UI sidebar reads each doc's `**Verdict**` line, so keep that line.
+- `tools/<slug>.md` — CLI tool-definitions: the build spec + registry entry (**cli-researcher**; template in `.claude/agents/cli-researcher.md`). The runnable tool itself lands in `tools/` and registers in `tools/CAPABILITIES.md` — the definition here is the *why/spec*, the tool there is the *what you run*.
+- `transcripts/<slug>.md` — one-page digests of saved video transcripts (**transcript-researcher**; template in `.claude/agents/transcript-researcher.md`). Raws live in the project `transcripts/` drop zone and move to `transcripts/archive/` once harvested.
+
+**Sources** — registries of *where to fetch* external raw material; never bundled, downloaded at runtime to a per-user cache. The file IS the registry:
+
+- `sources/skill-sources.md` — external skill collections (**skill-researcher**).
+- `sources/asset-sources.md` — free texture/PNG generators (**asset-advisor**).
+- `sources/model-sources.md` — free CC0 / low-poly 3D model sites (**asset-advisor**).
+
+A record is OUR verdict (an output); a source list points OUT to the world (an input). That is why they sit on separate shelves.

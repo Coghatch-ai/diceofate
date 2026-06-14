@@ -2,61 +2,68 @@
 
 POC for a game developer framework using Godot 4.x. The goal is to build small things and observe how agents behave.
 
+> **Keep this file thin — it is the always-loaded routing hub, not a manual.** It records *when* to use each agent / skill / loop and the project conventions; the *how* (steps, templates, gotchas) lives in the agent prompt or the skill, which load on demand. Adding or changing a capability = **one line** here (a routing-table row, a `## Skills` entry, or a convention line) + the detail in the agent/skill. Do **not** append a new prose section, restate an agent's steps, or duplicate a skill; if a bullet grows past ~2 lines, move the detail out and leave a pointer. Match the existing structure and tone.
+
 ## Project layout
 
 ```
 main.tscn         entry point + main.gd, at project root (skill: godot-main-scene)
 design/           design docs — one per agreed slice (written by game-designer only)
-transcripts/      raw video transcript drop zone (input for transcript-researcher); harvested raws move to transcripts/archive/ (full-text backup, kept) — the UI can create files here
-library/          warm knowledge, never auto-loaded: addon research catalog (addon-researcher) + skill-sources.md (external skill collection registry) + asset-sources.md (free pixel-art generators for the human-in-the-loop art-sourcing loop) + transcripts/ (durable transcript digests, transcript-researcher)
+transcripts/      raw transcript drop zone → transcript-researcher; consumed raws move to transcripts/archive/
+library/          warm knowledge (never auto-loaded): records in addons/ · tools/ · transcripts/, external fetch-lists in sources/ — convention in library/README.md
 entities/         one scene+script per entity, entities/<name>/
 levels/           level scenes
 shaders/post/     post-process shaders
 resources/        .tres resources
 tools/            framework tooling (validate.sh, verify_scene.gd, verify_render.gd) — not game code
 .claude/
-  agents/         game-designer (Opus), godot-dev (Sonnet), godot-refactor (Haiku), skill-researcher (Opus), bug-triage (Opus), addon-researcher (Sonnet), transcript-researcher (Opus), asset-advisor (Sonnet), level-designer (Sonnet)
+  agents/         game-designer (Opus), godot-dev (Sonnet), godot-refactor (Haiku), skill-researcher (Opus), bug-triage (Opus), addon-researcher (Sonnet), cli-researcher (Sonnet), transcript-researcher (Opus), asset-advisor (Sonnet), level-designer (Sonnet)
   skills/         godot-* skills, scoped to this project (skills/eval/ is researcher scratch — never committed)
 ```
 
 ## How to work on this project
 
-Pipeline: idea → **game-designer** (Opus — interviews the user, cuts scope, writes `design/<slug>.md`) → **godot-dev** (Sonnet — implements the doc) → **godot-verify** (3-layer checks) → human **runs** it (F5/F6). The editor viewport is NOT verification — it uses the editor's camera and hides camera/lighting bugs.
+**Pipeline:** idea → **game-designer** (scope) → **godot-dev** (build) → **godot-verify** → human runs (F5/F6). The editor viewport is NOT verification — it hides camera/lighting bugs.
 
-Quick path: a request may skip the designer ONLY if all four checks pass — covered by existing skills/design docs, ~one entity touched, observable in one F5 run, no new conventions/input actions. Entry point is the `/quick` skill, which encodes the check, the godot-dev dispatch, and the report shape (Result / Files / Verify / Friction). godot-dev always reports **friction** (improvised pattern, first-try verify failure, scope overrun, ambiguous guidance); non-empty friction → the orchestrator offers bug-triage (ask, never auto-run — same gate as bugs).
+**Self-improvement spine** (the one loop the routes below instantiate): the framework grows by *pull* — an agent queries the registry (`## Skills`, `tools/CAPABILITIES.md`, `library/`) for what it needs; if nothing covers it, it flags a *structured gap* (what it needed, what it tried, why what we had fell short) and the orchestrator routes that gap to the matching researcher, **human-gated**; the result registers back so the next query finds it. Ordinary work an agent can already do never enters the loop. Every acquired capability MUST register where the next agent looks, or it gets re-researched.
 
-Discoverability: the user may not know the framework's entry points exist — surface them in replies instead of routing silently. When a request matches a route, name it in one line before (or while) acting: small concrete change in prose → "this fits `/quick`"; vague or multi-step feature → game-designer; a bug just surfaced or was fixed → offer bug-triage; a pattern no skill covers → skill-researcher; a generic system the ecosystem has surely solved → addon-researcher; about to build in a domain a saved transcript covers → transcript-researcher; a task blocked on art the pipeline can't author (sprite, texture, tile) → asset-advisor / the asset-sourcing loop; a level sketched in the web UI's Draw-level tool → level-designer / the draw-level loop. Suggest, don't lecture: one line, at most one route per reply, and skip it when the user already invoked the route themselves.
+**Routing** (the *when*; mechanics live in each agent/skill, the result registers where the next agent will look):
 
-Role boundary: the orchestrator (main session) investigates and updates framework documentation only (`.claude/`, CLAUDE.md); ALL changes to game/project files (scenes, scripts, project.godot, tools) go through the agents. When something breaks, the deliverable is the framework fix, not a hand-patched file.
+| When a request / gap is… | Route | Result registers to |
+|---|---|---|
+| a small concrete change, ~1 entity, one F5 | `/quick` skill | — |
+| a vague / multi-step feature | **game-designer** → godot-dev | `design/<slug>.md` |
+| a bug that surfaced or was fixed | offer **bug-triage** (ask, never auto-run) | a skill / docs / "no change" |
+| a knowledge gap no `godot-*` skill covers | **skill-researcher** (`library/sources/skill-sources.md`) | `.claude/skills/godot-<name>/` + `## Skills` |
+| a generic solved-elsewhere system (dialogue, inventory, save…) | **addon-researcher**, BEFORE designing | `library/addons/<slug>.md` |
+| an agent-capability gap (render a frame, capture debug output) | **cli-researcher** (CLI default; MCP parked) | `library/tools/<slug>.md` → `tools/CAPABILITIES.md` |
+| about to build a domain a saved transcript covers | **transcript-researcher**, FIRST | `library/transcripts/<slug>.md` |
+| blocked on art (a texture or a 3D prop) | **asset-advisor** / asset-sourcing loop | `assets/` + the two catalogues |
+| a level drawn in the Draw-level tool | **level-designer** → game-designer | `design/levels/<name>.md` |
 
-Bug learning loop: after a bug is found (and usually fixed by godot-dev), the orchestrator ASKS the user whether to triage it properly — never auto-runs it. On yes, spawn **bug-triage** (Opus) with the symptom, diagnosis, and fix. It finds the root cause and reaches one verdict: update an existing skill, recommend skill-researcher (missing skill), update documentation (CLAUDE.md / agent prompts), or no change — "no change" is a valid, expected outcome, not a failure. Framework edits need the user's approval inside the triage run; a researcher recommendation comes back to the orchestrator to dispatch.
+**Two loops carry orchestrator glue beyond a single agent:**
+- *Asset-sourcing:* asset-advisor gate 1 → files an `Asset:` task (`mcp__ui__tasks`, `owner:"user"`) → 🎨 Get Assets modal → user uploads a PNG/GLB → server writes `assets/textures/` or `assets/models/` (by file type) → asset-advisor gate 2 → on PASS, godot-dev wires it → godot-verify.
+- *Draw-level:* the UI exports `levels/drawn/current.json` → level-designer writes the brief → game-designer slices it → godot-dev builds a GridMap + MeshLibrary (skill `godot-gridmap-level`), never hand-authored Transform3D boxes.
 
-This is a framework/workflow to speed up development — not a vibe-coding tool. Requests that can't be built and verified in one small step go through game-designer first; it is expected to push back on scope. Keep tasks small and discrete.
+**Governance:**
+- **Role boundary** — the orchestrator (main session) edits framework files only (`.claude/`, CLAUDE.md); ALL game/project file changes (scenes, scripts, project.godot, tools) go through the agents. When something breaks, the deliverable is the framework fix, not a hand-patched file.
+- **Human gate** — every researcher (skill / addon / cli / transcript / asset / level) asks the human to adopt / reject / park; it never auto-adopts and never writes game code. "No change" is a valid outcome.
+- **Discoverability** — the user may not know a route exists; name the matching one in a line before/while acting, ≤1 route per reply, and skip it when they already invoked it. Suggest, don't lecture.
+- **Small + verifiable** — anything that can't be built and verified in one small step goes through game-designer first (it pushes back on scope). A framework to speed up development, not a vibe-coding tool.
 
-Self-improvement (skill gaps): when a task has no matching godot-* skill — godot-dev reports the gap, or the orchestrator sees it before dispatching — the orchestrator spawns **skill-researcher** (Opus). It searches the external skill collections registered in `library/skill-sources.md` (downloaded at runtime to `~/.cache/diceofate/` on first use — never bundled, never in /tmp), evaluates candidates in `.claude/skills/eval/<name>/` against project conventions, and asks the human to adopt or reject (same human-gate as game-designer). On adopt it rewrites — never copies — the skill into this project's skill format at `.claude/skills/godot-<name>/` (one canonical path, GDScript-only, MIT attribution) and registers it in the Skills list below. The eval copy is always deleted afterwards. We import only what a current task needs, never wholesale.
+## Skills (in `.claude/skills/`)
 
-Buy-vs-build (addons): when a request is a generic, solved-elsewhere system (dialogue, inventory, save/load, state machines, pathfinding, debug overlays…), the orchestrator spawns **addon-researcher** (Sonnet) BEFORE game-designer designs it from scratch. It searches for free, license-compatible Godot 4 addons (Asset Library, GitHub), writes the evaluation to `library/<slug>.md` — the durable catalog; it checks existing `library/` verdicts before re-researching — and asks the human to adopt/reject/park (same human gate as the other researchers). On adopt, installation is a godot-dev task taken from the doc's Install section; the researcher itself never installs anything.
+Each skill's full description loads with it — this is the index (load-order hint where it matters):
 
-Source-driven harvest (transcripts): the other loops are *need-driven* — they start when we hit a gap. This one is *source-driven*: a human (or the web UI) drops a raw video transcript into the `transcripts/` folder, and when we're about to build in a domain it covers, the orchestrator spawns **transcript-researcher** (Opus) FIRST. It distills the video's main points, verifies each against our stack, checks whether we already have it learned (skills/conventions/`design/`/`library/`), writes a durable digest to `library/transcripts/<slug>.md`, then moves the consumed raw to `transcripts/archive/` (the digest is the distilled record; the archived raw is the kept full-text backup — disposing of an archived raw is a separate, manual decision). It returns the genuine gaps as recommendations. It is the front of the funnel that feeds skill-researcher — it never adopts a skill or writes game code; the orchestrator dispatches the recommended skill-researcher / addon-researcher / game-designer follow-up (same human gate). A gap it surfaces is a recommendation, not an action.
-
-Sourcing art assets (missing art): when a task is blocked on art the pipeline can't author — sprites, textures (grass blade, tree billboard, ground tile) — the framework's answer is the **asset-sourcing loop**, the art analogue of addon-researcher: not "give up", and not "build a generator now". First the orchestrator spawns **asset-advisor** (gate 1) — the art analogue of addon-researcher — to classify the asset (sprite / billboard / tile, and which material/shader consumes it) and write a generation prompt **tailored to that asset** (never hardcoded); it then files the request on the task board (`mcp__ui__tasks`: `owner:"user"`, `title:"Asset: <name>"`, `note:` that prompt + the recommended generator). It surfaces in the web UI's **Get Assets** modal (🎨 get assets), which lists those requests next to the free, no-signup generator catalog (`library/asset-sources.md`). The loop is human-in-the-loop and interim (okay quality, fast): the user generates a PNG on a free site, uploads it in the modal → the server writes it to `assets/textures/<name>.png` → the orchestrator spawns **asset-advisor** (gate 2) to verify the PNG (type, dimensions, alpha, placement in `assets/textures/`, import settings); only on PASS does it dispatch the **godot-dev** wiring task (import Filter = Nearest / Mipmaps = Off; bind `blade_texture` + set `use_texture = true` in `resources/grass_blade_material.tres`, or swap the flat albedo in `levels/open_world.tscn`) → `godot-verify`. On FAIL, asset-advisor returns the reasons + a corrected generation prompt and the asset stays the user's to redo. A local pixel-art generator is `parked` in that doc as v2, to adopt only when per-image clicking becomes the bottleneck (volume / style consistency).
-
-Drawing levels (blockout from a sketch): the web UI's **Draw level** tool (🗺) lets the user paint a small top-down tile grid — wall / door / window / item — that exports to `levels/drawn/current.json` (structure codes 0 floor, 1 wall, 2 door, 3 window, 4 item; plus an `items` list of `{id,x,y}` where the same id = the same item, and a `rooms` list of `{id,x,y}` grouping cells into numbered room regions where the same id = one room). On export the orchestrator spawns **level-designer** (Sonnet): it reads the grid, interviews **concept-first** — what the level is ABOUT before any parameter — then the **name** and every **level-design** detail (metres per cell — fixing the "came out like metres" scale trap — wall height, what door/window become, what each item id and each room are, player spawn, theme) via `mcp__ui__form`, writes a **level-design brief** to `design/levels/<name>.md`, then hands off to **game-designer**, which decides *how* to build it — breaking a large level into small per-area slices — and dispatches **godot-dev** to build the greybox as a **GridMap + MeshLibrary** scene (skill: `godot-gridmap-level`), NOT hand-authored boxes. Why: a drawn grid maps 1:1 to GridMap cells, and each cell's mesh and collider come from one MeshLibrary item so they can't drift — whereas hand-typing ~40 `Transform3D` walls is the failure mode that made `shared_apartment.tscn` clip (one wall's mesh ended up scaled 0.55 and shifted 6 m off its collider). godot-dev authors a MeshLibrary of structure tiles (floor/wall/door/window), populates a GridMap from the grid via an **author-time `@tool` importer**, and instances furniture/item props at **computed** positions; `cell_size` = metres-per-cell × wall height. The GridMap is baked into the `.tscn` (cells serialised at save time) — the grid JSON is godot-dev's **spatial reference**, NOT loaded at runtime. Player instanced directly, `DirectionalLight3D` + `WorldEnvironment` as in blockout levels. Named scene `levels/<name>.tscn`, root node `<Name>`, registered in `main.gd` → `godot-verify`. Prototype path: "for an idea", not a finished level. The grid resolution + canvas live in the framework UI (`xenodot-forge/ui/client/draw-level.js`); the scene is godot-dev's. (A tiny hand-built blockout of a few boxes stays hand-authored — GridMap is for the grid pipeline and anything past ~10 pieces.)
-
-## Skills (in .claude/skills/)
-
-- `godot-project-conventions` — run FIRST in any new setup; records conventions here in CLAUDE.md
-- `godot-main-scene` — Main scene entry point; owns the persistent shell, loads/swaps levels
-- `godot-3d-pixelation` — SubViewport low-res render setup
-- `godot-camera-rig` — orthographic fixed-angle follow camera
-- `godot-screen-effects` — screen-space post-process: fullscreen quad rig + depth/normal/screen buffer reads (outlines, edge detection, fog); `reference/` holds postprocess-quad + screen-textures
-- `godot-texture-import-pixel-art` — NEAREST filter + no-mipmap `.import` sidecars, `filter_nearest` shader hint, `texture_filter=1` trap, Make-Unique on imported mesh materials
-- `godot-pixel-lighting` — pixel-readability lighting: hard sun shadows, sky-ambient balance, Filmic tonemap
-- `godot-foliage` — animated billboard grass/foliage (MultiMeshInstance3D): base rig + wind sway + handdrawn TIME quantization; `reference/` holds billboard + wind + quantization
-- `godot-gridmap-level` — build drawn-grid / tile-based levels via GridMap + MeshLibrary (computed, grid-snapped) instead of hand-authored Transform3D boxes; the draw-level build method
-- `godot-verify` — mandatory 3-layer check after any scene/script change; gate before reporting done
-- `godot-composition` — component-node pattern; load before modularizing or adding shared behavior
-- `godot-code-rules` — typed GDScript rules + validate.sh gate; load before editing any .gd
+- `godot-project-conventions` — run FIRST in a new setup; records conventions here
+- `godot-main-scene` · `godot-3d-pixelation` · `godot-camera-rig` — persistent shell, SubViewport downscale, orthographic rig
+- `godot-pixel-lighting` · `godot-screen-effects` — sun/ambient/tonemap; post-process quad + depth/normal reads
+- `godot-texture-import-pixel-art` · `godot-mesh-import-pixel-art` · `godot-foliage` — textures (NEAREST/no-mipmap), sourced `.glb` props, billboard foliage
+- `godot-animation-libraries` — skeletal animation on a sourced rigged `.glb`: separate model/anim glTF files, merge clips into one AnimationLibrary on your own AnimationPlayer, retarget a foreign clip (Mixamo) via SkeletonProfileHumanoid (Phase 8; complements `godot-mesh-import-pixel-art`)
+- `godot-gridmap-level` — drawn-grid / tile levels via GridMap + MeshLibrary
+- `godot-composition` — component-node pattern; load before modularizing
+- `godot-code-rules` — typed-GDScript rules; load before editing any `.gd`
+- `godot-verify` — mandatory 3-layer check; the gate before "done"
 
 ## Project conventions
 
@@ -64,16 +71,25 @@ Drawing levels (blockout from a sketch): the web UI's **Draw level** tool (🗺)
 - Art style: 3D pixel art. 3D content renders inside a SubViewport (skill: godot-3d-pixelation); post-process effects attach to the camera inside it.
 - Camera: orthographic, fixed angle (skill: godot-camera-rig). Do not switch to perspective without flagging the texel-snapping consequence.
 - Folders: scenes/, entities/, levels/, shaders/post/, shaders/material/, resources/.
-- Generated art: every generated PNG lives in `assets/textures/<name>.png` (snake_case). Godot calls *any* imported PNG a **texture** (`CompressedTexture2D`) once it's sampled by a shader/material — a grass-blade cutout, a tree billboard, and a seamless ground tile are all "textures", not just tileable surfaces — so they all live in `assets/textures/`, never loose in `assets/`. The *source PNG* is an image/sprite; the imported thing is a texture; the `.tres` in `resources/` that uses it is a material. Sourcing + verifying these is the **asset-advisor** / asset-sourcing loop (see "Sourcing art assets").
+- Sourced art by medium: **textures** (PNG) → `assets/textures/<name>.png`, **3D models** (`.glb`) → `assets/models/<name>.glb` (snake_case; `assets/` gitignored; a model's own textures still go in `assets/textures/`). Source PNG = image; imported = texture (`CompressedTexture2D`); the `.tres` that uses it = material. Sourcing/verifying both is the asset-advisor loop; detail in skills `godot-texture-import-pixel-art` / `godot-mesh-import-pixel-art`.
+- Art-kind → technique (pick the right one BEFORE filing an asset request; the *why* and the gotchas live in the named skills):
+
+  | Art need | Technique | How |
+  |---|---|---|
+  | Greybox stage | flat-colour `BoxMesh` primitive | current builder — placeholder, **never** final art |
+  | Discrete prop / furniture / item | **sourced low-poly `.glb` model** (primary) | instance the model in place of the greybox node — NOT a texture on a box. Skill `godot-mesh-import-pixel-art`; catalogue `library/sources/model-sources.md` |
+  | Large flat surface (wall / floor / ground) | tileable surface texture | `StandardMaterial3D` + `uv1_scale` (sized to the face) + Texture Repeat on, **opaque (no alpha)**. Skill `godot-texture-import-pixel-art` |
+  | Vegetation / tiny detail | billboard sprite | existing `godot-foliage` rig |
+
 - Naming: node names PascalCase; files and folders snake_case; one scene per entity in entities/<name>/.
 - Input actions: move_left, move_right, move_forward, move_back, jump, cycle_level (Tab — cycles basic_room → blockout_01 → blockout_02 via main.gd's load_level(); design: level-switcher.md).
 - Shader contract: `shaders/post/` for screen-space post-process (skill: godot-screen-effects — the quad rig + `get_linear_depth()` / `get_normal()` helpers). `shaders/material/` for spatial/vertex material shaders (grass, foliage, toon — NOT post-process).
-- Entry point: `res://main.tscn` + `res://main.gd` at the project root (set as `run/main_scene`). F5 launches Main; F6 launches individual scenes. No generic `scenes/` folder — every scene lives in its domain folder (levels/, entities/, …); only the entry point sits at root.
-- Level loading: levels swap under `Main/LevelHost`; never `change_scene_to_file()` — loading rules, free()-vs-queue_free(), and the pixelation migration note live in skill godot-main-scene.
+- Entry point: `res://main.tscn` + `res://main.gd` at the project root (`run/main_scene`). F5 launches Main; F6 launches individual scenes. No generic `scenes/` folder — every scene lives in its domain folder; only the entry point sits at root.
+- Level loading: levels swap under `Main/LevelHost`; never `change_scene_to_file()` — loading rules + the pixelation migration note live in skill godot-main-scene.
 - Hand-authoring .tscn files: rules (Transform3D ban, Sky resource requirement) live in skill godot-verify, "Hand-authoring .tscn rules".
-- Composition over inheritance (skill: godot-composition): entities = engine-node base + component children; signals up, calls down; shared components in entities/components/<name>/. Modularize ON DEMAND only — second consumer, two-jobs script, or a design doc naming a mechanic reusable. Mechanical extractions go to the godot-refactor agent (Haiku), which must verify before AND after.
-- Code rules: strict typed GDScript (warnings-as-errors in project.godot + gdlint/gdformat via gdlintrc) — skill godot-code-rules; gate: `tools/validate.sh`, mandatory before reporting any .gd/.tscn change. Never weaken the warning levels or lint caps to pass the gate.
-- Shell commands: prefix every command with `rtk` — the token-optimized CLI proxy (`rtk git status`, `rtk ls`, `rtk grep …`, `rtk cat …`; in chains too: `rtk git add . && rtk git commit`). RTK has dedicated filters for git/ls/grep/find/cat/test/build tools and passes anything else through unchanged, so it is always safe. A PreToolUse hook (`.claude/settings.json`) rewrites bare commands as a backstop, but type `rtk` yourself so the intent is explicit and the specialized filters (e.g. `rtk test`, `rtk grep`) get used. Exceptions with no rtk filter — run as-is: the Godot binary (`$GODOT --headless …`) and project shell scripts (`tools/validate.sh`).
-- Rule for AI sessions: read this section before structural changes; load godot-code-rules before writing or editing any .gd file; record new project-wide decisions here, not in chat.
-- Active roadmap: docs/roadmap/first_game.md. Before starting any task, identify which phase it belongs to. Refuse tasks in the 'out of scope' list or in phases after an unpassed gate.
+- Composition over inheritance (skill: godot-composition): engine-node base + component children, signals up / calls down; modularize ON DEMAND only. Mechanical extractions go to the godot-refactor agent (Haiku), which must verify before AND after.
+- Code rules: strict typed GDScript (skill: godot-code-rules); gate `tools/validate.sh`, mandatory before reporting any .gd/.tscn change. Never weaken the warning levels or lint caps to pass it.
+- Shell: prefix every command with `rtk` — the token-optimized proxy (safe; unknown commands pass through; a PreToolUse hook backstops it). Full reference in the global/parent CLAUDE.md. Exceptions with no rtk filter, run as-is: the Godot binary (`$GODOT --headless …`) and project scripts (`tools/validate.sh`).
+- Rule for AI sessions: read this section before structural changes; load godot-code-rules before writing/editing any .gd file; record new project-wide decisions here, not in chat — and keep this file thin: a capability is one line here, never a new prose section (depth goes in the agent/skill; see the note at the top).
+- Active roadmap: docs/roadmap/first_game.md. Before starting any task, identify its phase. Refuse tasks in the 'out of scope' list or in phases after an unpassed gate.
 - Roadmap status ownership: only the verifier updates phase status (✅/🔨/📋) and gate pass/fail, only after running that phase's gate check in the editor. Builders never self-mark phases done.

@@ -24,6 +24,8 @@
       "Edit(shaders/**)",
       "Write(tools/**)",
       "Edit(tools/**)",
+      "Write(assets/**)",
+      "Edit(assets/**)",
       "Write(main.gd)",
       "Edit(main.gd)",
       "Write(project.godot)",

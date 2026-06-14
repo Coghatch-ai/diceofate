@@ -1,115 +1,115 @@
-[gd_resource type="MeshLibrary" format=3]
+[gd_resource type="MeshLibrary" format=3 uid="uid://dik6md2antkm4"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_kitchen"]
 albedo_color = Color(0.91, 0.84, 0.64, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_kitchen"]
-size = Vector3(1.5, 3.0, 1.5)
 material = SubResource("Mat_kitchen")
+size = Vector3(1.5, 3, 1.5)
 
-[sub_resource type="BoxShape3D" id="Shape_kitchen"]
-size = Vector3(1.5, 3.0, 1.5)
+[sub_resource type="BoxShape3D" id="BoxShape3D_x1mox"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_twin"]
 albedo_color = Color(0.83, 0.72, 0.63, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_twin"]
-size = Vector3(1.5, 3.0, 1.5)
 material = SubResource("Mat_twin")
+size = Vector3(1.5, 3, 1.5)
 
-[sub_resource type="BoxShape3D" id="Shape_twin"]
-size = Vector3(1.5, 3.0, 1.5)
+[sub_resource type="BoxShape3D" id="BoxShape3D_11nn1"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_master"]
-albedo_color = Color(0.93, 0.87, 0.80, 1)
+albedo_color = Color(0.93, 0.87, 0.8, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_master"]
-size = Vector3(1.5, 3.0, 1.5)
 material = SubResource("Mat_master")
+size = Vector3(1.5, 3, 1.5)
 
-[sub_resource type="BoxShape3D" id="Shape_master"]
-size = Vector3(1.5, 3.0, 1.5)
+[sub_resource type="BoxShape3D" id="BoxShape3D_fmxyu"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_hall"]
 albedo_color = Color(0.78, 0.74, 0.71, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_hall"]
-size = Vector3(1.5, 3.0, 1.5)
 material = SubResource("Mat_hall")
+size = Vector3(1.5, 3, 1.5)
 
-[sub_resource type="BoxShape3D" id="Shape_hall"]
-size = Vector3(1.5, 3.0, 1.5)
+[sub_resource type="BoxShape3D" id="BoxShape3D_s7p4t"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_bath"]
-albedo_color = Color(0.94, 0.92, 0.90, 1)
+albedo_color = Color(0.94, 0.92, 0.9, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_bath"]
-size = Vector3(1.5, 3.0, 1.5)
 material = SubResource("Mat_bath")
+size = Vector3(1.5, 3, 1.5)
 
-[sub_resource type="BoxShape3D" id="Shape_bath"]
-size = Vector3(1.5, 3.0, 1.5)
+[sub_resource type="BoxShape3D" id="BoxShape3D_v4tw4"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_default"]
 albedo_color = Color(0.78, 0.74, 0.71, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_default"]
-size = Vector3(1.5, 3.0, 1.5)
 material = SubResource("Mat_default")
+size = Vector3(1.5, 3, 1.5)
 
-[sub_resource type="BoxShape3D" id="Shape_default"]
-size = Vector3(1.5, 3.0, 1.5)
+[sub_resource type="BoxShape3D" id="BoxShape3D_b2ex0"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_sill"]
 albedo_color = Color(0.78, 0.74, 0.71, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_sill"]
-size = Vector3(1.5, 1.5, 1.5)
 material = SubResource("Mat_sill")
-
-[sub_resource type="BoxShape3D" id="Shape_sill"]
 size = Vector3(1.5, 1.5, 1.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6jvwt"]
 
 [resource]
 item/0/name = "wall_kitchen"
 item/0/mesh = SubResource("BoxMesh_kitchen")
 item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-item/0/shapes = [{"local_transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), "shape": SubResource("Shape_kitchen")}]
-item/0/navigation_mesh = null
+item/0/mesh_cast_shadow = 1
+item/0/shapes = [SubResource("BoxShape3D_x1mox"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
 item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1
 item/1/name = "wall_twin"
 item/1/mesh = SubResource("BoxMesh_twin")
 item/1/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-item/1/shapes = [{"local_transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), "shape": SubResource("Shape_twin")}]
-item/1/navigation_mesh = null
+item/1/mesh_cast_shadow = 1
+item/1/shapes = [SubResource("BoxShape3D_11nn1"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
 item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/1/navigation_layers = 1
 item/2/name = "wall_master"
 item/2/mesh = SubResource("BoxMesh_master")
 item/2/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-item/2/shapes = [{"local_transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), "shape": SubResource("Shape_master")}]
-item/2/navigation_mesh = null
+item/2/mesh_cast_shadow = 1
+item/2/shapes = [SubResource("BoxShape3D_fmxyu"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
 item/2/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/2/navigation_layers = 1
 item/3/name = "wall_hall"
 item/3/mesh = SubResource("BoxMesh_hall")
 item/3/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-item/3/shapes = [{"local_transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), "shape": SubResource("Shape_hall")}]
-item/3/navigation_mesh = null
+item/3/mesh_cast_shadow = 1
+item/3/shapes = [SubResource("BoxShape3D_s7p4t"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
 item/3/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/3/navigation_layers = 1
 item/4/name = "wall_bath"
 item/4/mesh = SubResource("BoxMesh_bath")
 item/4/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-item/4/shapes = [{"local_transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), "shape": SubResource("Shape_bath")}]
-item/4/navigation_mesh = null
+item/4/mesh_cast_shadow = 1
+item/4/shapes = [SubResource("BoxShape3D_v4tw4"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
 item/4/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/4/navigation_layers = 1
 item/5/name = "wall_default"
 item/5/mesh = SubResource("BoxMesh_default")
 item/5/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-item/5/shapes = [{"local_transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), "shape": SubResource("Shape_default")}]
-item/5/navigation_mesh = null
+item/5/mesh_cast_shadow = 1
+item/5/shapes = [SubResource("BoxShape3D_b2ex0"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
 item/5/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/5/navigation_layers = 1
 item/6/name = "window_sill"
 item/6/mesh = SubResource("BoxMesh_sill")
 item/6/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-item/6/shapes = [{"local_transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), "shape": SubResource("Shape_sill")}]
-item/6/navigation_mesh = null
+item/6/mesh_cast_shadow = 1
+item/6/shapes = [SubResource("BoxShape3D_6jvwt"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
 item/6/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/6/navigation_layers = 1
