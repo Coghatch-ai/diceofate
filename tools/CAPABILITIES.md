@@ -1,0 +1,11 @@
+# tools/CAPABILITIES.md — registered framework tools
+
+| Tool | What it does | Invocation | Notes |
+|---|---|---|---|
+| `validate.sh` | Format + lint + parse + scene property check + smoke run (godot-verify layers 1–2) | `tools/validate.sh [scene.tscn]` | Requires `--headless`; stops at first failure; exit 0 = OK |
+| `verify_scene.gd` | Scene property validation — detects silently-dropped unknown properties (godot-verify layer 1) | `$GODOT --headless --path . --script tools/verify_scene.gd [-- scene.tscn]` | Headless OK |
+| `verify_render.gd` | Render check — fails if output is flat color; saves `.godot/verify_render_last.png` (godot-verify layer 3) | `$GODOT --path . --resolution 640x360 -s tools/verify_render.gd [-- scene.tscn]` | Requires display (NO `--headless`); window flashes briefly |
+| `capture_screenshot.gd` | Renders a scene via Main's SubViewport (640x360 pixel-art rig) and saves a PNG for visual inspection of geometry, scale, and placement. Supports standard `cam_pos` teleport and **diagnostic mode** (inject a temporary top-down orthographic camera to see inside enclosed rooms). | `$GODOT --path . --resolution 640x360 -s tools/capture_screenshot.gd [-- <scene> [out.png [cam_pos [diag_look_at [diag_ortho_size]]]]]` — `cam_pos` = `"X,Y,Z"` world position; `diag_look_at` = `"X,Y,Z"` target (activates diagnostic mode — temporary Camera3D, CameraRig disabled for capture); `diag_ortho_size` = ortho size in world units (default 8.0). | Requires display (NO `--headless`). Diagnostic camera is removed after capture; scene file is never modified. For walled rooms prefer a low interior vantage (eye ~6 m up, look at room centre, ortho ~8) over a steep top-down — see `library/tools/scene-screenshot.md`. |
+| `gen_textures.gd` | Procedurally generates placeholder textures for materials | `$GODOT --headless --path . --script tools/gen_textures.gd` | Headless OK |
+| `gen_models.gd` | Procedurally generates placeholder low-poly `.glb` prop models (primitive kitbash → GLTFDocument) | `$GODOT --headless --path . --script tools/gen_models.gd` | Headless OK; placeholder art (skill `godot-procedural-model`) |
+| `build_shared_apartment.gd` | Generates `levels/shared_apartment.tscn` from furniture placement data | `$GODOT --headless --path . --script tools/build_shared_apartment.gd` | Headless OK |

@@ -134,7 +134,14 @@ func _prop_name(line: String) -> String:
 func _has_property(obj: Object, prop: String) -> bool:
 	# shader_parameter/* is dynamic (depends on the assigned shader) and
 	# can't be checked on a fresh instance; metadata/* is always legal.
-	if prop == "script" or prop.begins_with("metadata/") or prop.begins_with("shader_parameter/"):
+	# item/* is dynamic on MeshLibrary — items are stored under item/N/* keys that
+	# only appear when items exist; a fresh instance has none in get_property_list().
+	if (
+		prop == "script"
+		or prop.begins_with("metadata/")
+		or prop.begins_with("shader_parameter/")
+		or prop.begins_with("item/")
+	):
 		return true
 	for p: Dictionary in obj.get_property_list():
 		if p["name"] == prop:

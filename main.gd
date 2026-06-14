@@ -4,24 +4,25 @@ extends Node
 @export_file("*.tscn") var initial_level: String = "res://levels/shared_apartment.tscn"
 
 var current_level: Node = null
-var _levels: Array[String] = [
-	"res://levels/shared_apartment.tscn",
-	"res://levels/blockout_01.tscn",
-]
+var _levels: Array[String] = ["res://levels/shared_apartment.tscn"]
 var _level_index: int = 0
 
 @onready var _level_host: Node = %LevelHost
 
 
 func _ready() -> void:
+	if _levels.is_empty() or initial_level.is_empty():
+		return
 	_level_index = _levels.find(initial_level)
 	if _level_index == -1:
 		_level_index = 0
-	load_level(initial_level)
+	load_level(_levels[_level_index])
 
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("cycle_level"):
+		if _levels.is_empty():
+			return
 		_level_index = (_level_index + 1) % _levels.size()
 		load_level(_levels[_level_index])
 

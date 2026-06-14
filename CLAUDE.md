@@ -42,7 +42,7 @@ tools/            framework tooling — not game code
 | a level drawn in the Draw-level tool | **level-designer** → game-designer | `design/levels/<name>.md` |
 
 **Two loops carry orchestrator glue beyond a single agent:**
-- *Asset-sourcing:* asset-advisor gate 1 → files an `Asset:` task (`mcp__ui__tasks`, `owner:"user"`) → 🎨 Get Assets modal → user uploads a PNG/GLB → server writes `assets/textures/` or `assets/models/` (by file type) → asset-advisor gate 2 → on PASS, godot-dev wires it → godot-verify.
+- *Asset-sourcing:* asset-advisor gate 1 → orchestrator calls `mcp__ui__request_asset` (`{name, kind, prompt}`) → 🎨 Get Assets modal → user picks or names a local PNG/GLB → server writes `assets/textures/` or `assets/models/` (by file type) → asset-advisor gate 2 → on PASS, godot-dev wires it → godot-verify.
 - *Draw-level:* the UI exports `levels/drawn/current.json` → level-designer writes the brief → game-designer slices it → godot-dev builds a GridMap + MeshLibrary (skill `godot-gridmap-level`), never hand-authored Transform3D boxes.
 
 **Governance:**
@@ -60,6 +60,7 @@ Each skill's full description loads with it — this is the index (load-order hi
 - `godot-pixel-lighting` · `godot-screen-effects` — sun/ambient/tonemap; post-process quad + depth/normal reads
 - `godot-texture-import-pixel-art` · `godot-mesh-import-pixel-art` · `godot-foliage` — textures (NEAREST/no-mipmap), sourced `.glb` props, billboard foliage
 - `godot-procedural-texture` — generate local placeholder pixel-art surface textures procedurally (`tools/gen_textures.gd`, Image API, seamless); add a spec + re-run. Placeholder path, not final art
+- `godot-procedural-model` — generate local placeholder low-poly `.glb` props procedurally (`tools/gen_models.gd`, primitive kitbash → GLTFDocument); add a spec + re-run. Placeholder path, not final art
 - `godot-animation-libraries` — skeletal animation on a sourced rigged `.glb`: separate model/anim glTF files, merge clips into one AnimationLibrary on your own AnimationPlayer, retarget a foreign clip (Mixamo) via SkeletonProfileHumanoid (Phase 8; complements `godot-mesh-import-pixel-art`)
 - `godot-gridmap-level` — drawn-grid / tile levels via GridMap + MeshLibrary
 - `godot-composition` — component-node pattern; load before modularizing
@@ -77,7 +78,7 @@ Each skill's full description loads with it — this is the index (load-order hi
   | Art need | Technique | How |
   |---|---|---|
   | Greybox stage | flat-colour `BoxMesh` primitive | current builder — placeholder, **never** final art |
-  | Discrete prop / furniture / item | **sourced low-poly `.glb` model** (primary) | instance the model in place of the greybox node — NOT a texture on a box. Skill `godot-mesh-import-pixel-art`; catalogue `library/sources/model-sources.md` |
+  | Discrete prop / furniture / item | **sourced low-poly `.glb` model** (primary) | instance the model in place of the greybox node — NOT a texture on a box. Skill `godot-mesh-import-pixel-art`; catalogue `library/sources/model-sources.md`. Prototype placeholder: generate locally with `tools/gen_models.gd` (skill `godot-procedural-model`) |
   | Large flat surface (wall / floor / ground) | tileable surface texture | `StandardMaterial3D` + `uv1_scale` (sized to the face) + Texture Repeat on, **opaque (no alpha)**. Skill `godot-texture-import-pixel-art`. Prototype placeholder: generate locally with `tools/gen_textures.gd` (skill `godot-procedural-texture`) |
   | Vegetation / tiny detail | billboard sprite | existing `godot-foliage` rig |
 
@@ -91,5 +92,5 @@ Each skill's full description loads with it — this is the index (load-order hi
 - Code rules: strict typed GDScript (skill: godot-code-rules); gate `tools/validate.sh`, mandatory before reporting any .gd/.tscn change. Never weaken the warning levels or lint caps to pass it.
 - Shell: prefix every command with `rtk` — the token-optimized proxy (safe; unknown commands pass through; a PreToolUse hook backstops it). Full reference in the global/parent CLAUDE.md. Exceptions with no rtk filter, run as-is: the Godot binary (`$GODOT --headless …`) and project scripts (`tools/validate.sh`).
 - Rule for AI sessions: read this section before structural changes; load godot-code-rules before writing/editing any .gd file; record new project-wide decisions here, not in chat — keep it thin (see the note at the top).
-- Active roadmap: docs/roadmap/first_game.md. Before starting any task, identify its phase. Refuse tasks in the 'out of scope' list or in phases after an unpassed gate.
+- Active roadmap: docs/roadmap/itch_demo.md (the ship-to-itch.io demo; `first_game.md` is the completed, retired foundation POC). Before starting any task, identify its phase/track. Refuse tasks in the 'out of scope' list or in phases after an unpassed gate.
 - Roadmap status ownership: only the verifier updates phase status (✅/🔨/📋) and gate pass/fail, only after running that phase's gate check in the editor. Builders never self-mark phases done.
