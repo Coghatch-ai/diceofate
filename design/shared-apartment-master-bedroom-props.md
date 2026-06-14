@@ -1,5 +1,7 @@
 # Shared Apartment — Master Bedroom Props (Slice 2)
 
+> **Rebuild note (2026-06-14).** This slice is already folded into the builder: `tools/build_shared_apartment.gd._build()` calls `_place_props()`, so the five props regenerate in the **same run** as the Slice-1 shell — they are NOT a separate dispatch on rebuild. Cell coordinates below match the unchanged `current.json`. See `design/shared-apartment-rebuild.md`.
+
 **Goal** — The master bedroom of the shared apartment is dressed with greybox furniture (bed, wardrobe, nightstand, chair, desk) so it reads as a furnished room — a believable in-context stage for swapping in a real textured asset later.
 
 **Scope (in)**

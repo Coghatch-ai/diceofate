@@ -9,23 +9,23 @@ POC for a game developer framework using Godot 4.x. The goal is to build small t
 ```
 main.tscn         entry point + main.gd, at project root (skill: godot-main-scene)
 design/           design docs — one per agreed slice (written by game-designer only)
-transcripts/      raw transcript drop zone → transcript-researcher; consumed raws move to transcripts/archive/
-library/          warm knowledge (never auto-loaded): records in addons/ · tools/ · transcripts/, external fetch-lists in sources/ — convention in library/README.md
+transcripts/      raw transcript drop zone → transcript-researcher
+library/          warm knowledge, never auto-loaded — see library/README.md
 entities/         one scene+script per entity, entities/<name>/
 levels/           level scenes
-shaders/post/     post-process shaders
+shaders/          post/ (screen-space) + material/ (spatial/vertex)
 resources/        .tres resources
-tools/            framework tooling (validate.sh, verify_scene.gd, verify_render.gd) — not game code
+tools/            framework tooling — not game code
 .claude/
-  agents/         game-designer (Opus), godot-dev (Sonnet), godot-refactor (Haiku), skill-researcher (Opus), bug-triage (Opus), addon-researcher (Sonnet), cli-researcher (Sonnet), transcript-researcher (Opus), asset-advisor (Sonnet), level-designer (Sonnet)
-  skills/         godot-* skills, scoped to this project (skills/eval/ is researcher scratch — never committed)
+  agents/         the pipeline's agents — the routing table below names each by when to use it
+  skills/         godot-* skills (see ## Skills; eval/ = researcher scratch, never committed)
 ```
 
 ## How to work on this project
 
 **Pipeline:** idea → **game-designer** (scope) → **godot-dev** (build) → **godot-verify** → human runs (F5/F6). The editor viewport is NOT verification — it hides camera/lighting bugs.
 
-**Self-improvement spine** (the one loop the routes below instantiate): the framework grows by *pull* — an agent queries the registry (`## Skills`, `tools/CAPABILITIES.md`, `library/`) for what it needs; if nothing covers it, it flags a *structured gap* (what it needed, what it tried, why what we had fell short) and the orchestrator routes that gap to the matching researcher, **human-gated**; the result registers back so the next query finds it. Ordinary work an agent can already do never enters the loop. Every acquired capability MUST register where the next agent looks, or it gets re-researched.
+**Self-improvement spine** (the shape every route below shares): the framework grows by *pull* — an agent queries the registry (`## Skills`, `tools/CAPABILITIES.md`, `library/`); on a genuine gap it flags what's missing and the orchestrator routes to the matching researcher (**human-gated**); the result registers back so the next query finds it. Capability gaps only — ordinary work never enters the loop.
 
 **Routing** (the *when*; mechanics live in each agent/skill, the result registers where the next agent will look):
 
@@ -59,6 +59,7 @@ Each skill's full description loads with it — this is the index (load-order hi
 - `godot-main-scene` · `godot-3d-pixelation` · `godot-camera-rig` — persistent shell, SubViewport downscale, orthographic rig
 - `godot-pixel-lighting` · `godot-screen-effects` — sun/ambient/tonemap; post-process quad + depth/normal reads
 - `godot-texture-import-pixel-art` · `godot-mesh-import-pixel-art` · `godot-foliage` — textures (NEAREST/no-mipmap), sourced `.glb` props, billboard foliage
+- `godot-procedural-texture` — generate local placeholder pixel-art surface textures procedurally (`tools/gen_textures.gd`, Image API, seamless); add a spec + re-run. Placeholder path, not final art
 - `godot-animation-libraries` — skeletal animation on a sourced rigged `.glb`: separate model/anim glTF files, merge clips into one AnimationLibrary on your own AnimationPlayer, retarget a foreign clip (Mixamo) via SkeletonProfileHumanoid (Phase 8; complements `godot-mesh-import-pixel-art`)
 - `godot-gridmap-level` — drawn-grid / tile levels via GridMap + MeshLibrary
 - `godot-composition` — component-node pattern; load before modularizing
@@ -70,7 +71,6 @@ Each skill's full description loads with it — this is the index (load-order hi
 - Engine: Godot 4.6 (reversed-Z; per project.godot `config/features`). Renderer: Forward+ (required by outline shaders).
 - Art style: 3D pixel art. 3D content renders inside a SubViewport (skill: godot-3d-pixelation); post-process effects attach to the camera inside it.
 - Camera: orthographic, fixed angle (skill: godot-camera-rig). Do not switch to perspective without flagging the texel-snapping consequence.
-- Folders: scenes/, entities/, levels/, shaders/post/, shaders/material/, resources/.
 - Sourced art by medium: **textures** (PNG) → `assets/textures/<name>.png`, **3D models** (`.glb`) → `assets/models/<name>.glb` (snake_case; `assets/` gitignored; a model's own textures still go in `assets/textures/`). Source PNG = image; imported = texture (`CompressedTexture2D`); the `.tres` that uses it = material. Sourcing/verifying both is the asset-advisor loop; detail in skills `godot-texture-import-pixel-art` / `godot-mesh-import-pixel-art`.
 - Art-kind → technique (pick the right one BEFORE filing an asset request; the *why* and the gotchas live in the named skills):
 
@@ -78,11 +78,11 @@ Each skill's full description loads with it — this is the index (load-order hi
   |---|---|---|
   | Greybox stage | flat-colour `BoxMesh` primitive | current builder — placeholder, **never** final art |
   | Discrete prop / furniture / item | **sourced low-poly `.glb` model** (primary) | instance the model in place of the greybox node — NOT a texture on a box. Skill `godot-mesh-import-pixel-art`; catalogue `library/sources/model-sources.md` |
-  | Large flat surface (wall / floor / ground) | tileable surface texture | `StandardMaterial3D` + `uv1_scale` (sized to the face) + Texture Repeat on, **opaque (no alpha)**. Skill `godot-texture-import-pixel-art` |
+  | Large flat surface (wall / floor / ground) | tileable surface texture | `StandardMaterial3D` + `uv1_scale` (sized to the face) + Texture Repeat on, **opaque (no alpha)**. Skill `godot-texture-import-pixel-art`. Prototype placeholder: generate locally with `tools/gen_textures.gd` (skill `godot-procedural-texture`) |
   | Vegetation / tiny detail | billboard sprite | existing `godot-foliage` rig |
 
 - Naming: node names PascalCase; files and folders snake_case; one scene per entity in entities/<name>/.
-- Input actions: move_left, move_right, move_forward, move_back, jump, cycle_level (Tab — cycles basic_room → blockout_01 → blockout_02 via main.gd's load_level(); design: level-switcher.md).
+- Input actions: move_left, move_right, move_forward, move_back, jump, cycle_level (Tab).
 - Shader contract: `shaders/post/` for screen-space post-process (skill: godot-screen-effects — the quad rig + `get_linear_depth()` / `get_normal()` helpers). `shaders/material/` for spatial/vertex material shaders (grass, foliage, toon — NOT post-process).
 - Entry point: `res://main.tscn` + `res://main.gd` at the project root (`run/main_scene`). F5 launches Main; F6 launches individual scenes. No generic `scenes/` folder — every scene lives in its domain folder; only the entry point sits at root.
 - Level loading: levels swap under `Main/LevelHost`; never `change_scene_to_file()` — loading rules + the pixelation migration note live in skill godot-main-scene.
@@ -90,6 +90,6 @@ Each skill's full description loads with it — this is the index (load-order hi
 - Composition over inheritance (skill: godot-composition): engine-node base + component children, signals up / calls down; modularize ON DEMAND only. Mechanical extractions go to the godot-refactor agent (Haiku), which must verify before AND after.
 - Code rules: strict typed GDScript (skill: godot-code-rules); gate `tools/validate.sh`, mandatory before reporting any .gd/.tscn change. Never weaken the warning levels or lint caps to pass it.
 - Shell: prefix every command with `rtk` — the token-optimized proxy (safe; unknown commands pass through; a PreToolUse hook backstops it). Full reference in the global/parent CLAUDE.md. Exceptions with no rtk filter, run as-is: the Godot binary (`$GODOT --headless …`) and project scripts (`tools/validate.sh`).
-- Rule for AI sessions: read this section before structural changes; load godot-code-rules before writing/editing any .gd file; record new project-wide decisions here, not in chat — and keep this file thin: a capability is one line here, never a new prose section (depth goes in the agent/skill; see the note at the top).
+- Rule for AI sessions: read this section before structural changes; load godot-code-rules before writing/editing any .gd file; record new project-wide decisions here, not in chat — keep it thin (see the note at the top).
 - Active roadmap: docs/roadmap/first_game.md. Before starting any task, identify its phase. Refuse tasks in the 'out of scope' list or in phases after an unpassed gate.
 - Roadmap status ownership: only the verifier updates phase status (✅/🔨/📋) and gate pass/fail, only after running that phase's gate check in the editor. Builders never self-mark phases done.
