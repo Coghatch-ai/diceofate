@@ -6,7 +6,6 @@ extends Node
 var current_level: Node = null
 var _levels: Array[String] = [
 	"res://levels/firing_yard.tscn",
-	"res://levels/shared_apartment.tscn",
 ]
 var _level_index: int = 0
 
@@ -38,9 +37,10 @@ func load_level(path: String) -> void:
 	current_level = (load(path) as PackedScene).instantiate()
 	_level_host.add_child(current_level)
 
-	# Find the player and wire it to the camera rig
+	# If the level ships an FPS player, make its eye-camera current in the SubViewport.
+	# The orthographic CameraRig remains in the scene tree but is inert for FPS levels.
 	var player := current_level.find_child("Player") as Player
 	if player != null:
-		var rig: CameraRig = %CameraRig
-		rig.target = player
-		player.camera_rig = rig
+		var camera := player.find_child("Camera3D") as Camera3D
+		if camera != null:
+			camera.make_current()

@@ -6,8 +6,6 @@
       "Grep(**)",
       "Write(.claude/**)",
       "Edit(.claude/**)",
-      "Write(library/**)",
-      "Edit(library/**)",
       "Write(design/**)",
       "Edit(design/**)",
       "Write(docs/**)",
@@ -22,6 +20,8 @@
       "Edit(resources/**)",
       "Write(shaders/**)",
       "Edit(shaders/**)",
+      "Write(scripts/**)",
+      "Edit(scripts/**)",
       "Write(tools/**)",
       "Edit(tools/**)",
       "Write(assets/**)",
@@ -34,27 +34,6 @@
       "mcp__ui__tasks",
       "mcp__ui__request_asset",
       "mcp__ui__ask"
-    ]
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/block-destructive-git.sh\""
-          },
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/block-destructive-shell.sh\""
-          },
-          {
-            "type": "command",
-            "command": "command -v rtk >/dev/null 2>&1 && rtk hook claude || true"
-          }
-        ]
-      }
     ]
   }
 }

@@ -1,51 +1,55 @@
-# entities/player/player.gd — player movement, jumping, and inventory.
+# entities/player/player.gd — first-person movement, mouse-look, jump, and weapon firing.
 class_name Player
 extends CharacterBody3D
 
-@export var speed: float = 5.0
-@export var jump_velocity: float = 3
-@export var camera_rig: CameraRig
+@export var move_speed: float = 5.0
+@export var jump_velocity: float = 5.0
+@export var mouse_sensitivity: float = 0.002
 
-var inventory: Array[String] = []
+# SEAM: ProjectSettings.get_setting() returns Variant; the physics gravity setting is always float.
+@warning_ignore("unsafe_cast")
+var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity") as float
+@onready var _head: Node3D = $Head
+@onready var _weapon: Weapon = $Head/Weapon
+
+
+func _ready() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		var motion := event as InputEventMouseMotion
+		# Yaw on the body, pitch on the head (clamped so the view can't flip over).
+		rotate_y(-motion.relative.x * mouse_sensitivity)
+		_head.rotate_x(-motion.relative.y * mouse_sensitivity)
+		_head.rotation.x = clampf(_head.rotation.x, -PI / 2.0, PI / 2.0)
+	elif event.is_action_pressed("ui_cancel"):
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _physics_process(delta: float) -> void:
-	# Apply gravity (typed Vector3 from the engine — respects project settings and areas)
+	# 1. Gravity while airborne.
 	if not is_on_floor():
-		velocity += get_gravity() * delta
+		velocity.y -= _gravity * delta
 
-	# Handle jump
-	if is_on_floor() and Input.is_action_just_pressed("jump"):
+	# 2. Jump only when grounded.
+	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = jump_velocity
 
-	# Get input direction
-	var input_dir := Vector2.ZERO
-	if Input.is_action_pressed("move_forward"):
-		input_dir.y -= 1
-	if Input.is_action_pressed("move_back"):
-		input_dir.y += 1
-	if Input.is_action_pressed("move_left"):
-		input_dir.x -= 1
-	if Input.is_action_pressed("move_right"):
-		input_dir.x += 1
-
-	# Apply horizontal movement
-	var direction := Vector3(input_dir.x, 0, input_dir.y).normalized()
-
-	# Rotate direction by camera yaw
-	if camera_rig != null:
-		direction = direction.rotated(Vector3.UP, camera_rig.get_yaw_radians())
-
+	# 3. Movement relative to where the body faces (yaw).
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var direction := (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 	if direction != Vector3.ZERO:
-		velocity.x = direction.x * speed
-		velocity.z = direction.z * speed
+		velocity.x = direction.x * move_speed
+		velocity.z = direction.z * move_speed
 	else:
-		velocity.x = 0
-		velocity.z = 0
+		velocity.x = move_toward(velocity.x, 0.0, move_speed)
+		velocity.z = move_toward(velocity.z, 0.0, move_speed)
 
+	# 4. Fire on left-click (held); cooldown timer caps cadence, not input.
+	if Input.is_action_pressed("shoot"):
+		_weapon.try_fire()
+
+	# 5. Engine resolves collisions and updates position.
 	move_and_slide()
-
-
-func add_item(item: String) -> void:
-	inventory.append(item)
-	print("Inventory: ", inventory)

@@ -10,6 +10,13 @@ assets/
 
 # Xenodot Forge task board (the orchestrator's working store)
 .xenodot/
+# Framework Godot tools — generated from the xenodot plugin (single source), not repo content
+/tools/
+# Framework knowledge base — a symlink to the xenodot plugin's library/, not repo content
+# (no trailing slash: a trailing-slash pattern won't match a symlink)
+/library
+# Raw transcript drop-zone — a working tray, harvested into the framework library
+/transcripts/
 # Claude Code per-project runtime data (memory/sessions) — not repo content
 .claude/projects/
 # macOS
