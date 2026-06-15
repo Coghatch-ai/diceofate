@@ -30,7 +30,10 @@
       "Edit(main.gd)",
       "Write(project.godot)",
       "Edit(project.godot)",
-      "Bash(**)"
+      "Bash(**)",
+      "mcp__ui__tasks",
+      "mcp__ui__request_asset",
+      "mcp__ui__ask"
     ]
   },
   "hooks": {
@@ -41,6 +44,10 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/block-destructive-git.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/block-destructive-shell.sh\""
           },
           {
             "type": "command",

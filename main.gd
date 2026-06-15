@@ -1,10 +1,13 @@
 # main.gd — persistent shell: loads and swaps level scenes under %LevelHost.
 extends Node
 
-@export_file("*.tscn") var initial_level: String = "res://levels/shared_apartment.tscn"
+@export_file("*.tscn") var initial_level: String = "res://levels/firing_yard.tscn"
 
 var current_level: Node = null
-var _levels: Array[String] = ["res://levels/shared_apartment.tscn"]
+var _levels: Array[String] = [
+	"res://levels/firing_yard.tscn",
+	"res://levels/shared_apartment.tscn",
+]
 var _level_index: int = 0
 
 @onready var _level_host: Node = %LevelHost

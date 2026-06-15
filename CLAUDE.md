@@ -56,7 +56,9 @@ tools/            framework tooling — not game code
 Each skill's full description loads with it — this is the index (load-order hint where it matters):
 
 - `godot-project-conventions` — run FIRST in a new setup; records conventions here
-- `godot-main-scene` · `godot-3d-pixelation` · `godot-camera-rig` — persistent shell, SubViewport downscale, orthographic rig
+- `godot-main-scene` · `godot-3d-pixelation` · `godot-orthographic-follow-camera` — persistent shell, SubViewport downscale, orthographic top-down/iso camera
+- `godot-first-person-controller` — FPS sibling of godot-orthographic-follow-camera: CharacterBody3D + child Head perspective eye-camera inside the SubViewport, raw mouse-look (yaw body / pitch head), camera-relative WASD + jump; pick one camera skill per genre
+- `godot-travelling-projectile-3d` — fire a travelling projectile (spawn at a `Marker3D` muzzle, `top_level` detach, move `-z`, despawn on range, Area3D hit) gated by a one-shot `Timer` cooldown; a host-agnostic firing component. NOT hitscan/raycast
 - `godot-pixel-lighting` · `godot-screen-effects` — sun/ambient/tonemap; post-process quad + depth/normal reads
 - `godot-texture-import-pixel-art` · `godot-mesh-import-pixel-art` · `godot-foliage` — textures (NEAREST/no-mipmap), sourced `.glb` props, billboard foliage
 - `godot-procedural-texture` — generate local placeholder pixel-art surface textures procedurally (`tools/gen_textures.gd`, Image API, seamless); add a spec + re-run. Placeholder path, not final art
@@ -69,9 +71,9 @@ Each skill's full description loads with it — this is the index (load-order hi
 
 ## Project conventions
 
-- Engine: Godot 4.6 (reversed-Z; per project.godot `config/features`). Renderer: Forward+ (required by outline shaders).
+- Engine: Godot-family — runs on Godot, Redot or Blazium (shared project format / GDScript / CLI); this game is pinned to **Godot 4.6** (reversed-Z; per project.godot `config/features`). Renderer: Forward+ (required by outline shaders). Switch engines by pointing `$GODOT` at the fork binary (see xenodot-forge/docs/engines.md).
 - Art style: 3D pixel art. 3D content renders inside a SubViewport (skill: godot-3d-pixelation); post-process effects attach to the camera inside it.
-- Camera: orthographic, fixed angle (skill: godot-camera-rig). Do not switch to perspective without flagging the texel-snapping consequence.
+- Camera: projection is genre-dependent, NOT fixed. The pixel-art look comes from the SubViewport downscale (godot-3d-pixelation), not the camera — perspective and orthographic both render pixelated inside it. Orthographic fixed-angle (skill: godot-orthographic-follow-camera) is the default for top-down/iso games; first-person/third-person genres use a perspective eye-camera inside the SubViewport. Switching projection only trades the texel-snapping behaviour (flag it, don't forbid it).
 - Sourced art by medium: **textures** (PNG) → `assets/textures/<name>.png`, **3D models** (`.glb`) → `assets/models/<name>.glb` (snake_case; `assets/` gitignored; a model's own textures still go in `assets/textures/`). Source PNG = image; imported = texture (`CompressedTexture2D`); the `.tres` that uses it = material. Sourcing/verifying both is the asset-advisor loop; detail in skills `godot-texture-import-pixel-art` / `godot-mesh-import-pixel-art`.
 - Art-kind → technique (pick the right one BEFORE filing an asset request; the *why* and the gotchas live in the named skills):
 
@@ -92,5 +94,5 @@ Each skill's full description loads with it — this is the index (load-order hi
 - Code rules: strict typed GDScript (skill: godot-code-rules); gate `tools/validate.sh`, mandatory before reporting any .gd/.tscn change. Never weaken the warning levels or lint caps to pass it.
 - Shell: prefix every command with `rtk` — the token-optimized proxy (safe; unknown commands pass through; a PreToolUse hook backstops it). Full reference in the global/parent CLAUDE.md. Exceptions with no rtk filter, run as-is: the Godot binary (`$GODOT --headless …`) and project scripts (`tools/validate.sh`).
 - Rule for AI sessions: read this section before structural changes; load godot-code-rules before writing/editing any .gd file; record new project-wide decisions here, not in chat — keep it thin (see the note at the top).
-- Active roadmap: docs/roadmap/itch_demo.md (the ship-to-itch.io demo; `first_game.md` is the completed, retired foundation POC). Before starting any task, identify its phase/track. Refuse tasks in the 'out of scope' list or in phases after an unpassed gate.
+- Active roadmap: docs/roadmap/fps_poc.md (the first-person shooter POC). Retired: `first_game.md` (completed foundation POC), `itch_demo.md` (unbuilt apartment-demo idea). Before starting any task, identify its phase/track. Refuse tasks in the 'out of scope' list or in phases after an unpassed gate.
 - Roadmap status ownership: only the verifier updates phase status (✅/🔨/📋) and gate pass/fail, only after running that phase's gate check in the editor. Builders never self-mark phases done.

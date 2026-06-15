@@ -1,0 +1,20 @@
+[gd_resource type="MeshLibrary" format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s8ub1"]
+albedo_color = Color(0.251, 0.251, 0.314, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wrio1"]
+material = SubResource("StandardMaterial3D_s8ub1")
+size = Vector3(2, 4, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_r5pnm"]
+size = Vector3(2, 4, 2)
+
+[resource]
+item/0/name = "wall"
+item/0/mesh = SubResource("BoxMesh_wrio1")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/mesh_cast_shadow = 1
+item/0/shapes = [SubResource("BoxShape3D_r5pnm"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1

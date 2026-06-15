@@ -1,0 +1,88 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="1_uwmq5"]
+[ext_resource type="Script" path="res://entities/player/player.gd" id="2_jjefe"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s8ub1"]
+albedo_color = Color(0.251, 0.251, 0.314, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wrio1"]
+material = SubResource("StandardMaterial3D_s8ub1")
+size = Vector3(2, 4, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_r5pnm"]
+size = Vector3(2, 4, 2)
+
+[sub_resource type="MeshLibrary" id="MeshLibrary_likl2"]
+item/0/name = "wall"
+item/0/mesh = SubResource("BoxMesh_wrio1")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/mesh_cast_shadow = 1
+item/0/shapes = [SubResource("BoxShape3D_r5pnm"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4itqb"]
+albedo_color = Color(0.078, 0.078, 0.125, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_d34xl"]
+material = SubResource("StandardMaterial3D_4itqb")
+size = Vector3(48, 0.2, 32)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_17o0m"]
+size = Vector3(48, 0.2, 32)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_62v8g"]
+sky_top_color = Color(0.02, 0.02, 0.05, 1)
+sky_horizon_color = Color(0.02, 0.02, 0.05, 1)
+ground_bottom_color = Color(0.01, 0.01, 0.02, 1)
+ground_horizon_color = Color(0.01, 0.01, 0.02, 1)
+sun_angle_max = 0.0
+
+[sub_resource type="Sky" id="Sky_iv7en"]
+sky_material = SubResource("ProceduralSkyMaterial_62v8g")
+
+[sub_resource type="Environment" id="Environment_savgl"]
+background_mode = 2
+sky = SubResource("Sky_iv7en")
+ambient_light_source = 2
+ambient_light_color = Color(0.063, 0.063, 0.125, 1)
+tonemap_mode = 2
+
+[node name="FiringYard" type="Node3D" unique_id=946779075]
+
+[node name="FiringYardMap" type="GridMap" parent="." unique_id=1697716804]
+mesh_library = SubResource("MeshLibrary_likl2")
+cell_size = Vector3(2, 4, 2)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(0, 0, 0, 20, 0, 0, 21, 0, 0, 22, 0, 0, 23, 0, 0, 0, 1, 0, 4, 1, 0, 0, 2, 0, 4, 2, 0, 11, 2, 0, 0, 3, 0, 4, 3, 0, 12, 3, 0, 23, 3, 0, 5, 4, 0, 11, 4, 0, 23, 4, 0, 6, 5, 0, 12, 5, 0, 15, 5, 0, 23, 5, 0, 7, 6, 0, 14, 6, 0, 16, 6, 0, 23, 6, 0, 6, 7, 0, 11, 7, 0, 17, 7, 0, 0, 8, 0, 5, 8, 0, 12, 8, 0, 23, 8, 0, 0, 9, 0, 11, 9, 0, 23, 9, 0, 0, 10, 0, 4, 10, 0, 10, 10, 0, 23, 10, 0, 0, 11, 0, 4, 11, 0, 11, 11, 0, 4, 12, 0, 1, 15, 0, 2, 15, 0, 3, 15, 0, 19, 15, 0, 20, 15, 0, 21, 15, 0, 22, 15, 0, 23, 15, 0)
+}
+
+[node name="FloorSlab" type="StaticBody3D" parent="." unique_id=747068927]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab" unique_id=909901341]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 16)
+mesh = SubResource("BoxMesh_d34xl")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab" unique_id=1937837626]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 16)
+shape = SubResource("BoxShape3D_17o0m")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=293714119]
+transform = Transform3D(-1, 6.181724e-08, -6.181724e-08, 0, 0.70710677, 0.70710677, 8.742278e-08, 0.70710677, -0.70710677, 0, 0, 0)
+light_color = Color(0.533, 0.533, 1, 1)
+light_energy = 1.2
+shadow_enabled = true
+shadow_bias = 0.05
+shadow_normal_bias = 1.0
+directional_shadow_max_distance = 60.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=688705801]
+environment = SubResource("Environment_savgl")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=536876596 groups=["Player"] instance=ExtResource("1_uwmq5")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 24, 1, 30)
+script = ExtResource("2_jjefe")
