@@ -26,6 +26,9 @@ live in this repo's `.claude/`; everything else comes from the plugin.
   `assets/models/<name>.glb` (snake_case; `assets/` gitignored; a model's own textures still go in
   `assets/textures/`). Sourcing/verifying both is the asset-advisor loop; detail in the
   `godot-texture-import-pixel-art` / `godot-mesh-import-pixel-art` skills.
+- Shared example assets (from a free CC0 library, kept OUTSIDE this game's tree) resolve at
+  `res://x-shared-assets/{textures,models}/<name>.<ext>` — a gitignored symlink to an external dir
+  the framework knows about; pick this "place" in the Get Assets UI. Same import rules as above apply.
 - Art-kind → technique (pick BEFORE filing an asset request; the *why*/gotchas live in the skills):
 
   | Art need | Technique | How |

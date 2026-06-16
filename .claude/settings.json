@@ -28,6 +28,8 @@
       "Edit(assets/**)",
       "Write(main.gd)",
       "Edit(main.gd)",
+      "Write(main.tscn)",
+      "Edit(main.tscn)",
       "Write(project.godot)",
       "Edit(project.godot)",
       "Bash(**)",

@@ -18,6 +18,10 @@ assets/    textures, audio, fonts
 addons/    Godot plugins
 ```
 
+Example assets sourced from free CC0 libraries live OUTSIDE this repo, in the framework's
+external shared-asset library, and are mounted here as a gitignored symlink at
+`res://x-shared-assets/` (`models/` + `textures/`). See the framework README (`x-shared-assets`).
+
 ## Agent workflow
 
 This repo ships Claude Code configuration in `.claude/`:

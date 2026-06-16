@@ -1,4 +1,4 @@
-# levels/firing_yard.gd — day/night sun cycle driver for the Firing Yard arena.
+# levels/firing_yard.gd — day/night sun cycle driver and respawn handler for the Firing Yard.
 class_name FiringYard
 extends Node3D
 
@@ -41,8 +41,9 @@ const AMBIENT_COLOR_NIGHT: Color = Color(0.25, 0.3, 0.55, 1.0)  # cool blue moon
 const AMBIENT_ENERGY_SUNRISE: float = 0.5
 const AMBIENT_ENERGY_MIDDAY: float = 0.8
 const AMBIENT_ENERGY_SUNSET: float = 0.5
-# Moonlight floor — keeps targets readable at night.
-const AMBIENT_ENERGY_NIGHT: float = 1.0
+# Moonlight floor — lifted to 1.2 so the darker CONCRETE_DARKEST floor (value 0.16) stays
+# readable at night; was 1.0 before the concrete_floor texture pass.
+const AMBIENT_ENERGY_NIGHT: float = 1.2
 
 # --- Sky top color keyframes ---
 const SKY_TOP_SUNRISE: Color = Color(0.5, 0.35, 0.2, 1.0)  # orange dawn
@@ -56,20 +57,41 @@ const SKY_HORIZON_MIDDAY: Color = Color(0.45, 0.62, 0.85, 1.0)
 const SKY_HORIZON_SUNSET: Color = Color(0.85, 0.42, 0.12, 1.0)
 const SKY_HORIZON_NIGHT: Color = Color(0.04, 0.05, 0.12, 1.0)
 
+# Spawn constants — must match the builder so the respawn lands at the same point.
+const SPAWN_POS: Vector3 = Vector3(24.0, 1.0, 30.0)
+# Facing -Z = rotation_y of PI
+const SPAWN_ROT_Y: float = PI
+
 # Total period in seconds: ~5 min daylight arc + ~2 min night = ~7 min.
 # Lower for verification runs (e.g. 14.0 = 10x speed).
 @export var period_seconds: float = 420.0
 
-# Normalized day-time in [0, 1). Starts at sunrise (t = 0).
-var _day_t: float = 0.0
+# Normalized day-time in [0, 1). Starts at noon (day_t=0.5 within the daylight arc).
+# noon_t = 0.5 * DAYLIGHT_FRACTION = 0.5 * (300/420) = 150/420.
+var _day_t: float = 150.0 / 420.0
 
 @onready var _sun: DirectionalLight3D = $Sun
 @onready var _world_env: WorldEnvironment = $WorldEnvironment
+@onready var _fall_zone: Area3D = $FallZone
 
 
 func _ready() -> void:
 	# Immediately apply the sunrise start state so the first frame is correct.
 	_apply(_day_t)
+	_fall_zone.body_entered.connect(_on_FallZone_body_entered)
+	# Navigation mesh is pre-baked (tools/bake_navmesh.gd) and stored in
+	# levels/firing_yard_navmesh.tres — no runtime bake needed.
+
+
+# Respawn the player when they fall through a fake-wall hole.
+func _on_FallZone_body_entered(body: Node3D) -> void:
+	if not body.is_in_group("Player"):
+		return
+	body.global_position = SPAWN_POS
+	body.rotation.y = SPAWN_ROT_Y
+	# SEAM: duck-typed reset — velocity is on CharacterBody3D, not the Node3D base type.
+	@warning_ignore("unsafe_property_access")
+	body.velocity = Vector3.ZERO
 
 
 func _process(delta: float) -> void:

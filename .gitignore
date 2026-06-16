@@ -15,6 +15,9 @@ assets/
 # Framework knowledge base — a symlink to the xenodot plugin's library/, not repo content
 # (no trailing slash: a trailing-slash pattern won't match a symlink)
 /library
+# External shared-asset library — a symlink to free-library example assets kept OUTSIDE the
+# game tree, mounted at res://x-shared-assets (no trailing slash — it's a symlink)
+/x-shared-assets
 # Raw transcript drop-zone — a working tray, harvested into the framework library
 /transcripts/
 # Claude Code per-project runtime data (memory/sessions) — not repo content

@@ -5,7 +5,7 @@ extends Node3D
 @export var projectile_scene: PackedScene
 @export var fire_rate: float = 0.2
 
-@onready var _muzzle: Marker3D = $Muzzle
+@onready var _muzzle: Marker3D = $PistolViewModel/Muzzle
 @onready var _cooldown: Timer = $Cooldown
 
 

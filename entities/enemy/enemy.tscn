@@ -1,0 +1,64 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" uid="uid://declxbohq3voj" path="res://entities/enemy/enemy.gd" id="1_enemy"]
+[ext_resource type="Script" uid="uid://cgobh31pph3vs" path="res://entities/enemy/state_machine/state_machine.gd" id="2_sm"]
+[ext_resource type="Script" uid="uid://ckyjq4h5lp61d" path="res://entities/enemy/state_machine/patrol_state.gd" id="3_patrol"]
+[ext_resource type="Script" uid="uid://cfw2sbais7x0" path="res://entities/enemy/state_machine/chase_state.gd" id="4_chase"]
+[ext_resource type="Script" uid="uid://60fqkoxafxh3" path="res://entities/enemy/state_machine/attack_state.gd" id="5_attack"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_enemy"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_enemy"]
+albedo_color = Color(0.42, 0.22, 0.22, 1.0)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_enemy"]
+radius = 0.35
+height = 1.8
+
+[node name="Enemy" type="CharacterBody3D"]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_enemy")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_enemy")
+surface_material_override/0 = SubResource("StandardMaterial3D_enemy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_enemy")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.5
+target_desired_distance = 0.5
+avoidance_enabled = true
+
+[node name="EyeRay" type="RayCast3D" parent="."]
+position = Vector3(0, 1.5, 0)
+enabled = false
+collision_mask = 1
+
+[node name="AttackTimer" type="Timer" parent="."]
+wait_time = 0.8
+one_shot = true
+
+[node name="PatrolWaitTimer" type="Timer" parent="."]
+wait_time = 1.0
+one_shot = true
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("2_sm")
+
+[node name="PatrolState" type="Node" parent="StateMachine"]
+script = ExtResource("3_patrol")
+
+[node name="ChaseState" type="Node" parent="StateMachine"]
+script = ExtResource("4_chase")
+
+[node name="AttackState" type="Node" parent="StateMachine"]
+script = ExtResource("5_attack")

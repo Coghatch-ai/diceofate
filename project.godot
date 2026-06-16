@@ -43,9 +43,12 @@ gdscript/warnings/confusable_identifier=2
 
 [display]
 
-window/size/viewport_width=1920
-window/size/viewport_height=1080
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/size/window_width_override=1920
+window/size/window_height_override=1080
 window/stretch/mode="canvas_items"
+window/stretch/scale_mode="integer"
 
 [input]
 
@@ -110,3 +113,7 @@ shoot={
 3d_physics/layer_2="player"
 3d_physics/layer_3="projectile"
 3d_physics/layer_4="target"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bh5pypvfo12ut" path="res://main.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://c5pqr2xk8yvl4" path="res://entities/camera_rig/camera_rig.tscn" id="2"]
+[ext_resource type="Script" path="res://entities/hud/crosshair.gd" id="3"]
 
 [node name="Main" type="Node" unique_id=1756503177]
 script = ExtResource("1")
@@ -26,3 +27,15 @@ transform = Transform3D(0.70710677, -0.35355338, 0.6123724, 0, 0.8660254, 0.5, -
 
 [node name="LevelHost" type="Node" parent="SubViewportContainer/SubViewport" unique_id=96008215]
 unique_name_in_owner = true
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Crosshair" type="Control" parent="HUD"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3")
