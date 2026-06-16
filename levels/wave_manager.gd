@@ -110,7 +110,7 @@ func _spawn_one(seed_phase: bool = false) -> void:
 	# Position before add_child avoids an extra transform flush.
 	get_parent().add_child(enemy)
 	# global_position requires the node to be in the tree; set after add_child.
-	enemy.global_position = pos + Vector3(0.0, 0.5, 0.0)
+	enemy.global_position = pos + Vector3(0.0, 0.1, 0.0)
 
 	_connect_enemy(enemy)
 	_active_enemies.append(enemy)

@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://projectile001"]
+[gd_scene load_steps=6 format=3 uid="uid://projectile001"]
 
 [ext_resource type="Script" path="res://entities/projectile/projectile.gd" id="1"]
+[ext_resource type="AudioStream" path="res://assets/audio/projectile_hit.wav" id="2_hit"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_proj"]
 radius = 0.08
@@ -26,3 +27,7 @@ shape = SubResource("SphereShape3D_proj")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = SubResource("SphereMesh_proj")
 surface_material_override/0 = SubResource("StandardMaterial3D_proj")
+
+[node name="HitSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_hit")
+bus = &"SFX"

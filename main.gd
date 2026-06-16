@@ -10,6 +10,7 @@ var _levels: Array[String] = [
 var _level_index: int = 0
 
 @onready var _level_host: Node = %LevelHost
+@onready var _crosshair: Crosshair = %Crosshair
 
 
 func _ready() -> void:
@@ -37,10 +38,12 @@ func load_level(path: String) -> void:
 	current_level = (load(path) as PackedScene).instantiate()
 	_level_host.add_child(current_level)
 
-	# If the level ships an FPS player, make its eye-camera current in the SubViewport.
+	# If the level ships an FPS player, make its eye-camera current in the SubViewport
+	# and inject the persistent HUD crosshair for fire/hit feedback.
 	# The orthographic CameraRig remains in the scene tree but is inert for FPS levels.
 	var player := current_level.find_child("Player") as Player
 	if player != null:
 		var camera := player.find_child("Camera3D") as Camera3D
 		if camera != null:
 			camera.make_current()
+		player.set_crosshair(_crosshair)

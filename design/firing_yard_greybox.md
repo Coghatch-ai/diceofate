@@ -3,7 +3,7 @@
 **Goal** — F5 drops the player into the Firing Yard arena: a walkable 48 x 32 m sci-fi yard whose solid walls collide, with two raised platforms reachable by ramps, plus colour-coded placeholder props — lit and pixelated.
 
 ## Build method
-GridMap + MeshLibrary, headless build path (skill `godot-gridmap-level`, step 4b). The level was drawn (`levels/drawn/current.json`, 51 wall cells) — never hand-authored `Transform3D` boxes. One `tools/build_firing_yard.gd` (`@tool extends SceneTree`) generates `levels/firing_yard.tscn` (root `FiringYard`). Structure walls + floor come from the GridMap + a single floor slab; platforms, ramps and placeholder props are computed-position instances outside the GridMap (multi-cell same-id groups = ONE spanning instance at the group centre, never `×N`).
+GridMap + MeshLibrary, headless build path (skill `godot-gridmap-level`, step 4b). The level was drawn (`levels/drawn/current.json`, 51 wall cells) — never hand-authored `Transform3D` boxes. One `scripts/build_firing_yard.gd` (`@tool extends SceneTree`) generates `levels/firing_yard.tscn` (root `FiringYard`). Structure walls + floor come from the GridMap + a single floor slab; platforms, ramps and placeholder props are computed-position instances outside the GridMap (multi-cell same-id groups = ONE spanning instance at the group centre, never `×N`).
 
 **Grid → world contract:** cell `(col,row)` → `Vector3(col*2, y, row*2)`; `cell_size = Vector3(2, 4, 2)`; wall cells are solid 2x4x2 blocks. Spawn the player at cell (12,15) → world `(24, ~1, 30)`, facing north (−Z).
 
@@ -12,7 +12,7 @@ GridMap + MeshLibrary, headless build path (skill `godot-gridmap-level`, step 4b
 ### Slice B1a — Arena shell (build + verify first)
 **Scope (in)**
 - `resources/firing_yard_tiles.meshlib.tres`: one `wall` tile (solid 2x4x2 `BoxMesh`, flat `StandardMaterial3D` albedo `#404050`, welded `BoxShape3D` via `set_item_shapes`). Material on the MESH, not the node.
-- `tools/build_firing_yard.gd`: parse `current.json` (use the SEAM casting pattern — type-guard + `@warning_ignore("unsafe_cast")`), place a wall tile for every `cells` code `1`; ignore item/prop cells here.
+- `scripts/build_firing_yard.gd`: parse `current.json` (use the SEAM casting pattern — type-guard + `@warning_ignore("unsafe_cast")`), place a wall tile for every `cells` code `1`; ignore item/prop cells here.
 - One floor slab: `StaticBody3D` + `BoxMesh` + `BoxShape3D`, 48 x (thin) x 32 m, top at y=0, albedo `#141420`.
 - `DirectionalLight3D` cool blue-white (`#8888ff`, energy 1.2, hard shadows) angled from upper-north; `WorldEnvironment` with dark-blue ambient (`#101020`) and a dark solid sky (no visible horizon). No bloom / post-process.
 - Instance `entities/player/player.tscn` named `Player` at spawn (24, ~1, 30), facing −Z.
@@ -47,7 +47,7 @@ GridMap + MeshLibrary, headless build path (skill `godot-gridmap-level`, step 4b
 
 ## Skill notes
 - `godot-gridmap-level` — headless build path (step 4b); SEAM casting on JSON; walls are solid cell-blocks; floor is one slab not per-cell; props are computed-position `StaticBody3D` instances; multi-cell same-id = one spanning instance at the centre (platforms span 2x2 → one box each).
-- `godot-code-rules` — load before writing `tools/build_firing_yard.gd`; strict typed GDScript; pass `tools/validate.sh`.
+- `godot-code-rules` — load before writing `scripts/build_firing_yard.gd`; strict typed GDScript; pass `tools/validate.sh`.
 - `godot-main-scene` — register the level in `main.gd`/`_levels`; never `change_scene_to_file()`; loads under `Main/LevelHost`.
 - `godot-pixel-lighting` — one DirectionalLight3D (hard shadows) + WorldEnvironment ambient/sky; Filmic tonemap, fixed exposure.
 - `godot-3d-pixelation` — renders unchanged inside the existing SubViewport rig.

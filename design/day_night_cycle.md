@@ -11,7 +11,7 @@ New atmosphere/polish scope, not in the current roadmap. Slots as **Track C — 
 - **Sun rotation over the daylight arc:** pitch sweeps the sun from low at sunrise, through high overhead at midday, to low at sunset — a real arc so a low sun can shine toward the player (visual only). During night the sun is below the horizon (off / energy 0) and the moonlight floor takes over.
 - **Brightness + colour arc (lerped each frame):** day = bright, neutral/warm; night = dark, cool blue. Drive `Sun.light_energy`, `Sun.light_color`, `Environment.ambient_light_color`, `Environment.ambient_light_energy`, and the sky colour so day is clearly bright/playable and night is clearly darker but **still readable** (moonlight floor — targets remain hittable). Keep Filmic tonemap + fixed exposure (no auto-exposure — it fights the pixel grid).
 - **Colour targets:** warm sunrise/sunset (orange-ish low sun), neutral-bright midday, cool blue night. Smooth transitions, no hard pops between phases.
-- All values authored as constants/exports in the driver script; the builder `tools/build_firing_yard.gd` is updated to attach the script and leave the baked sun/env as the sunrise starting state.
+- All values authored as constants/exports in the driver script; the builder `scripts/build_firing_yard.gd` is updated to attach the script and leave the baked sun/env as the sunrise starting state.
 
 ## Scope (out)
 - **Sun-in-eyes as a gameplay mechanic** (glare overlay, accuracy penalty) — cut; purely visual atmosphere this slice (user decision).
@@ -33,7 +33,7 @@ Verify via `godot-verify` (`tools/verify_render.gd` — the scene's own camera, 
 - **godot-3d-pixelation** — the sun + WorldEnvironment being tuned are inside the SubViewport; readability is judged on the downscaled image.
 - **godot-code-rules** — new `firing_yard.gd` must be strict typed GDScript; gate with `tools/validate.sh`.
 - **godot-verify** — mandatory before done; luminance day-vs-night is the headline check.
-- Build path: edit `tools/build_firing_yard.gd` to attach the new `firing_yard.gd` and set the baked sun/env to the sunrise start state, then re-run the builder to regenerate `levels/firing_yard.tscn`. Do NOT hand-edit the generated .tscn.
+- Build path: edit `scripts/build_firing_yard.gd` to attach the new `firing_yard.gd` and set the baked sun/env to the sunrise start state, then re-run the builder to regenerate `levels/firing_yard.tscn`. Do NOT hand-edit the generated .tscn.
 
 ## Later
 - Sun-in-eyes glare as a real aiming-difficulty mechanic (own slice).

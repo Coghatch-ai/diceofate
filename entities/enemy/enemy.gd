@@ -28,7 +28,10 @@ var _base_scale: Vector3 = Vector3.ONE
 @onready var patrol_wait_timer: Timer = $PatrolWaitTimer
 @onready var _nav: NavigationAgent3D = $NavigationAgent3D
 @onready var _eye: RayCast3D = $EyeRay
-@onready var _mesh_instance: MeshInstance3D = $Mesh
+@onready var _mesh_instance: Node3D = $Mesh
+@onready var _death_sfx: AudioStreamPlayer = $DeathSfx
+@onready var _touch_reset_sfx: AudioStreamPlayer = $TouchResetSfx
+@onready var _ambient_sfx: AudioStreamPlayer3D = $EnemyAmbientSfx
 
 
 func _ready() -> void:
@@ -38,6 +41,7 @@ func _ready() -> void:
 	patrol_wait_timer.wait_time = patrol_wait
 	patrol_wait_timer.one_shot = true
 	_nav.velocity_computed.connect(_on_nav_velocity_computed)
+	_ambient_sfx.play()
 	# Resolve NodePath exports to typed Marker3D refs (typed Array[Marker3D] can't be
 	# stored as NodePaths in hand-authored .tscn; we resolve here at runtime).
 	for np: NodePath in patrol_waypoint_paths:
@@ -66,7 +70,8 @@ func can_see_target() -> bool:
 		return false
 	_eye.target_position = _eye.to_local(t.global_position)
 	_eye.force_raycast_update()
-	return not _eye.is_colliding()
+	# Ray hits player → unobstructed line of sight. Hits anything else → wall blocks.
+	return _eye.is_colliding() and _eye.get_collider() == t
 
 
 # ── Navigation (called by states) ─────────────────────────────────────────────
@@ -109,6 +114,7 @@ func _on_nav_velocity_computed(safe_velocity: Vector3) -> void:
 ## Harmless scale-lunge telegraph + touch signal. Emits touched_player(self) each attack (C2).
 func perform_attack() -> void:
 	print("Enemy attack telegraph!")
+	_touch_reset_sfx.play()
 	touched_player.emit(self)
 	var tw: Tween = create_tween()
 	tw.tween_property(_mesh_instance, "scale", _base_scale * Vector3(1.3, 0.7, 1.3), 0.1)
@@ -118,5 +124,43 @@ func perform_attack() -> void:
 # ── Shootability ──────────────────────────────────────────────────────────────
 ## Called by the projectile via duck-typed on_hit() — same contract as target.gd.
 func on_hit() -> void:
+	_play_death_sfx()
 	died.emit(self)
-	queue_free()
+	_flash_and_die()
+
+
+## Make materials unique, flash white (albedo + emission) on all mesh parts, then free.
+func _flash_and_die() -> void:
+	# Collect every MeshInstance3D under the mesh wrapper (kitbash has one per part).
+	var mesh_nodes: Array[MeshInstance3D] = []
+	for child: Node in _mesh_instance.find_children("*", "MeshInstance3D", true, false):
+		if child is MeshInstance3D:
+			mesh_nodes.append(child as MeshInstance3D)
+	if mesh_nodes.is_empty():
+		queue_free()
+		return
+	var tw: Tween = create_tween()
+	tw.set_parallel(true)
+	for mi: MeshInstance3D in mesh_nodes:
+		var mat: StandardMaterial3D = mi.get_active_material(0) as StandardMaterial3D
+		if mat == null:
+			continue
+		# Unique copy — prevents flashing all enemies sharing the same material resource.
+		var flash_mat: StandardMaterial3D = mat.duplicate() as StandardMaterial3D
+		mi.set_surface_override_material(0, flash_mat)
+		flash_mat.emission_enabled = true
+		tw.tween_property(flash_mat, "albedo_color", Color.WHITE, 0.06)
+		tw.tween_property(flash_mat, "emission", Color.WHITE, 0.06)
+	tw.set_parallel(false)
+	tw.tween_callback(queue_free)
+
+
+# Reparent death sfx to scene root so it survives queue_free() on this node.
+func _play_death_sfx() -> void:
+	var scene_root: Node = get_tree().current_scene
+	if scene_root == null:
+		return
+	_ambient_sfx.stop()
+	_death_sfx.reparent(scene_root)
+	_death_sfx.finished.connect(_death_sfx.queue_free)
+	_death_sfx.play()

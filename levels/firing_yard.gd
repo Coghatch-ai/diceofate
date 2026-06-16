@@ -62,6 +62,11 @@ const SPAWN_POS: Vector3 = Vector3(24.0, 1.0, 30.0)
 # Facing -Z = rotation_y of PI
 const SPAWN_ROT_Y: float = PI
 
+# Crusher sweep bounds (world X) and speed — must match builder CRUSHER_START/lane.
+const CRUSHER_X_MIN: float = 8.0
+const CRUSHER_X_MAX: float = 20.0
+const CRUSHER_SPEED: float = 4.0  # m/s
+
 # Total period in seconds: ~5 min daylight arc + ~2 min night = ~7 min.
 # Lower for verification runs (e.g. 14.0 = 10x speed).
 @export var period_seconds: float = 420.0
@@ -69,23 +74,30 @@ const SPAWN_ROT_Y: float = PI
 # Normalized day-time in [0, 1). Starts at noon (day_t=0.5 within the daylight arc).
 # noon_t = 0.5 * DAYLIGHT_FRACTION = 0.5 * (300/420) = 150/420.
 var _day_t: float = 150.0 / 420.0
+# Ping-pong direction: +1 = moving toward X_MAX, -1 = toward X_MIN.
+var _crusher_dir: float = 1.0
 
 @onready var _sun: DirectionalLight3D = $Sun
 @onready var _world_env: WorldEnvironment = $WorldEnvironment
 @onready var _fall_zone: Area3D = $FallZone
+@onready var _hazard_floor: Area3D = $HazardFloor
+@onready var _crusher: StaticBody3D = $Crusher
+@onready var _crusher_hit: Area3D = $Crusher/CrusherHit
 
 
 func _ready() -> void:
 	# Immediately apply the sunrise start state so the first frame is correct.
 	_apply(_day_t)
 	_fall_zone.body_entered.connect(_on_FallZone_body_entered)
+	_hazard_floor.body_entered.connect(_on_HazardFloor_body_entered)
+	_crusher_hit.body_entered.connect(_on_CrusherHit_body_entered)
 	# Navigation mesh is pre-baked (tools/bake_navmesh.gd) and stored in
 	# levels/firing_yard_navmesh.tres — no runtime bake needed.
 
 
-# Respawn the player when they fall through a fake-wall hole.
-func _on_FallZone_body_entered(body: Node3D) -> void:
-	if not body.is_in_group("Player"):
+# Shared reset helper — teleports a Player body back to spawn.
+func _reset_player(body: Node3D) -> void:
+	if not body.is_in_group("player"):
 		return
 	body.global_position = SPAWN_POS
 	body.rotation.y = SPAWN_ROT_Y
@@ -94,9 +106,38 @@ func _on_FallZone_body_entered(body: Node3D) -> void:
 	body.velocity = Vector3.ZERO
 
 
+# Respawn the player when they fall through a fake-wall hole.
+func _on_FallZone_body_entered(body: Node3D) -> void:
+	_reset_player(body)
+
+
+# Respawn the player when they step onto the hazard floor patch.
+func _on_HazardFloor_body_entered(body: Node3D) -> void:
+	print("[hazard] floor touched -> reset")
+	_reset_player(body)
+
+
+# Respawn the player when the crusher catches them.
+func _on_CrusherHit_body_entered(body: Node3D) -> void:
+	print("[hazard] crushed -> reset")
+	_reset_player(body)
+
+
 func _process(delta: float) -> void:
 	_day_t = fmod(_day_t + delta / period_seconds, 1.0)
 	_apply(_day_t)
+	_move_crusher(delta)
+
+
+func _move_crusher(delta: float) -> void:
+	var x: float = _crusher.position.x + _crusher_dir * CRUSHER_SPEED * delta
+	if x >= CRUSHER_X_MAX:
+		x = CRUSHER_X_MAX
+		_crusher_dir = -1.0
+	elif x <= CRUSHER_X_MIN:
+		x = CRUSHER_X_MIN
+		_crusher_dir = 1.0
+	_crusher.position.x = x
 
 
 # Apply all lighting state for normalized time t in [0, 1).

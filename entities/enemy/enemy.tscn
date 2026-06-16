@@ -1,19 +1,14 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" uid="uid://declxbohq3voj" path="res://entities/enemy/enemy.gd" id="1_enemy"]
+[ext_resource type="AudioStream" path="res://assets/audio/enemy_death.wav" id="6_death"]
+[ext_resource type="AudioStream" path="res://assets/audio/enemy_touch_reset.wav" id="7_touch"]
+[ext_resource type="AudioStream" uid="uid://kpo5qb0efxo" path="res://assets/audio/enemy_ambient.wav" id="8_ambient"]
 [ext_resource type="Script" uid="uid://cgobh31pph3vs" path="res://entities/enemy/state_machine/state_machine.gd" id="2_sm"]
 [ext_resource type="Script" uid="uid://ckyjq4h5lp61d" path="res://entities/enemy/state_machine/patrol_state.gd" id="3_patrol"]
 [ext_resource type="Script" uid="uid://cfw2sbais7x0" path="res://entities/enemy/state_machine/chase_state.gd" id="4_chase"]
 [ext_resource type="Script" uid="uid://60fqkoxafxh3" path="res://entities/enemy/state_machine/attack_state.gd" id="5_attack"]
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_enemy"]
-radius = 0.35
-height = 1.8
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_enemy"]
-albedo_color = Color(0.42, 0.22, 0.22, 1.0)
-roughness = 0.9
-metallic = 0.0
+[ext_resource type="PackedScene" uid="uid://4k8mrmkibuih" path="res://assets/models/enemy_grunt.glb" id="9_grunt"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_enemy"]
 radius = 0.35
@@ -24,10 +19,9 @@ collision_layer = 8
 collision_mask = 1
 script = ExtResource("1_enemy")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.9, 0)
-mesh = SubResource("CapsuleMesh_enemy")
-surface_material_override/0 = SubResource("StandardMaterial3D_enemy")
+[node name="Mesh" type="Node3D" parent="."]
+
+[node name="EnemyGrunt" parent="Mesh" instance=ExtResource("9_grunt")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.9, 0)
@@ -40,8 +34,7 @@ avoidance_enabled = true
 
 [node name="EyeRay" type="RayCast3D" parent="."]
 position = Vector3(0, 1.5, 0)
-enabled = false
-collision_mask = 1
+collision_mask = 3
 
 [node name="AttackTimer" type="Timer" parent="."]
 wait_time = 0.8
@@ -62,3 +55,17 @@ script = ExtResource("4_chase")
 
 [node name="AttackState" type="Node" parent="StateMachine"]
 script = ExtResource("5_attack")
+
+[node name="DeathSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_death")
+bus = &"SFX"
+
+[node name="TouchResetSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_touch")
+bus = &"SFX"
+
+[node name="EnemyAmbientSfx" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("8_ambient")
+bus = &"SFX"
+max_distance = 20.0
+attenuation_model = 2

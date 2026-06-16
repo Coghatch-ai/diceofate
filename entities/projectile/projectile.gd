@@ -9,6 +9,8 @@ signal hit(target: Node3D)
 
 var _travelled: float = 0.0
 
+@onready var _hit_sfx: AudioStreamPlayer = $HitSfx
+
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
@@ -33,4 +35,16 @@ func _on_body_entered(body: Node3D) -> void:
 		# SEAM: method proven present by has_method check above; type not known at compile time.
 		@warning_ignore("unsafe_method_access")
 		body.on_hit()
+	_play_hit_sfx()
 	queue_free()
+
+
+# Reparent the one-shot player to the scene root so it survives queue_free() on this node.
+func _play_hit_sfx() -> void:
+	var scene_root: Node = get_tree().current_scene
+	if scene_root == null:
+		return
+	_hit_sfx.reparent(scene_root)
+	# AudioStreamPlayer is non-positional — position irrelevant; just play and auto-free on finish.
+	_hit_sfx.finished.connect(_hit_sfx.queue_free)
+	_hit_sfx.play()
