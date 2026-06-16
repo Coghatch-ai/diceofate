@@ -11,6 +11,7 @@ var _level_index: int = 0
 
 @onready var _level_host: Node = %LevelHost
 @onready var _crosshair: Crosshair = %Crosshair
+@onready var _arena_hud: ArenaHud = %ArenaHud
 
 
 func _ready() -> void:
@@ -47,3 +48,11 @@ func load_level(path: String) -> void:
 		if camera != null:
 			camera.make_current()
 		player.set_crosshair(_crosshair)
+
+	# Wire WaveManager signals to the persistent HUD (if the level has one).
+	_arena_hud.set_kills(0)
+	_arena_hud.set_active(0)
+	var wave_manager := current_level.find_child("WaveManager") as WaveManager
+	if wave_manager != null:
+		wave_manager.kills_changed.connect(_arena_hud.set_kills)
+		wave_manager.active_changed.connect(_arena_hud.set_active)

@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="1_base"]
+[ext_resource type="Script" path="res://entities/enemy/enemy_runner.gd" id="2_script"]
+
+[node name="Enemy" instance=ExtResource("1_base")]
+script = ExtResource("2_script")
+move_speed = 6.0
+patrol_speed = 3.0
+detect_range = 9.0

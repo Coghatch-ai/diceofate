@@ -14,9 +14,14 @@ signal touched_player(enemy: Enemy)
 @export var escape_range: float = 16.0
 @export var attack_cooldown: float = 0.8
 @export var patrol_wait: float = 1.0
+## Hits required to kill. Default 1 = one-shot (grunt, runner). Tank overrides to 3.
+@export var health: int = 1
 ## Waypoint NodePaths (set in the level scene); resolved to Marker3D refs in _ready().
 @export var patrol_waypoint_paths: Array[NodePath] = []
 var patrol_waypoints: Array[Marker3D] = []
+var _health: int = 1
+# Maps MeshInstance3D → Material or null; captured before each hit flash to restore after.
+var _saved_overrides: Dictionary = {}
 
 # SEAM: ProjectSettings.get_setting() returns Variant; physics gravity is always float.
 @warning_ignore("unsafe_call_argument")
@@ -35,6 +40,7 @@ var _base_scale: Vector3 = Vector3.ONE
 
 
 func _ready() -> void:
+	_health = health
 	_base_scale = _mesh_instance.scale
 	attack_timer.wait_time = attack_cooldown
 	attack_timer.one_shot = true
@@ -124,9 +130,54 @@ func perform_attack() -> void:
 # ── Shootability ──────────────────────────────────────────────────────────────
 ## Called by the projectile via duck-typed on_hit() — same contract as target.gd.
 func on_hit() -> void:
+	_health -= 1
+	if _health > 0:
+		_flash_hit()
+		return
 	_play_death_sfx()
 	died.emit(self)
 	_flash_and_die()
+
+
+## Brief non-fatal hit flash: red tint then restore, no queue_free.
+func _flash_hit() -> void:
+	var mesh_nodes: Array[MeshInstance3D] = []
+	for child: Node in _mesh_instance.find_children("*", "MeshInstance3D", true, false):
+		if child is MeshInstance3D:
+			mesh_nodes.append(child as MeshInstance3D)
+	if mesh_nodes.is_empty():
+		return
+	_saved_overrides.clear()
+	var tw: Tween = create_tween()
+	tw.set_parallel(true)
+	for mi: MeshInstance3D in mesh_nodes:
+		# Save current override (may be the tint mat set by runner/tank _ready).
+		_saved_overrides[mi] = mi.get_surface_override_material(0)
+		var mat: StandardMaterial3D = mi.get_active_material(0) as StandardMaterial3D
+		if mat == null:
+			continue
+		var hit_mat: StandardMaterial3D = mat.duplicate() as StandardMaterial3D
+		mi.set_surface_override_material(0, hit_mat)
+		hit_mat.emission_enabled = true
+		tw.tween_property(hit_mat, "albedo_color", Color.RED, 0.05)
+		tw.tween_property(hit_mat, "emission", Color.RED, 0.05)
+	tw.set_parallel(false)
+	# Restore saved overrides so runner/tank tint reappears after flash.
+	tw.tween_callback(_restore_materials)
+
+
+## Restore per-mesh overrides saved before the last hit flash.
+func _restore_materials() -> void:
+	for key: Variant in _saved_overrides.keys():
+		if not key is MeshInstance3D:
+			continue
+		# SEAM: key is MeshInstance3D by construction (_flash_hit only stores MeshInstance3D keys).
+		@warning_ignore("unsafe_cast")
+		var mesh_inst: MeshInstance3D = key as MeshInstance3D
+		# SEAM: value is Material or null (Variant) by construction.
+		@warning_ignore("unsafe_cast")
+		mesh_inst.set_surface_override_material(0, _saved_overrides[key] as Material)
+	_saved_overrides.clear()
 
 
 ## Make materials unique, flash white (albedo + emission) on all mesh parts, then free.

@@ -44,11 +44,11 @@ gdscript/warnings/confusable_identifier=2
 
 [display]
 
-window/size/viewport_width=640
-window/size/viewport_height=360
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/mode=2
 window/size/window_width_override=1920
 window/size/window_height_override=1080
-window/stretch/mode="canvas_items"
 window/stretch/scale_mode="integer"
 
 [input]
@@ -119,3 +119,5 @@ shoot={
 
 textures/canvas_textures/default_texture_filter=0
 textures/vram_compression/import_etc2_astc=true
+lights_and_shadows/positional_shadow/soft_shadow_filter_quality=3
+anti_aliasing/quality/msaa_3d=1

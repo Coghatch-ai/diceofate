@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://entities/player/player.gd" id="5_0bybe"]
 [ext_resource type="Script" path="res://levels/wave_manager.gd" id="6_7q7lh"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="7_0gyuw"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_runner.tscn" id="10_runner"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_tank.tscn" id="11_tank"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nsw42"]
 albedo_color = Color(0.251, 0.251, 0.314, 1)
@@ -690,50 +692,55 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 16)
 [node name="EnemyWP2" type="Marker3D" parent="." unique_id=1278254159]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 0, 22)
 
-[node name="SpawnMarker0" type="Marker3D" parent="." unique_id=99333944]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
-
-[node name="SpawnMarker1" type="Marker3D" parent="." unique_id=1269399561]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, 3)
-
-[node name="SpawnMarker2" type="Marker3D" parent="." unique_id=1762246989]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 3)
-
-[node name="SpawnMarker3" type="Marker3D" parent="." unique_id=832044199]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 3)
-
-[node name="SpawnMarker4" type="Marker3D" parent="." unique_id=875052989]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 10)
-
-[node name="SpawnMarker5" type="Marker3D" parent="." unique_id=455060693]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 20)
-
-[node name="SpawnMarker6" type="Marker3D" parent="." unique_id=903601424]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 37)
-
-[node name="SpawnMarker7" type="Marker3D" parent="." unique_id=1690626638]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 0, 37)
-
-[node name="SpawnMarker8" type="Marker3D" parent="." unique_id=572035370]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 37)
-
-[node name="SpawnMarker9" type="Marker3D" parent="." unique_id=1988975776]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 37)
-
-[node name="SpawnMarker10" type="Marker3D" parent="." unique_id=1795339995]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 20)
-
-[node name="SpawnMarker11" type="Marker3D" parent="." unique_id=457669462]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 10)
-
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1699375856]
 navigation_mesh = ExtResource("8_navmesh")
 
 [node name="WaveManager" type="Node" parent="." unique_id=1699375857]
 script = ExtResource("6_7q7lh")
 enemy_scene = ExtResource("7_0gyuw")
-spawn_marker_paths = Array[NodePath]([NodePath("../SpawnMarker0"), NodePath("../SpawnMarker1"), NodePath("../SpawnMarker2"), NodePath("../SpawnMarker3"), NodePath("../SpawnMarker4"), NodePath("../SpawnMarker5"), NodePath("../SpawnMarker6"), NodePath("../SpawnMarker7"), NodePath("../SpawnMarker8"), NodePath("../SpawnMarker9"), NodePath("../SpawnMarker10"), NodePath("../SpawnMarker11")])
+enemy_scene_b = ExtResource("10_runner")
+runner_ratio = 0.3
+enemy_scene_c = ExtResource("11_tank")
+tank_ratio = 0.2
+spawn_marker_paths = Array[NodePath]([NodePath("SpawnMarker0"), NodePath("SpawnMarker1"), NodePath("SpawnMarker2"), NodePath("SpawnMarker3"), NodePath("SpawnMarker4"), NodePath("SpawnMarker5"), NodePath("SpawnMarker6"), NodePath("SpawnMarker7"), NodePath("SpawnMarker8"), NodePath("SpawnMarker9"), NodePath("SpawnMarker10"), NodePath("SpawnMarker11")])
 patrol_waypoint_paths = Array[NodePath]([NodePath("../EnemyWP0"), NodePath("../EnemyWP1"), NodePath("../EnemyWP2")])
+start_count = 2
+
+[node name="SpawnMarker0" type="Marker3D" parent="WaveManager" unique_id=99333944]
+position = Vector3(3, 0, 3)
+
+[node name="SpawnMarker1" type="Marker3D" parent="WaveManager" unique_id=1269399561]
+position = Vector3(14, 0, 3)
+
+[node name="SpawnMarker2" type="Marker3D" parent="WaveManager" unique_id=1762246989]
+position = Vector3(30, 0, 3)
+
+[node name="SpawnMarker3" type="Marker3D" parent="WaveManager" unique_id=832044199]
+position = Vector3(45, 0, 3)
+
+[node name="SpawnMarker4" type="Marker3D" parent="WaveManager" unique_id=875052989]
+position = Vector3(45, 0, 10)
+
+[node name="SpawnMarker5" type="Marker3D" parent="WaveManager" unique_id=455060693]
+position = Vector3(45, 0, 20)
+
+[node name="SpawnMarker6" type="Marker3D" parent="WaveManager" unique_id=903601424]
+position = Vector3(45, 0, 37)
+
+[node name="SpawnMarker7" type="Marker3D" parent="WaveManager" unique_id=1690626638]
+position = Vector3(38, 0, 37)
+
+[node name="SpawnMarker8" type="Marker3D" parent="WaveManager" unique_id=572035370]
+position = Vector3(10, 0, 37)
+
+[node name="SpawnMarker9" type="Marker3D" parent="WaveManager" unique_id=1988975776]
+position = Vector3(3, 0, 37)
+
+[node name="SpawnMarker10" type="Marker3D" parent="WaveManager" unique_id=1795339995]
+position = Vector3(3, 0, 20)
+
+[node name="SpawnMarker11" type="Marker3D" parent="WaveManager" unique_id=457669462]
+position = Vector3(3, 0, 10)
 
 [node name="HazardFloorMesh" type="MeshInstance3D" parent="." unique_id=1539986973]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.25, 4)
