@@ -1,9 +1,11 @@
-[gd_scene load_steps=5 format=3 uid="uid://weapon0001"]
+[gd_scene load_steps=7 format=3 uid="uid://weapon0001"]
 
 [ext_resource type="Script" path="res://entities/weapon/weapon.gd" id="1"]
 [ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://b8md52wt2l0xj" path="res://assets/models/pistol.glb" id="3"]
 [ext_resource type="AudioStream" path="res://assets/audio/weapon_fire.wav" id="4"]
+[ext_resource type="AudioStream" path="res://assets/audio/weapon_empty.wav" id="5"]
+[ext_resource type="AudioStream" path="res://assets/audio/weapon_reload.wav" id="6"]
 
 [node name="Weapon" type="Node3D"]
 script = ExtResource("1")
@@ -11,6 +13,11 @@ projectile_scene = ExtResource("2")
 
 [node name="Cooldown" type="Timer" parent="."]
 wait_time = 0.2
+one_shot = true
+autostart = false
+
+[node name="Reload" type="Timer" parent="."]
+wait_time = 1.2
 one_shot = true
 autostart = false
 
@@ -22,6 +29,23 @@ position = Vector3(0.12, -0.12, -0.25)
 [node name="Muzzle" type="Marker3D" parent="PistolViewModel"]
 position = Vector3(0.0, 0.0, -0.3)
 
+[node name="MuzzleFlash" type="OmniLight3D" parent="PistolViewModel/Muzzle"]
+light_color = Color(1.0, 0.7, 0.3, 1.0)
+light_energy = 4.0
+omni_range = 1.2
+visible = false
+editor_description = "Muzzle flash pulse — driven by weapon.gd _flash_pulse(); off by default"
+
 [node name="FireSfx" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("4")
 bus = &"SFX"
+
+[node name="EmptySfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5")
+bus = &"SFX"
+editor_description = "Dry-click on empty trigger — played by weapon.gd on out_of_ammo"
+
+[node name="ReloadSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6")
+bus = &"SFX"
+editor_description = "Mechanical clack at reload start — played by weapon.gd on start_reload"

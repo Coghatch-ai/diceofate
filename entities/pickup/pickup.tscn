@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/pickup/pickup.gd" id="1_pickup"]
+[ext_resource type="AudioStream" path="res://assets/audio/projectile_hit.wav" id="2_sfx"]
+[ext_resource type="PackedScene" path="res://assets/models/pickup_ammo.glb" id="3_mesh"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_pickup"]
+radius = 0.5
+
+[node name="Pickup" type="Area3D"]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_pickup")
+
+[node name="Mesh" type="Node3D" parent="." instance=ExtResource("3_mesh")]
+position = Vector3(0, 0.2, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_sfx")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="."]
+one_shot = true

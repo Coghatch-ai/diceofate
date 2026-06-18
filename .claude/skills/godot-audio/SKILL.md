@@ -94,7 +94,11 @@ func _play_hit_sfx() -> void:
 		return
 	_hit_sfx.reparent(scene_root)
 	# AudioStreamPlayer is non-positional — position irrelevant; just play and auto-free on finish.
-	_hit_sfx.finished.connect(_hit_sfx.queue_free)
+	# Idempotent: the seam that calls this (body_entered / on_hit) can fire more than once
+	# before the owner frees — re-connecting the same callable throws "Signal already
+	# connected to given callable". Guard it (or connect with CONNECT_ONE_SHOT).
+	if not _hit_sfx.finished.is_connected(_hit_sfx.queue_free):
+		_hit_sfx.finished.connect(_hit_sfx.queue_free)
 	_hit_sfx.play()
 ```
 
@@ -118,7 +122,9 @@ func _play_death_sfx() -> void:
 		return
 	_ambient_sfx.stop()       # stop the looping ambient that stays with the freed enemy
 	_death_sfx.reparent(scene_root)
-	_death_sfx.finished.connect(_death_sfx.queue_free)
+	# Idempotent — on_hit can run again (multi-hit enemy) before the death frame frees us.
+	if not _death_sfx.finished.is_connected(_death_sfx.queue_free):
+		_death_sfx.finished.connect(_death_sfx.queue_free)
 	_death_sfx.play()
 ```
 
@@ -205,6 +211,7 @@ Run `tools/validate.sh` on any `.gd` touched. Run `godot-verify` — scenes load
 | SFX loops forever | Import → Loop Mode = Disabled, Reimport (looping is on the stream resource, not the node). |
 | Rapid fire cuts the previous shot | Raise `max_polyphony` (step 5); pool only if that's still not enough. |
 | Hit/death/impact sound cut short the instant the entity dies | Owner `queue_free()`s mid-sound, taking the player with it — use the despawn pattern (step 4): `reparent(get_tree().current_scene)`, `finished.connect(queue_free)`, then `play()`. |
+| `Signal already connected to given callable` on the despawn-SFX connect | The despawn seam (`body_entered` / `on_hit`) ran more than once before the owner froze, re-connecting `finished` → `queue_free`. Guard it: `if not player.finished.is_connected(player.queue_free): ...` (or connect with `CONNECT_ONE_SHOT`). Also fix the multi-fire at its source — see `godot-travelling-projectile-3d`. |
 | Despawn 3D sound jumps to the world origin (or to the wrong spot) | Reparent dropped the world position — capture `global_position` BEFORE `reparent`, restore it AFTER (step 4, positional case). |
 | Looping ambient keeps playing after the enemy dies / orphaned ambient node | The looping `AudioStreamPlayer3D` got reparented and never stops — `stop()` it before reparenting only the one-shot death player (step 4 enemy example). |
 | 3D sound is flat / no spatialisation | Source WAV is stereo — Import → Force Mono = On, Reimport; confirm a current `Camera3D`/`AudioListener3D` exists. |

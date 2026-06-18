@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://entities/pickup/pickup.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/models/pickup_health.glb" id="2_mesh"]
+
+[node name="PickupHealth" instance=ExtResource("1_base")]
+editor_description = "Health pickup — grants +1 life (capped at 3)."
+kind = 1
+
+[node name="Mesh" parent="." instance=ExtResource("2_mesh")]
+position = Vector3(0, 0.2, 0)

@@ -1,0 +1,1061 @@
+[gd_scene format=4]
+
+[ext_resource type="Script" path="res://levels/ruined_warehouse.gd" id="1_c646o"]
+[ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="2_lcq6m"]
+[ext_resource type="Script" path="res://entities/player/player.gd" id="3_hoqah"]
+[ext_resource type="PackedScene" path="res://entities/pickup/pickup_ammo.tscn" id="4_dtqxe"]
+[ext_resource type="Script" path="res://entities/pickup/pickup.gd" id="5_fwk2r"]
+[ext_resource type="PackedScene" path="res://assets/models/pickup_ammo.glb" id="6_smki2"]
+[ext_resource type="AudioStream" path="res://assets/audio/projectile_hit.wav" id="7_ci2yd"]
+[ext_resource type="Script" path="res://levels/wave_manager.gd" id="8_hqugi"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="9_a66wt"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_runner.tscn" id="10_wbq1y"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_tank.tscn" id="11_uhixc"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_magnetic.tscn" id="12_b2xak"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_shooter.tscn" id="13_8kvnu"]
+[ext_resource type="PackedScene" path="res://entities/pickup/pickup_health.tscn" id="14_fvbeo"]
+[ext_resource type="NavigationMesh" path="res://levels/ruined_warehouse_navmesh.tres" id="15_66wmt"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_slrsi"]
+albedo_color = Color(0.251, 0.251, 0.314, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vk633"]
+material = SubResource("StandardMaterial3D_slrsi")
+size = Vector3(2, 3.5, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_oo6la"]
+size = Vector3(2, 3.5, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mxeyp"]
+albedo_color = Color(0.18, 0.18, 0.22, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3b0jl"]
+material = SubResource("StandardMaterial3D_mxeyp")
+size = Vector3(2, 3.5, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i14mj"]
+albedo_color = Color(0.2, 0.2, 0.28, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ftgm3"]
+material = SubResource("StandardMaterial3D_i14mj")
+size = Vector3(2, 3.5, 2)
+
+[sub_resource type="MeshLibrary" id="MeshLibrary_ar2hr"]
+item/0/name = "wall"
+item/0/mesh = SubResource("BoxMesh_vk633")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/mesh_cast_shadow = 1
+item/0/shapes = [SubResource("BoxShape3D_oo6la"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1
+item/1/name = "wall_corridor"
+item/1/mesh = SubResource("BoxMesh_3b0jl")
+item/1/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/1/mesh_cast_shadow = 1
+item/1/shapes = [SubResource("BoxShape3D_oo6la"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
+item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/1/navigation_layers = 1
+item/2/name = "wall_pocket"
+item/2/mesh = SubResource("BoxMesh_ftgm3")
+item/2/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/2/mesh_cast_shadow = 1
+item/2/shapes = [SubResource("BoxShape3D_oo6la"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
+item/2/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/2/navigation_layers = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2broj"]
+albedo_color = Color(0.078, 0.078, 0.125, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_n7odx"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 32)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vx8uj"]
+size = Vector3(48, 0.2, 32)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r2sbr"]
+
+[sub_resource type="Sky" id="Sky_il0gu"]
+sky_material = SubResource("ProceduralSkyMaterial_r2sbr")
+
+[sub_resource type="Environment" id="Environment_kt1av"]
+background_mode = 2
+sky = SubResource("Sky_il0gu")
+ambient_light_source = 3
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ybvlj"]
+albedo_color = Color(0.35, 0.3, 0.25, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6exs2"]
+material = SubResource("StandardMaterial3D_ybvlj")
+size = Vector3(8, 0.8, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ypfv6"]
+size = Vector3(8, 0.8, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_d3vwm"]
+material = SubResource("StandardMaterial3D_ybvlj")
+size = Vector3(10, 0.8, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_72h8d"]
+size = Vector3(10, 0.8, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dtbry"]
+resource_name = "material_0"
+albedo_color = Color(0.46, 0.38, 0.18, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_4wcpn"]
+_surfaces = [{
+"aabb": AABB(-0.2, -0.2, -0.2, 0.4, 0.4, 0.4),
+"format": 34896613377,
+"index_count": 36,
+"index_data": PackedByteArray("AAABAAIAAAACAAMABAACAAEAAwACAAQABQABAAAABQAAAAMABQAGAAEABAABAAYABQADAAcAAwAEAAcABwAGAAUABwAEAAYA"),
+"name": "material_0",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 8,
+"vertex_data": PackedByteArray("AAAAAP//AAAAAP////8AAP///////wAA//8AAP//AAD/////AAAAAAAAAAAAAAAAAAD//wAAAAD//wAAAAAAAA==")
+}]
+blend_shape_mode = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_qg7dp"]
+resource_name = "pickup_ammo_mesh"
+_surfaces = [{
+"aabb": AABB(-0.2, -0.2, -0.2, 0.4, 0.4, 0.4),
+"attribute_data": PackedByteArray("AAD/fwAAAABVVQAAVVX/f6qq/3+qqgAA//8AAP///39VVf9/VVUAAKqqAACqqv9/AAD//wAA/39VVf9/VVX//1VV//9VVf9/qqr/f6qq//+qqv//qqr/f////3//////"),
+"format": 34896613399,
+"index_count": 36,
+"index_data": PackedByteArray("AAABAAIAAAACAAMABAAFAAYABAAGAAcACAAJAAoACAAKAAsADAANAA4ADAAOAA8AEAARABIAEAASABMAFAAVABYAFAAWABcA"),
+"material": SubResource("StandardMaterial3D_dtbry"),
+"name": "material_0",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("AAAAAP//AIAAAP////8AgP///////wCA//8AAP//AID//wAAAAD///////8AAP//AAD//wAA//8AAAAAAAD/////AAD///+//////////7//////AAD/v///AAAAAP+/AAAAAAAA/78AAP//AAD/vwAA//////+/AAAAAP///7//////AAD/////////////AAD///////8AAP//AAD//wAAAAAAAP+/AAAAAP///7///wAA////v///AAAAAP+/AAD/fwAA/38AAP9/AAD/f/9/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/AAD/fwAA/3/+//9//v//f/7//3/+//+/AAD/vwAA/78AAP+/AAAAAP9/AAD/fwAA/38AAP9/")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_4wcpn")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dr0nu"]
+resource_name = "material_1"
+albedo_color = Color(0.5799999, 0.5, 0.26, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_7rjvu"]
+_surfaces = [{
+"aabb": AABB(-0.21, -0.025, -0.21, 0.42, 0.05, 0.42),
+"format": 34896613377,
+"index_count": 36,
+"index_data": PackedByteArray("AAABAAIAAAACAAMABAACAAEAAwACAAQABQABAAAABQAAAAMABQAGAAEABAABAAYABQADAAcAAwAEAAcABwAGAAUABwAEAAYA"),
+"name": "material_1",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 8,
+"vertex_data": PackedByteArray("AAAAAP//AAAAAP////8AAP///////wAA//8AAP//AAD/////AAAAAAAAAAAAAAAAAAD//wAAAAD//wAAAAAAAA==")
+}]
+blend_shape_mode = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_fumnq"]
+resource_name = "pickup_ammo_mesh2"
+_surfaces = [{
+"aabb": AABB(-0.21, -0.025, -0.21, 0.42, 0.05, 0.42),
+"attribute_data": PackedByteArray("AAD/fwAAAABVVQAAVVX/f6qq/3+qqgAA//8AAP///39VVf9/VVUAAKqqAACqqv9/AAD//wAA/39VVf9/VVX//1VV//9VVf9/qqr/f6qq//+qqv//qqr/f////3//////"),
+"format": 34896613399,
+"index_count": 36,
+"index_data": PackedByteArray("AAABAAIAAAACAAMABAAFAAYABAAGAAcACAAJAAoACAAKAAsADAANAA4ADAAOAA8AEAARABIAEAASABMAFAAVABYAFAAWABcA"),
+"material": SubResource("StandardMaterial3D_dr0nu"),
+"name": "material_1",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("AAAAAP//AIAAAP////8AgP///////wCA//8AAP//AID//wAAAAD///////8AAP//AAD//wAA//8AAAAAAAD/////AAD///+//////////7//////AAD/v///AAAAAP+/AAAAAAAA/78AAP//AAD/vwAA//////+/AAAAAP///7//////AAD/////////////AAD///////8AAP//AAD//wAAAAAAAP+/AAAAAP///7///wAA////v///AAAAAP+/AAD/fwAA/38AAP9/AAD/f/9/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/AAD/fwAA/3/+//9//v//f/7//3/+//+/AAD/vwAA/78AAP+/AAAAAP9/AAD/fwAA/38AAP9/")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_7rjvu")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e3uye"]
+resource_name = "material_2"
+albedo_color = Color(0.3, 0.26, 0.12, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_g624c"]
+_surfaces = [{
+"aabb": AABB(-0.21, -0.025, -0.21, 0.42, 0.05, 0.42),
+"format": 34896613377,
+"index_count": 36,
+"index_data": PackedByteArray("AAABAAIAAAACAAMABAACAAEAAwACAAQABQABAAAABQAAAAMABQAGAAEABAABAAYABQADAAcAAwAEAAcABwAGAAUABwAEAAYA"),
+"name": "material_2",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 8,
+"vertex_data": PackedByteArray("AAAAAP//AAAAAP////8AAP///////wAA//8AAP//AAD/////AAAAAAAAAAAAAAAAAAD//wAAAAD//wAAAAAAAA==")
+}]
+blend_shape_mode = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_uf5pu"]
+resource_name = "pickup_ammo_mesh3"
+_surfaces = [{
+"aabb": AABB(-0.21, -0.025, -0.21, 0.42, 0.05, 0.42),
+"attribute_data": PackedByteArray("AAD/fwAAAABVVQAAVVX/f6qq/3+qqgAA//8AAP///39VVf9/VVUAAKqqAACqqv9/AAD//wAA/39VVf9/VVX//1VV//9VVf9/qqr/f6qq//+qqv//qqr/f////3//////"),
+"format": 34896613399,
+"index_count": 36,
+"index_data": PackedByteArray("AAABAAIAAAACAAMABAAFAAYABAAGAAcACAAJAAoACAAKAAsADAANAA4ADAAOAA8AEAARABIAEAASABMAFAAVABYAFAAWABcA"),
+"material": SubResource("StandardMaterial3D_e3uye"),
+"name": "material_2",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("AAAAAP//AIAAAP////8AgP///////wCA//8AAP//AID//wAAAAD///////8AAP//AAD//wAA//8AAAAAAAD/////AAD///+//////////7//////AAD/v///AAAAAP+/AAAAAAAA/78AAP//AAD/vwAA//////+/AAAAAP///7//////AAD/////////////AAD///////8AAP//AAD//wAAAAAAAP+/AAAAAP///7///wAA////v///AAAAAP+/AAD/fwAA/38AAP9/AAD/f/9/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/AAD/fwAA/3/+//9//v//f/7//3/+//+/AAD/vwAA/78AAP+/AAAAAP9/AAD/fwAA/38AAP9/")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_g624c")
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_pickup"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xcii4"]
+albedo_color = Color(0.078, 0.078, 0.125, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_43t31"]
+material = SubResource("StandardMaterial3D_xcii4")
+size = Vector3(4, 0.2, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ttcuf"]
+size = Vector3(4, 0.2, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0rhrv"]
+albedo_color = Color(0.078, 0.078, 0.125, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_71bfh"]
+material = SubResource("StandardMaterial3D_0rhrv")
+size = Vector3(1.4142135, 0.2, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_n11t4"]
+size = Vector3(1.4142135, 0.2, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_psll3"]
+albedo_color = Color(0.3, 0.27, 0.22, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lbtqq"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_t016n"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_up3sw"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_htv0x"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_n7qyd"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vcsfi"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_aogq7"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cucu1"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_82arr"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lxl0s"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ipnag"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_01gqc"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7hotb"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sw0gw"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ni47w"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ievxr"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dui3e"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xe1jm"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kx8el"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ci32k"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_knevb"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dofsu"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_h704l"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_atbj8"]
+material = SubResource("StandardMaterial3D_psll3")
+size = Vector3(1.8, 0.25, 1.8)
+
+[node name="RuinedWarehouse" type="Node3D" unique_id=762523225]
+script = ExtResource("1_c646o")
+
+[node name="RuinedWarehouseMap" type="GridMap" parent="." unique_id=90333055]
+mesh_library = SubResource("MeshLibrary_ar2hr")
+cell_size = Vector3(2, 3.5, 2)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(0, 0, 1, 20, 0, 0, 21, 0, 0, 22, 0, 0, 23, 0, 0, 0, 1, 1, 4, 1, 1, 0, 2, 1, 4, 2, 1, 11, 2, 0, 0, 3, 1, 4, 3, 1, 12, 3, 0, 23, 3, 2, 5, 4, 1, 11, 4, 0, 23, 4, 0, 6, 5, 0, 12, 5, 0, 15, 5, 0, 23, 5, 0, 7, 6, 0, 14, 6, 0, 16, 6, 0, 23, 6, 0, 6, 7, 0, 11, 7, 0, 17, 7, 0, 0, 8, 0, 5, 8, 0, 12, 8, 0, 23, 8, 0, 0, 9, 0, 11, 9, 0, 23, 9, 0, 0, 10, 0, 4, 10, 0, 10, 10, 0, 23, 10, 0, 0, 11, 0, 4, 11, 0, 11, 11, 0, 4, 12, 0, 1, 15, 0, 2, 15, 0, 3, 15, 0, 19, 15, 0, 20, 15, 0, 21, 15, 0, 22, 15, 0, 23, 15, 0)
+}
+
+[node name="FloorSlab" type="StaticBody3D" parent="." unique_id=299422884]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab" unique_id=857004663]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 16)
+mesh = SubResource("BoxMesh_n7odx")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab" unique_id=1915353220]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 16)
+shape = SubResource("BoxShape3D_vx8uj")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=374785325]
+transform = Transform3D(0.8660254, 0.35355338, -0.35355338, 0, 0.70710677, 0.70710677, 0.5, -0.6123724, 0.6123724, 0, 0, 0)
+light_color = Color(1, 0.95, 0.9, 1)
+light_energy = 1.2
+shadow_enabled = true
+shadow_bias = 0.05
+shadow_normal_bias = 1.0
+directional_shadow_max_distance = 50.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1511114085]
+environment = SubResource("Environment_kt1av")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=2027514627 groups=["player"] instance=ExtResource("2_lcq6m")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 12, 1, 2)
+collision_layer = 2
+script = ExtResource("3_hoqah")
+
+[node name="Barrier_r1_c14" type="StaticBody3D" parent="." unique_id=1586588866]
+
+[node name="BarrierMesh" type="MeshInstance3D" parent="Barrier_r1_c14" unique_id=569160650]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.4, 3)
+mesh = SubResource("BoxMesh_6exs2")
+
+[node name="BarrierCollision" type="CollisionShape3D" parent="Barrier_r1_c14" unique_id=24660181]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.4, 3)
+shape = SubResource("BoxShape3D_ypfv6")
+
+[node name="Barrier_r13_c9" type="StaticBody3D" parent="." unique_id=1504356353]
+
+[node name="BarrierMesh" type="MeshInstance3D" parent="Barrier_r13_c9" unique_id=612075328]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0.4, 27)
+mesh = SubResource("BoxMesh_d3vwm")
+
+[node name="BarrierCollision" type="CollisionShape3D" parent="Barrier_r13_c9" unique_id=2032576091]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0.4, 27)
+shape = SubResource("BoxShape3D_72h8d")
+
+[node name="AmmoPickup0" type="Area3D" parent="." unique_id=487060940 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup — refills active weapon magazine to full."
+transform = Transform3D(0.99939084, 0, 0.034899496, 0, 1, 0, -0.034899496, 0, 0.99939084, 5, 0, 13)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+
+[node name="Mesh" type="Node3D" parent="AmmoPickup0" unique_id=1826990360 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup0/Mesh" unique_id=1170182012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup0/Mesh" unique_id=928643269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup0/Mesh" unique_id=1638042708]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup0" unique_id=1071068139]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup0" unique_id=1998463062]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="AmmoPickup0" unique_id=1763564344]
+one_shot = true
+
+[node name="AmmoPickup1" type="Area3D" parent="." unique_id=1897512017 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup — refills active weapon magazine to full."
+transform = Transform3D(0.97437006, 0, 0.22495104, 0, 1, 0, -0.22495104, 0, 0.97437006, 17, 0, 17)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+
+[node name="Mesh" type="Node3D" parent="AmmoPickup1" unique_id=364696349 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup1/Mesh" unique_id=583468290]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup1/Mesh" unique_id=919138876]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup1/Mesh" unique_id=1538516813]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup1" unique_id=58513892]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup1" unique_id=1229467303]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="AmmoPickup1" unique_id=534971821]
+one_shot = true
+
+[node name="AmmoPickup2" type="Area3D" parent="." unique_id=1253408203 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup — refills active weapon magazine to full."
+transform = Transform3D(0.99254614, 0, -0.12186935, 0, 1, 0, 0.12186935, 0, 0.99254614, 13, 0, 21)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+
+[node name="Mesh" type="Node3D" parent="AmmoPickup2" unique_id=502561201 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup2/Mesh" unique_id=1344333600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup2/Mesh" unique_id=502421553]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup2/Mesh" unique_id=43505207]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup2" unique_id=1666594318]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup2" unique_id=1309223015]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="AmmoPickup2" unique_id=1325046426]
+one_shot = true
+
+[node name="AmmoPickup3" type="Area3D" parent="." unique_id=1202578147 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup — refills active weapon magazine to full."
+transform = Transform3D(0.9975641, 0, 0.06975647, 0, 1, 0, -0.06975647, 0, 0.9975641, 31, 0, 21)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+
+[node name="Mesh" type="Node3D" parent="AmmoPickup3" unique_id=1711770048 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup3/Mesh" unique_id=880449199]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup3/Mesh" unique_id=954095707]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup3/Mesh" unique_id=1779642354]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup3" unique_id=1618626723]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup3" unique_id=1528841549]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="AmmoPickup3" unique_id=886076055]
+one_shot = true
+
+[node name="AmmoPickup4" type="Area3D" parent="." unique_id=843438283 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup — refills active weapon magazine to full."
+transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, 5, 0, 27)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+
+[node name="Mesh" type="Node3D" parent="AmmoPickup4" unique_id=713192004 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup4/Mesh" unique_id=566603088]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup4/Mesh" unique_id=1345651260]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup4/Mesh" unique_id=212521439]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup4" unique_id=427617946]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup4" unique_id=941961703]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="AmmoPickup4" unique_id=327878196]
+one_shot = true
+
+[node name="PlatformSlab" type="StaticBody3D" parent="." unique_id=252479440]
+
+[node name="PlatformMesh" type="MeshInstance3D" parent="PlatformSlab" unique_id=1034015242]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0.9, 24)
+mesh = SubResource("BoxMesh_43t31")
+
+[node name="PlatformCollision" type="CollisionShape3D" parent="PlatformSlab" unique_id=57936346]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0.9, 24)
+shape = SubResource("BoxShape3D_ttcuf")
+
+[node name="PlatformRamp" type="StaticBody3D" parent="." unique_id=490819729]
+
+[node name="RampMesh" type="MeshInstance3D" parent="PlatformRamp" unique_id=874380689]
+transform = Transform3D(0.70710677, -0.70710677, 0, 0.70710677, 0.70710677, 0, 0, 0, 1, 37.5, 0.5, 24)
+mesh = SubResource("BoxMesh_71bfh")
+
+[node name="RampCollision" type="CollisionShape3D" parent="PlatformRamp" unique_id=666995642]
+transform = Transform3D(0.70710677, -0.70710677, 0, 0.70710677, 0.70710677, 0, 0, 0, 1, 37.5, 0.5, 24)
+shape = SubResource("BoxShape3D_n11t4")
+
+[node name="RubbleSill0" type="MeshInstance3D" parent="." unique_id=1737650508]
+transform = Transform3D(0.9986295, 0, -0.05233596, 0, 1, 0, 0.05233596, 0, 0.9986295, 19, 0.125, 1)
+mesh = SubResource("BoxMesh_lbtqq")
+
+[node name="RubbleSill1" type="MeshInstance3D" parent="." unique_id=656709760]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0.125, 1)
+mesh = SubResource("BoxMesh_t016n")
+
+[node name="RubbleSill2" type="MeshInstance3D" parent="." unique_id=859930911]
+transform = Transform3D(0.9986295, 0, 0.05233596, 0, 1, 0, -0.05233596, 0, 0.9986295, 23, 0.125, 1)
+mesh = SubResource("BoxMesh_up3sw")
+
+[node name="RubbleSill3" type="MeshInstance3D" parent="." unique_id=2006802469]
+transform = Transform3D(0.9945219, 0, 0.104528464, 0, 1, 0, -0.104528464, 0, 0.9945219, 25, 0.125, 1)
+mesh = SubResource("BoxMesh_htv0x")
+
+[node name="RubbleSill4" type="MeshInstance3D" parent="." unique_id=548635143]
+transform = Transform3D(0.99026805, 0, -0.1391731, 0, 1, 0, 0.1391731, 0, 0.99026805, 1, 0.125, 9)
+mesh = SubResource("BoxMesh_n7qyd")
+
+[node name="RubbleSill5" type="MeshInstance3D" parent="." unique_id=496154940]
+transform = Transform3D(0.9961947, 0, -0.08715574, 0, 1, 0, 0.08715574, 0, 0.9961947, 1, 0.125, 11)
+mesh = SubResource("BoxMesh_vcsfi")
+
+[node name="RubbleSill6" type="MeshInstance3D" parent="." unique_id=695168477]
+transform = Transform3D(0.99939084, 0, -0.034899496, 0, 1, 0, 0.034899496, 0, 0.99939084, 1, 0.125, 13)
+mesh = SubResource("BoxMesh_aogq7")
+
+[node name="RubbleSill7" type="MeshInstance3D" parent="." unique_id=632421066]
+transform = Transform3D(0.9998477, 0, 0.017452406, 0, 1, 0, -0.017452406, 0, 0.9998477, 1, 0.125, 15)
+mesh = SubResource("BoxMesh_cucu1")
+
+[node name="RubbleSill8" type="MeshInstance3D" parent="." unique_id=1200418132]
+transform = Transform3D(0.9975641, 0, 0.06975647, 0, 1, 0, -0.06975647, 0, 0.9975641, 47, 0.125, 23)
+mesh = SubResource("BoxMesh_82arr")
+
+[node name="RubbleSill9" type="MeshInstance3D" parent="." unique_id=192802938]
+transform = Transform3D(0.99254614, 0, 0.12186935, 0, 1, 0, -0.12186935, 0, 0.99254614, 1, 0.125, 25)
+mesh = SubResource("BoxMesh_lxl0s")
+
+[node name="RubbleSill10" type="MeshInstance3D" parent="." unique_id=1486808055]
+transform = Transform3D(0.99254614, 0, -0.12186935, 0, 1, 0, 0.12186935, 0, 0.99254614, 47, 0.125, 25)
+mesh = SubResource("BoxMesh_ipnag")
+
+[node name="RubbleSill11" type="MeshInstance3D" parent="." unique_id=277572647]
+transform = Transform3D(0.9975641, 0, -0.06975647, 0, 1, 0, 0.06975647, 0, 0.9975641, 1, 0.125, 27)
+mesh = SubResource("BoxMesh_01gqc")
+
+[node name="RubbleSill12" type="MeshInstance3D" parent="." unique_id=1466036230]
+transform = Transform3D(0.9998477, 0, -0.017452406, 0, 1, 0, 0.017452406, 0, 0.9998477, 47, 0.125, 27)
+mesh = SubResource("BoxMesh_7hotb")
+
+[node name="RubbleSill13" type="MeshInstance3D" parent="." unique_id=76632389]
+transform = Transform3D(0.99939084, 0, 0.034899496, 0, 1, 0, -0.034899496, 0, 0.99939084, 1, 0.125, 29)
+mesh = SubResource("BoxMesh_sw0gw")
+
+[node name="RubbleSill14" type="MeshInstance3D" parent="." unique_id=2024070305]
+transform = Transform3D(0.9961947, 0, 0.08715574, 0, 1, 0, -0.08715574, 0, 0.9961947, 47, 0.125, 29)
+mesh = SubResource("BoxMesh_ni47w")
+
+[node name="RubbleSill15" type="MeshInstance3D" parent="." unique_id=1957952650]
+transform = Transform3D(0.99026805, 0, 0.1391731, 0, 1, 0, -0.1391731, 0, 0.99026805, 1, 0.125, 31)
+mesh = SubResource("BoxMesh_ievxr")
+
+[node name="RubbleSill16" type="MeshInstance3D" parent="." unique_id=1983734898]
+transform = Transform3D(0.9945219, 0, -0.104528464, 0, 1, 0, 0.104528464, 0, 0.9945219, 9, 0.125, 31)
+mesh = SubResource("BoxMesh_dui3e")
+
+[node name="RubbleSill17" type="MeshInstance3D" parent="." unique_id=1906518365]
+transform = Transform3D(0.9986295, 0, -0.05233596, 0, 1, 0, 0.05233596, 0, 0.9986295, 11, 0.125, 31)
+mesh = SubResource("BoxMesh_xe1jm")
+
+[node name="RubbleSill18" type="MeshInstance3D" parent="." unique_id=231617773]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0.125, 31)
+mesh = SubResource("BoxMesh_kx8el")
+
+[node name="RubbleSill19" type="MeshInstance3D" parent="." unique_id=1770652502]
+transform = Transform3D(0.9986295, 0, 0.05233596, 0, 1, 0, -0.05233596, 0, 0.9986295, 15, 0.125, 31)
+mesh = SubResource("BoxMesh_ci32k")
+
+[node name="RubbleSill20" type="MeshInstance3D" parent="." unique_id=224121387]
+transform = Transform3D(0.9945219, 0, 0.104528464, 0, 1, 0, -0.104528464, 0, 0.9945219, 31, 0.125, 31)
+mesh = SubResource("BoxMesh_knevb")
+
+[node name="RubbleSill21" type="MeshInstance3D" parent="." unique_id=1223794061]
+transform = Transform3D(0.99026805, 0, -0.1391731, 0, 1, 0, 0.1391731, 0, 0.99026805, 33, 0.125, 31)
+mesh = SubResource("BoxMesh_dofsu")
+
+[node name="RubbleSill22" type="MeshInstance3D" parent="." unique_id=1188888490]
+transform = Transform3D(0.9961947, 0, -0.08715574, 0, 1, 0, 0.08715574, 0, 0.9961947, 35, 0.125, 31)
+mesh = SubResource("BoxMesh_h704l")
+
+[node name="RubbleSill23" type="MeshInstance3D" parent="." unique_id=767545677]
+transform = Transform3D(0.99939084, 0, -0.034899496, 0, 1, 0, 0.034899496, 0, 0.99939084, 37, 0.125, 31)
+mesh = SubResource("BoxMesh_atbj8")
+
+[node name="EnemyWP0" type="Marker3D" parent="." unique_id=1656171649]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 16)
+
+[node name="EnemyWP1" type="Marker3D" parent="." unique_id=1095079100]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 20)
+
+[node name="EnemyWP2" type="Marker3D" parent="." unique_id=287397017]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0, 10)
+
+[node name="WaveManager" type="Node" parent="." unique_id=766946611]
+script = ExtResource("8_hqugi")
+spawn_pos = Vector3(12, 1, 2)
+enemy_scene = ExtResource("9_a66wt")
+enemy_scene_b = ExtResource("10_wbq1y")
+enemy_scene_c = ExtResource("11_uhixc")
+enemy_scene_d = ExtResource("12_b2xak")
+enemy_scene_e = ExtResource("13_8kvnu")
+spawn_marker_paths = Array[NodePath]([NodePath("SpawnMarker0"), NodePath("SpawnMarker1"), NodePath("SpawnMarker2"), NodePath("SpawnMarker3"), NodePath("SpawnMarker4"), NodePath("SpawnMarker5"), NodePath("SpawnMarker6"), NodePath("SpawnMarker7"), NodePath("SpawnMarker8"), NodePath("SpawnMarker9"), NodePath("SpawnMarker10"), NodePath("SpawnMarker11"), NodePath("SpawnMarker12"), NodePath("SpawnMarker13"), NodePath("SpawnMarker14"), NodePath("SpawnMarker15"), NodePath("SpawnMarker16"), NodePath("SpawnMarker17"), NodePath("SpawnMarker18"), NodePath("SpawnMarker19"), NodePath("SpawnMarker20"), NodePath("SpawnMarker21"), NodePath("SpawnMarker22"), NodePath("SpawnMarker23")])
+patrol_waypoint_paths = Array[NodePath]([NodePath("../EnemyWP0"), NodePath("../EnemyWP1"), NodePath("../EnemyWP2")])
+
+[node name="SpawnMarker0" type="Marker3D" parent="WaveManager" unique_id=1656304565]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 1)
+
+[node name="SpawnMarker1" type="Marker3D" parent="WaveManager" unique_id=156721726]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0, 1)
+
+[node name="SpawnMarker2" type="Marker3D" parent="WaveManager" unique_id=930335836]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0, 1)
+
+[node name="SpawnMarker3" type="Marker3D" parent="WaveManager" unique_id=1351244636]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, 1)
+
+[node name="SpawnMarker4" type="Marker3D" parent="WaveManager" unique_id=1214243127]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 9)
+
+[node name="SpawnMarker5" type="Marker3D" parent="WaveManager" unique_id=1792965514]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 11)
+
+[node name="SpawnMarker6" type="Marker3D" parent="WaveManager" unique_id=853996834]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 13)
+
+[node name="SpawnMarker7" type="Marker3D" parent="WaveManager" unique_id=1321020313]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 15)
+
+[node name="SpawnMarker8" type="Marker3D" parent="WaveManager" unique_id=1560427910]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 23)
+
+[node name="SpawnMarker9" type="Marker3D" parent="WaveManager" unique_id=1909277074]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 25)
+
+[node name="SpawnMarker10" type="Marker3D" parent="WaveManager" unique_id=783046936]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 25)
+
+[node name="SpawnMarker11" type="Marker3D" parent="WaveManager" unique_id=124773817]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 27)
+
+[node name="SpawnMarker12" type="Marker3D" parent="WaveManager" unique_id=1583869297]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 27)
+
+[node name="SpawnMarker13" type="Marker3D" parent="WaveManager" unique_id=1357830966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 29)
+
+[node name="SpawnMarker14" type="Marker3D" parent="WaveManager" unique_id=750547760]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 29)
+
+[node name="SpawnMarker15" type="Marker3D" parent="WaveManager" unique_id=1964082411]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 31)
+
+[node name="SpawnMarker16" type="Marker3D" parent="WaveManager" unique_id=1120356549]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 31)
+
+[node name="SpawnMarker17" type="Marker3D" parent="WaveManager" unique_id=1856717396]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 31)
+
+[node name="SpawnMarker18" type="Marker3D" parent="WaveManager" unique_id=225296017]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 31)
+
+[node name="SpawnMarker19" type="Marker3D" parent="WaveManager" unique_id=866436345]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 31)
+
+[node name="SpawnMarker20" type="Marker3D" parent="WaveManager" unique_id=371642197]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 0, 31)
+
+[node name="SpawnMarker21" type="Marker3D" parent="WaveManager" unique_id=1547882735]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 0, 31)
+
+[node name="SpawnMarker22" type="Marker3D" parent="WaveManager" unique_id=1440426754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 0, 31)
+
+[node name="SpawnMarker23" type="Marker3D" parent="WaveManager" unique_id=1131588439]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37, 0, 31)
+
+[node name="HealthCache0" type="Area3D" parent="." unique_id=233742201 instance=ExtResource("14_fvbeo")]
+editor_description = "Health pickup — grants +1 life (capped at 3)."
+transform = Transform3D(0.9975641, 0, -0.06975647, 0, 1, 0, 0.06975647, 0, 0.9975641, 39, 0, 5)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+kind = 1
+
+[node name="Mesh" type="Node3D" parent="HealthCache0" unique_id=1863289368 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="HealthCache0/Mesh" unique_id=1682857349]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="HealthCache0/Mesh" unique_id=566319875]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="HealthCache0/Mesh" unique_id=248454366]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache0" unique_id=1426867934]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache0" unique_id=144935511]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="HealthCache0" unique_id=1072474298]
+one_shot = true
+
+[node name="HealthCache1" type="Area3D" parent="." unique_id=1747982635 instance=ExtResource("14_fvbeo")]
+editor_description = "Health pickup — grants +1 life (capped at 3)."
+transform = Transform3D(0.97437006, 0, -0.22495104, 0, 1, 0, 0.22495104, 0, 0.97437006, 41, 0, 5)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+kind = 1
+
+[node name="Mesh" type="Node3D" parent="HealthCache1" unique_id=427800447 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="HealthCache1/Mesh" unique_id=2126764599]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="HealthCache1/Mesh" unique_id=1932402167]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="HealthCache1/Mesh" unique_id=1536220169]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache1" unique_id=620424812]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache1" unique_id=473950873]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="HealthCache1" unique_id=424107366]
+one_shot = true
+
+[node name="HealthCache2" type="Area3D" parent="." unique_id=165114317 instance=ExtResource("14_fvbeo")]
+editor_description = "Health pickup — grants +1 life (capped at 3)."
+transform = Transform3D(0.98768836, 0, 0.15643448, 0, 1, 0, -0.15643448, 0, 0.98768836, 39, 0, 7)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+kind = 1
+
+[node name="Mesh" type="Node3D" parent="HealthCache2" unique_id=994178579 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="HealthCache2/Mesh" unique_id=1306214284]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="HealthCache2/Mesh" unique_id=1433551108]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="HealthCache2/Mesh" unique_id=1162942847]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache2" unique_id=1979186377]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache2" unique_id=1096582841]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="HealthCache2" unique_id=873906545]
+one_shot = true
+
+[node name="HealthCache3" type="Area3D" parent="." unique_id=1431248241 instance=ExtResource("14_fvbeo")]
+editor_description = "Health pickup — grants +1 life (capped at 3)."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41, 0, 7)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+kind = 1
+
+[node name="Mesh" type="Node3D" parent="HealthCache3" unique_id=332759159 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="HealthCache3/Mesh" unique_id=362977018]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="HealthCache3/Mesh" unique_id=514437644]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="HealthCache3/Mesh" unique_id=1258904234]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache3" unique_id=1897317762]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache3" unique_id=2085628529]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="HealthCache3" unique_id=2021461020]
+one_shot = true
+
+[node name="AmmoCache0" type="Area3D" parent="." unique_id=1214938208 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup — refills active weapon magazine to full."
+transform = Transform3D(0.99026805, 0, 0.1391731, 0, 1, 0, -0.1391731, 0, 0.99026805, 39, 1, 23)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+
+[node name="Mesh" type="Node3D" parent="AmmoCache0" unique_id=16476932 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoCache0/Mesh" unique_id=355463956]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoCache0/Mesh" unique_id=137139798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoCache0/Mesh" unique_id=1657168627]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache0" unique_id=709780113]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache0" unique_id=329677981]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="AmmoCache0" unique_id=74533682]
+one_shot = true
+
+[node name="AmmoCache1" type="Area3D" parent="." unique_id=2131696429 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup — refills active weapon magazine to full."
+transform = Transform3D(0.97437006, 0, 0.22495104, 0, 1, 0, -0.22495104, 0, 0.97437006, 41, 1, 23)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+
+[node name="Mesh" type="Node3D" parent="AmmoCache1" unique_id=925288141 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoCache1/Mesh" unique_id=1919213647]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoCache1/Mesh" unique_id=817684055]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoCache1/Mesh" unique_id=896836841]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache1" unique_id=845385213]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache1" unique_id=867784996]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="AmmoCache1" unique_id=176208004]
+one_shot = true
+
+[node name="AmmoCache2" type="Area3D" parent="." unique_id=1494053557 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup — refills active weapon magazine to full."
+transform = Transform3D(0.97437006, 0, -0.22495104, 0, 1, 0, 0.22495104, 0, 0.97437006, 39, 1, 25)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+
+[node name="Mesh" type="Node3D" parent="AmmoCache2" unique_id=268286649 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoCache2/Mesh" unique_id=600034124]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoCache2/Mesh" unique_id=1832892926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoCache2/Mesh" unique_id=115827952]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache2" unique_id=859583587]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache2" unique_id=1245964128]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="AmmoCache2" unique_id=459298336]
+one_shot = true
+
+[node name="AmmoCache3" type="Area3D" parent="." unique_id=1580941720 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup — refills active weapon magazine to full."
+transform = Transform3D(0.99026805, 0, -0.1391731, 0, 1, 0, 0.1391731, 0, 0.99026805, 41, 1, 25)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_fwk2r")
+
+[node name="Mesh" type="Node3D" parent="AmmoCache3" unique_id=91548965 instance=ExtResource("6_smki2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoCache3/Mesh" unique_id=385098407]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("ArrayMesh_qg7dp")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoCache3/Mesh" unique_id=1599654929]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
+mesh = SubResource("ArrayMesh_fumnq")
+skeleton = NodePath("")
+
+[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoCache3/Mesh" unique_id=1910682569]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("ArrayMesh_uf5pu")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache3" unique_id=141423260]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache3" unique_id=2141661222]
+stream = ExtResource("7_ci2yd")
+bus = &"SFX"
+
+[node name="Respawn" type="Timer" parent="AmmoCache3" unique_id=437590901]
+one_shot = true
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1645758934]
+navigation_mesh = ExtResource("15_66wmt")

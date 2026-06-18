@@ -1,6 +1,6 @@
 # DiceOfFate — game conventions
 
-This repo is the **game** (a 3D pixel-art first-person POC on Godot 4.6). The AI framework that
+This repo is the **game** (a first-person shooter (FPS) POC on Godot 4.6). The AI framework that
 builds it — the agents, the `godot-*` skills, the verify/gen tools, and the design→build→verify
 pipeline — is **not** in this repo: it loads from the **xenodot** Claude Code plugin (the single
 source of truth). Its working files appear here only as gitignored, generated paths:
@@ -16,12 +16,16 @@ live in this repo's `.claude/`; everything else comes from the plugin.
   this game is pinned to **Godot 4.6** (reversed-Z; per `project.godot` `config/features`). Renderer:
   Forward+ (required by outline shaders). Switch engines by pointing `$GODOT` at the fork binary
   (see the xenodot plugin's `docs/engines.md`).
-- Art style: 3D pixel art. 3D content renders inside a SubViewport (skill: `godot-3d-pixelation`);
-  post-process effects attach to the camera inside it.
-- Camera: projection is genre-dependent, NOT fixed. The pixel-art look comes from the SubViewport
-  downscale, not the camera. Orthographic fixed-angle (`godot-orthographic-follow-camera`) is the
-  default for top-down/iso; first-person/third-person use a perspective eye-camera inside the
-  SubViewport. Switching projection only trades texel-snapping behaviour (flag it, don't forbid it).
+- Art style: standard-HD 3D, first-person. This game began as a 3D-pixel-art POC and has **moved to
+  an FPS**; the pixel-art SubViewport-downscale look (`godot-3d-pixelation`) is **superseded for this
+  game**. If that downscale rig is still wired in `main.tscn`, treat removing/bypassing it as cleanup.
+  Post-process effects attach to the active first-person camera.
+- Camera: first-person perspective eye-camera (skill `godot-first-person-controller`). The orthographic
+  follow rig (`godot-orthographic-follow-camera`) belonged to the prior top-down/iso POC and does not
+  apply to this FPS.
+- NOTE (pixel-art residue): the asset-import rows below and the `*-import-pixel-art` skills still assume
+  NEAREST-filter / no-mipmap pixel-art import. For HD assets that is an open art decision (filtering,
+  mipmaps) — flag to asset-advisor / art-director before sourcing; not yet reconciled here.
 - Sourced art by medium: **textures** (PNG) → `assets/textures/<name>.png`, **3D models** (`.glb`) →
   `assets/models/<name>.glb` (snake_case; `assets/` gitignored; a model's own textures still go in
   `assets/textures/`). Sourcing/verifying both is the asset-advisor loop; detail in the
@@ -48,6 +52,8 @@ live in this repo's `.claude/`; everything else comes from the plugin.
 - Level loading: levels swap under `Main/LevelHost`; never `change_scene_to_file()` — rules live in
   skill `godot-main-scene`.
 - Hand-authoring `.tscn`: rules (Transform3D ban, Sky resource requirement) live in skill `godot-verify`.
+- Enemy combat: the shootable-enemy hit/death/kill-confirm contract lives in skill `godot-fps-enemy-combat`
+  — distinct from `godot-enemy-ai` (nav/FSM) and `godot-travelling-projectile-3d` (firing/despawn).
 - Composition over inheritance (skill `godot-composition`): engine-node base + component children,
   signals up / calls down; modularize ON DEMAND only.
 - Code rules: strict typed GDScript (skill `godot-code-rules`); gate `tools/validate.sh`, mandatory
@@ -56,7 +62,7 @@ live in this repo's `.claude/`; everything else comes from the plugin.
   through). Exceptions run as-is: the engine binary (`$GODOT --headless …`) and `tools/validate.sh`.
 - Before structural changes, read this section; load `godot-code-rules` before writing/editing any
   `.gd`; record new project-wide decisions here — keep it thin.
-- Active roadmap: `docs/roadmap/fps_poc.md` (the first-person shooter POC). Before starting a task,
+- Active roadmap: `docs/roadmap/fps_poc.md` (this game's current roadmap). Before starting a task,
   identify its phase/track; refuse tasks in the 'out of scope' list or in phases after an unpassed gate.
 - Roadmap status ownership: only the verifier updates phase status (✅/🔨/📋) and gate pass/fail, only
   after running that phase's gate check in the editor. Builders never self-mark phases done.

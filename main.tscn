@@ -50,16 +50,16 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_right = 200.0
-offset_bottom = 60.0
+offset_bottom = 80.0
 mouse_filter = 2
 script = ExtResource("4")
 
-[node name="KillsLabel" type="Label" parent="HUD/ArenaHud"]
+[node name="ScoreLabel" type="Label" parent="HUD/ArenaHud"]
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 192.0
 offset_bottom = 28.0
-text = "KILLS  0"
+text = "SCORE  0"
 
 [node name="ActiveLabel" type="Label" parent="HUD/ArenaHud"]
 offset_left = 8.0
@@ -67,3 +67,53 @@ offset_top = 32.0
 offset_right = 192.0
 offset_bottom = 52.0
 text = "ENEMIES  0"
+
+[node name="LivesLabel" type="Label" parent="HUD/ArenaHud"]
+offset_left = 8.0
+offset_top = 56.0
+offset_right = 192.0
+offset_bottom = 76.0
+text = "LIVES  3"
+
+[node name="AmmoLabel" type="Label" parent="HUD/ArenaHud"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 0
+offset_left = -192.0
+offset_top = -32.0
+offset_right = -8.0
+offset_bottom = -8.0
+horizontal_alignment = 2
+text = "AMMO  0 / 0"
+
+[node name="ResultPanel" type="Panel" parent="HUD/ArenaHud"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+visible = false
+editor_description = "Full-screen end panel shown on win/lose. process_mode=ALWAYS set in script."
+
+[node name="ResultLabel" type="Label" parent="HUD/ArenaHud/ResultPanel"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = -200.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = 80.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = ""

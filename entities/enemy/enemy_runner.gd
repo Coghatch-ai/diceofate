@@ -7,6 +7,7 @@ const ART_STYLE := preload("res://tools/art_style.gd")
 
 func _ready() -> void:
 	super._ready()
+	score_value = 2
 	_apply_runner_tint()
 
 

@@ -10,6 +10,10 @@
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="7_0gyuw"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy_runner.tscn" id="10_runner"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy_tank.tscn" id="11_tank"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_magnetic.tscn" id="12_magnetic"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_shooter.tscn" id="13_shooter"]
+[ext_resource type="PackedScene" path="res://entities/pickup/pickup_ammo.tscn" id="14_pickup_ammo"]
+[ext_resource type="PackedScene" path="res://entities/pickup/pickup_health.tscn" id="15_pickup_health"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nsw42"]
 albedo_color = Color(0.251, 0.251, 0.314, 1)
@@ -702,6 +706,10 @@ enemy_scene_b = ExtResource("10_runner")
 runner_ratio = 0.3
 enemy_scene_c = ExtResource("11_tank")
 tank_ratio = 0.2
+enemy_scene_d = ExtResource("12_magnetic")
+magnet_ratio = 0.1
+enemy_scene_e = ExtResource("13_shooter")
+shooter_ratio = 0.1
 spawn_marker_paths = Array[NodePath]([NodePath("SpawnMarker0"), NodePath("SpawnMarker1"), NodePath("SpawnMarker2"), NodePath("SpawnMarker3"), NodePath("SpawnMarker4"), NodePath("SpawnMarker5"), NodePath("SpawnMarker6"), NodePath("SpawnMarker7"), NodePath("SpawnMarker8"), NodePath("SpawnMarker9"), NodePath("SpawnMarker10"), NodePath("SpawnMarker11")])
 patrol_waypoint_paths = Array[NodePath]([NodePath("../EnemyWP0"), NodePath("../EnemyWP1"), NodePath("../EnemyWP2")])
 start_count = 2
@@ -777,3 +785,27 @@ collision_mask = 2
 [node name="FallZoneShape" type="CollisionShape3D" parent="FallZone" unique_id=1282155531]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -7, 16)
 shape = SubResource("BoxShape3D_yvyl2")
+
+[node name="PickupMarkerAmmo0" type="Marker3D" parent="." unique_id=2200000001]
+position = Vector3(10, 0, 20)
+
+[node name="PickupAmmo0" type="Area3D" parent="." unique_id=2200000002 instance=ExtResource("14_pickup_ammo")]
+position = Vector3(10, 0, 20)
+
+[node name="PickupMarkerAmmo1" type="Marker3D" parent="." unique_id=2200000003]
+position = Vector3(38, 0, 12)
+
+[node name="PickupAmmo1" type="Area3D" parent="." unique_id=2200000004 instance=ExtResource("14_pickup_ammo")]
+position = Vector3(38, 0, 12)
+
+[node name="PickupMarkerHealth0" type="Marker3D" parent="." unique_id=2200000005]
+position = Vector3(20, 0, 28)
+
+[node name="PickupHealth0" type="Area3D" parent="." unique_id=2200000006 instance=ExtResource("15_pickup_health")]
+position = Vector3(20, 0, 28)
+
+[node name="PickupMarkerHealth1" type="Marker3D" parent="." unique_id=2200000007]
+position = Vector3(35, 0, 25)
+
+[node name="PickupHealth1" type="Area3D" parent="." unique_id=2200000008 instance=ExtResource("15_pickup_health")]
+position = Vector3(35, 0, 25)

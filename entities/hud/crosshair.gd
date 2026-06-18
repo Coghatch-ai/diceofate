@@ -11,6 +11,9 @@ extends Control
 @export var fire_pop_duration: float = 0.12
 @export var hit_color: Color = Color(1.0, 0.55, 0.1, 1.0)
 @export var hit_pop_duration: float = 0.18
+@export var kill_color: Color = Color(0.2, 1.0, 0.8, 1.0)
+@export var kill_pop_scale: float = 1.8
+@export var kill_pop_duration: float = 0.22
 
 var _pop_scale: float = 1.0
 var _pop_alpha: float = 0.9
@@ -47,6 +50,17 @@ func hit_pop() -> void:
 	queue_redraw()
 	var tw := create_tween()
 	tw.tween_method(_set_pop_alpha, 1.0, line_color.a, hit_pop_duration)
+	tw.tween_callback(_reset_color)
+
+
+## Distinct kill-confirm pop: cyan-white scale burst + fade. Overrides any in-flight hit flash.
+func kill_pop() -> void:
+	_pop_color = kill_color
+	_pop_alpha = 1.0
+	queue_redraw()
+	var tw := create_tween()
+	tw.tween_method(_set_pop_scale, kill_pop_scale, 1.0, kill_pop_duration)
+	tw.parallel().tween_method(_set_pop_alpha, 1.0, line_color.a, kill_pop_duration)
 	tw.tween_callback(_reset_color)
 
 

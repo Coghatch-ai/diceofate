@@ -22,6 +22,20 @@ Example assets sourced from free CC0 libraries live OUTSIDE this repo, in the fr
 external shared-asset library, and are mounted here as a gitignored symlink at
 `res://x-shared-assets/` (`models/` + `textures/`). See the framework README (`x-shared-assets`).
 
+## Roadmap
+
+Active POC: first-person shooter arena. Full source of truth: [`docs/roadmap/fps_poc.md`](docs/roadmap/fps_poc.md).
+
+| Track | What | Status |
+|---|---|---|
+| **A — Core FPS loop** | Perspective rig, first-person controller, weapon + projectiles | ✅ GATE: SHOOTABLE pass |
+| **B — Arena & targets** | Greybox arena, static targets, patrolling enemy AI | ✅ GATE: ENEMY AI pass |
+| **C — Survival loop** | Wave escalation, reset-on-touch, spawn hardening | ✅ C1/C2 pass; C3 build+verify, awaiting human F5 |
+| **D — Ship v0.1** | Export presets, desktop builds, itch.io upload | ✅ SHIPPED (Linux/Win/macOS, 2026-06-16) |
+| **E — Feel** | Audio bus + fire SFX, hazard floor, moving crusher | ✅ build+verify; awaiting human F5 |
+| **F — Legibility** | Arena HUD (kills/enemies), Runner enemy type | ✅ build+verify; awaiting human F5 |
+| **G — Stakes** | Tank enemy (3-hit), Win/Lose end panel + lives system | ✅ build+verify; G2 human-playtested (2026-06-16) |
+
 ## Agent workflow
 
 This repo ships Claude Code configuration in `.claude/`:

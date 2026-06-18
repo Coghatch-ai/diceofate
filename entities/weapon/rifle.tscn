@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://weapon_rifle01"]
+
+[ext_resource type="PackedScene" uid="uid://weapon0001" path="res://entities/weapon/weapon.tscn" id="1"]
+
+[node name="Rifle" instance=ExtResource("1")]
+fire_rate = 0.08
+ammo_max = 30
+reload_time = 2.0
+spread_hip = 4.0
+spread_ads = 0.6
+recoil_pitch = 0.02
+recoil_yaw = 0.008
+editor_description = "Rifle — faster fire rate (0.08), larger mag (30), longer reload (2.0). Greybox: reuses pistol viewmodel."

@@ -7,6 +7,9 @@ signal died(enemy: Enemy)
 ## Emitted when the enemy reaches attack_range of the player (C2).
 signal touched_player(enemy: Enemy)
 
+const _STUN_DURATION: float = 0.15
+const _KNOCKBACK_SPEED: float = 6.0
+
 @export var move_speed: float = 3.5
 @export var patrol_speed: float = 1.75
 @export var detect_range: float = 12.0
@@ -16,12 +19,17 @@ signal touched_player(enemy: Enemy)
 @export var patrol_wait: float = 1.0
 ## Hits required to kill. Default 1 = one-shot (grunt, runner). Tank overrides to 3.
 @export var health: int = 1
+## Score awarded to the player on kill. Grunt = 1 (default); runner/magnet/tank override.
+@export var score_value: int = 1
 ## Waypoint NodePaths (set in the level scene); resolved to Marker3D refs in _ready().
 @export var patrol_waypoint_paths: Array[NodePath] = []
 var patrol_waypoints: Array[Marker3D] = []
 var _health: int = 1
 # Maps MeshInstance3D → Material or null; captured before each hit flash to restore after.
 var _saved_overrides: Dictionary = {}
+# Knockback stun state — nav-velocity drive is skipped while _stun_timer > 0.
+var _stun_timer: float = 0.0
+var _knockback_velocity: Vector3 = Vector3.ZERO
 
 # SEAM: ProjectSettings.get_setting() returns Variant; physics gravity is always float.
 @warning_ignore("unsafe_call_argument")
@@ -111,9 +119,33 @@ func stop(delta: float) -> void:
 	move_and_slide()
 
 
+func _physics_process(delta: float) -> void:
+	if _stun_timer <= 0.0:
+		return
+	_stun_timer -= delta
+	# Decay knockback linearly to zero over the stun window.
+	_knockback_velocity = _knockback_velocity.move_toward(Vector3.ZERO, _KNOCKBACK_SPEED * delta)
+	velocity = _knockback_velocity
+	move_and_slide()
+
+
 func _on_nav_velocity_computed(safe_velocity: Vector3) -> void:
+	# Skip nav drive during knockback stun — _physics_process owns velocity then.
+	if _stun_timer > 0.0:
+		return
 	velocity = safe_velocity
 	move_and_slide()
+
+
+## Push enemy away from hitter_pos. Stun window blocks nav for _STUN_DURATION.
+## Duck-typed from player.gd — no shared type needed (godot-composition).
+func apply_knockback(hitter_pos: Vector3) -> void:
+	var dir: Vector3 = global_position - hitter_pos
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		dir = -global_transform.basis.z
+	_knockback_velocity = dir.normalized() * _KNOCKBACK_SPEED
+	_stun_timer = _STUN_DURATION
 
 
 # ── Attack telegraph (called by AttackState) ──────────────────────────────────
@@ -213,5 +245,7 @@ func _play_death_sfx() -> void:
 		return
 	_ambient_sfx.stop()
 	_death_sfx.reparent(scene_root)
-	_death_sfx.finished.connect(_death_sfx.queue_free)
+	# Guard: same pattern as projectile hit SFX — prevent double-connect if called twice.
+	if not _death_sfx.finished.is_connected(_death_sfx.queue_free):
+		_death_sfx.finished.connect(_death_sfx.queue_free)
 	_death_sfx.play()

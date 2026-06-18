@@ -6,8 +6,10 @@ extends Node
 var current_level: Node = null
 var _levels: Array[String] = [
 	"res://levels/firing_yard.tscn",
+	"res://levels/ruined_warehouse.tscn",
 ]
 var _level_index: int = 0
+var _result_showing: bool = false
 
 @onready var _level_host: Node = %LevelHost
 @onready var _crosshair: Crosshair = %Crosshair
@@ -15,6 +17,8 @@ var _level_index: int = 0
 
 
 func _ready() -> void:
+	# Must process while paused so _input handles the restart action on the end screen.
+	process_mode = PROCESS_MODE_ALWAYS
 	if _levels.is_empty() or initial_level.is_empty():
 		return
 	_level_index = _levels.find(initial_level)
@@ -28,6 +32,13 @@ func _input(event: InputEvent) -> void:
 		if _levels.is_empty():
 			return
 		_level_index = (_level_index + 1) % _levels.size()
+		load_level(_levels[_level_index])
+
+	if _result_showing and event.is_action_pressed("restart"):
+		get_tree().paused = false
+		_result_showing = false
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		_arena_hud.hide_result()
 		load_level(_levels[_level_index])
 
 
@@ -44,15 +55,38 @@ func load_level(path: String) -> void:
 	# The orthographic CameraRig remains in the scene tree but is inert for FPS levels.
 	var player := current_level.find_child("Player") as Player
 	if player != null:
-		var camera := player.find_child("Camera3D") as Camera3D
+		var camera := player.find_child("Camera3D", true, false) as Camera3D
 		if camera != null:
 			camera.make_current()
 		player.set_crosshair(_crosshair)
+		player.set_ammo_hud(_arena_hud)
 
 	# Wire WaveManager signals to the persistent HUD (if the level has one).
-	_arena_hud.set_kills(0)
+	# Guard score reset: when RunStateData.active is in flight the carried score_changed emit
+	# from _seed_start will update the HUD — zeroing here would flash 0 before it fires.
+	if not RunStateData.active:
+		_arena_hud.set_score(0)
 	_arena_hud.set_active(0)
 	var wave_manager := current_level.find_child("WaveManager") as WaveManager
 	if wave_manager != null:
-		wave_manager.kills_changed.connect(_arena_hud.set_kills)
+		wave_manager.score_changed.connect(_arena_hud.set_score)
 		wave_manager.active_changed.connect(_arena_hud.set_active)
+		wave_manager.lives_changed.connect(_arena_hud.set_lives)
+		wave_manager.run_lost.connect(_on_run_ended.bind(false))
+		wave_manager.advance_level.connect(_on_advance_level)
+		_arena_hud.set_lives(wave_manager.lives)
+
+
+func _on_advance_level(score: int, lives: int) -> void:
+	RunStateData.active = true
+	RunStateData.score = score
+	RunStateData.lives = lives
+	_level_index = (_level_index + 1) % _levels.size()
+	load_level(_levels[_level_index])
+
+
+func _on_run_ended(score: int, won: bool) -> void:
+	_result_showing = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().paused = true
+	_arena_hud.show_result(won, score)

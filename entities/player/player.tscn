@@ -1,9 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bwxk8v5y3p2r1"]
+[gd_scene load_steps=8 format=3 uid="uid://bwxk8v5y3p2r1"]
 
 [ext_resource type="Script" path="res://entities/player/player.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://weapon0001" path="res://entities/weapon/weapon.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://weapon_rifle01" path="res://entities/weapon/rifle.tscn" id="3_rifle"]
 [ext_resource type="AudioStream" path="res://assets/audio/player_jump.wav" id="3_jump"]
 [ext_resource type="AudioStream" path="res://assets/audio/player_land.wav" id="4_land"]
+[ext_resource type="PackedScene" uid="uid://melee0001" path="res://entities/weapon/melee.tscn" id="5_melee"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -24,6 +26,13 @@ position = Vector3(0, 1.6, 0)
 [node name="Camera3D" type="Camera3D" parent="Head"]
 
 [node name="Weapon" parent="Head" instance=ExtResource("2")]
+
+[node name="Rifle" parent="Head" instance=ExtResource("3_rifle")]
+visible = false
+editor_description = "Rifle — inactive on start; swapped in by player.gd on equip_weapon"
+
+[node name="Melee" parent="Head" instance=ExtResource("5_melee")]
+editor_description = "Always-present knife; activated by key V independent of active gun weapon"
 
 [node name="JumpSfx" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("3_jump")
