@@ -25,3 +25,7 @@ assets/
 .claude/projects/
 # macOS
 .DS_Store
+
+# Locally-kept rejected experiment addon (see library/addons/fps-weapon-system.md).
+# Kept on disk as personal reference only — NOT a project dependency.
+addons/JehenoSimpleFPSWeaponSystem/

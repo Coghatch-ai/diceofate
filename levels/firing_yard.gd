@@ -71,9 +71,8 @@ const CRUSHER_SPEED: float = 4.0  # m/s
 # Lower for verification runs (e.g. 14.0 = 10x speed).
 @export var period_seconds: float = 420.0
 
-# Normalized day-time in [0, 1). Starts at noon (day_t=0.5 within the daylight arc).
-# noon_t = 0.5 * DAYLIGHT_FRACTION = 0.5 * (300/420) = 150/420.
-var _day_t: float = 150.0 / 420.0
+# Normalized day-time in [0, 1). Starts at sunrise (t=0) per design doc.
+var _day_t: float = 0.0
 # Ping-pong direction: +1 = moving toward X_MAX, -1 = toward X_MIN.
 var _crusher_dir: float = 1.0
 

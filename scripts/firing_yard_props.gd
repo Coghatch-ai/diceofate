@@ -3,7 +3,18 @@ class_name FiringYardProps
 
 const WAVE_MANAGER_SCRIPT: String = "res://levels/wave_manager.gd"
 const ENEMY_SCENE: String = "res://entities/enemy/enemy.tscn"
+const NPC_SCENE: String = "res://entities/npc/npc.tscn"
 const NAVMESH_PATH: String = "res://levels/firing_yard_navmesh.tres"
+
+# Stationary NPC positions — mid-floor ahead of spawn (24,1,30 facing -Z).
+# Capsule centre y=0.9 so base sits on floor (height 1.8, half = 0.9).
+const NPC_POSITIONS: Array[Vector3] = [
+	Vector3(18.0, 0.9, 14.0),
+	Vector3(21.0, 0.9, 18.0),
+	Vector3(24.0, 0.9, 22.0),
+	Vector3(27.0, 0.9, 16.0),
+	Vector3(30.0, 0.9, 20.0),
+]
 
 # Patrol waypoints (world-space positions).
 const ENEMY_WAYPOINTS: Array[Vector3] = [
@@ -65,11 +76,8 @@ static func add_platforms(scene_root: Node3D, cover_color: Color) -> void:
 		FiringYardNodes.vis_mesh(scene_root, "DecoProp" + str(di), deco_sz, deco_pos[di], deco_col)
 
 
-static func add_targets(
-	scene_root: Node3D, target_scene_path: String, target_script_path: String
-) -> void:
+static func add_targets(scene_root: Node3D, target_scene_path: String) -> void:
 	var tp: PackedScene = load(target_scene_path) as PackedScene
-	var ts: Script = load(target_script_path) as Script
 	var configs: Array[Dictionary] = [
 		{"name": "TargetA", "pos": Vector3(24.0, 0.5, 20.0)},
 		{"name": "TargetB", "pos": Vector3(18.0, 0.5, 14.0)},
@@ -86,7 +94,7 @@ static func add_targets(
 		t.position = cfg["pos"] as Vector3
 		t.collision_layer = 8
 		t.collision_mask = 0
-		t.set_script(ts)
+		# Script already attached in target.tscn root — do NOT set_script here.
 		scene_root.add_child(t)
 		t.owner = scene_root
 
@@ -118,7 +126,7 @@ static func add_lighting(scene_root: Node3D) -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.4, 0.25, 0.15, 1.0)
 	env.ambient_light_energy = 0.5
-	env.tonemap_mode = Environment.TONE_MAPPER_REINHARDT
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	var we: WorldEnvironment = WorldEnvironment.new()
 	we.name = "WorldEnvironment"
 	we.environment = env
@@ -127,14 +135,9 @@ static func add_lighting(scene_root: Node3D) -> void:
 
 
 static func add_player(
-	scene_root: Node3D,
-	player_scene_path: String,
-	player_script_path: String,
-	spawn_pos: Vector3,
-	spawn_rot_y: float
+	scene_root: Node3D, player_scene_path: String, spawn_pos: Vector3, spawn_rot_y: float
 ) -> void:
 	var pp: PackedScene = load(player_scene_path) as PackedScene
-	var ps: Script = load(player_script_path) as Script
 	var inst: Node = pp.instantiate()
 	@warning_ignore("unsafe_cast")
 	var player: CharacterBody3D = inst as CharacterBody3D
@@ -143,7 +146,7 @@ static func add_player(
 	player.position = spawn_pos
 	player.rotation.y = spawn_rot_y
 	player.collision_layer = 2
-	player.set_script(ps)
+	# Script already attached in player.tscn root — do NOT set_script here.
 	scene_root.add_child(player)
 	player.owner = scene_root
 
@@ -198,3 +201,17 @@ static func add_enemies(scene_root: Node3D) -> void:
 	wm.spawn_marker_paths = sm_paths
 	@warning_ignore("unsafe_property_access")
 	wm.patrol_waypoint_paths = wp_paths
+
+
+static func add_npcs(scene_root: Node3D, npc_scene_path: String) -> void:
+	var np: PackedScene = load(npc_scene_path) as PackedScene
+	for i: int in range(NPC_POSITIONS.size()):
+		var inst: Node = np.instantiate()
+		@warning_ignore("unsafe_cast")
+		var npc: StaticBody3D = inst as StaticBody3D
+		npc.name = "Npc" + str(i)
+		npc.position = NPC_POSITIONS[i]
+		npc.collision_layer = 8
+		npc.collision_mask = 0
+		scene_root.add_child(npc)
+		npc.owner = scene_root

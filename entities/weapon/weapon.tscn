@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://entities/weapon/weapon.gd" id="1"]
 [ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://b8md52wt2l0xj" path="res://assets/models/pistol.glb" id="3"]
-[ext_resource type="AudioStream" path="res://assets/audio/weapon_fire.wav" id="4"]
+[ext_resource type="AudioStream" path="res://assets/audio/pistol_shoot.wav" id="4"]
 [ext_resource type="AudioStream" path="res://assets/audio/weapon_empty.wav" id="5"]
 [ext_resource type="AudioStream" path="res://assets/audio/weapon_reload.wav" id="6"]
 

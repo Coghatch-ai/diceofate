@@ -150,10 +150,15 @@ func apply_knockback(hitter_pos: Vector3) -> void:
 
 # ── Attack telegraph (called by AttackState) ──────────────────────────────────
 ## Harmless scale-lunge telegraph + touch signal. Emits touched_player(self) each attack (C2).
+## NOTE: touched_player can trigger a synchronous level-load that frees this enemy.
+## Guard create_tween() with is_instance_valid(self) so the tween is skipped if freed mid-emit.
 func perform_attack() -> void:
 	print("Enemy attack telegraph!")
 	_touch_reset_sfx.play()
 	touched_player.emit(self)
+	# Guard: signal handler may have freed this enemy (level advance/life-loss path).
+	if not is_instance_valid(self):
+		return
 	var tw: Tween = create_tween()
 	tw.tween_property(_mesh_instance, "scale", _base_scale * Vector3(1.3, 0.7, 1.3), 0.1)
 	tw.tween_property(_mesh_instance, "scale", _base_scale, 0.1)

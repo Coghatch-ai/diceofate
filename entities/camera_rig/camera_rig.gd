@@ -10,17 +10,8 @@ extends Node3D
 @export var max_yaw_degrees: float = 45.0
 
 
-func _process(delta: float) -> void:
-	var direction: float = 0.0
-	if Input.is_action_pressed("rotate_left"):
-		direction = 1.0
-	elif Input.is_action_pressed("rotate_right"):
-		direction = -1.0
-
-	rotation_degrees.y += rotation_speed_degrees * delta * direction
-
-	if not allow_full_rotation:
-		rotation_degrees.y = clampf(rotation_degrees.y, min_yaw_degrees, max_yaw_degrees)
+func _process(_delta: float) -> void:
+	pass
 
 
 func _physics_process(delta: float) -> void:

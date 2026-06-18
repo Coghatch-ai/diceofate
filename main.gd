@@ -82,7 +82,10 @@ func _on_advance_level(score: int, lives: int) -> void:
 	RunStateData.score = score
 	RunStateData.lives = lives
 	_level_index = (_level_index + 1) % _levels.size()
-	load_level(_levels[_level_index])
+	# Deferred: signal may arrive from inside an enemy's own physics/attack callback.
+	# Calling load_level() synchronously frees the level (and the enemy) while still
+	# executing inside perform_attack() — create_tween() on a freed instance crashes.
+	load_level.call_deferred(_levels[_level_index])
 
 
 func _on_run_ended(score: int, won: bool) -> void:

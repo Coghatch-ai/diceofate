@@ -6,6 +6,8 @@ enum Kind { AMMO, HEALTH }
 
 @export var kind: Kind = Kind.AMMO
 @export var respawn_time: float = 15.0
+## Ammo caliber this crate supplies. Matched against Weapon.caliber on collect. AMMO kind only.
+@export var ammo_caliber: StringName = &"light"
 
 var _consumed: bool = false
 
@@ -28,9 +30,9 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if not body.has_method("collect_pickup"):
 		return
-	# SEAM: duck-typed collect — any body with collect_pickup(Kind) can trigger this pickup.
+	# SEAM: duck-typed collect — any body with collect_pickup(Kind, StringName) can trigger this.
 	@warning_ignore("unsafe_method_access")
-	var collected: bool = body.collect_pickup(kind)
+	var collected: bool = body.collect_pickup(kind, ammo_caliber)
 	if not collected:
 		return
 	_consumed = true

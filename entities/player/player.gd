@@ -1,16 +1,13 @@
-# entities/player/player.gd — first-person movement, mouse-look, jump, weapon firing, ADS, recoil.
+# entities/player/player.gd — first-person movement, mouse-look, jump, crouch,
+# sprint, slide, head-bob.
 class_name Player
 extends CharacterBody3D
 
-@export var move_speed: float = 5.0
+@export var move_speed: float = 4.0
+@export var move_accel: float = 6.0
+@export var move_decel: float = 7.0
 @export var jump_velocity: float = 5.0
-@export var mouse_sensitivity: float = 0.002
-@export var melee_kick_angle: float = 0.07
-## Duration of the melee camera kick tween (seconds).
-@export var kick_duration: float = 0.08
-## Seconds Engine.time_scale is suppressed on melee connect (real-time, ignores time_scale).
-@export var hit_stop_duration: float = 0.06
-@export var hit_stop_scale: float = 0.05
+@export var mouse_sensitivity: float = 0.0016
 ## FOV while hip-firing (default).
 @export var hip_fov: float = 75.0
 ## FOV while aiming down sights.
@@ -19,67 +16,107 @@ extends CharacterBody3D
 @export var ads_tween_time: float = 0.15
 ## Move speed multiplier while aiming.
 @export var ads_move_scale: float = 0.6
-## Recoil decay rate (radians/second back toward zero).
-@export var recoil_recover: float = 8.0
-## Maximum accumulated recoil pitch (radians).
-@export var recoil_max: float = 0.18
+## Sprint speed multiplier (hold sprint action).
+@export var sprint_mult: float = 1.6
+## Camera FOV while sprinting (hip_fov + kick).
+@export var sprint_fov: float = 81.0
+## Per-frame lerp rate for sprint FOV kick.
+@export var sprint_fov_lerp: float = 8.0
+## Crouched capsule height (stand = 1.8; radius 0.4 → min 0.8, so 1.2 is safe).
+@export var crouch_height: float = 1.2
+## Head/eye height while fully crouched.
+@export var crouch_eye: float = 1.3
+## Speed multiplier at full crouch (0 = still, 1 = normal).
+@export var crouch_speed_mult: float = 0.5
+## Lerp rate for crouch_amount transition (higher = snappier).
+@export var crouch_lerp_speed: float = 12.0
+## Head-bob vertical amplitude (meters) at walk speed.
+@export var bob_amount: float = 0.012
+## Head-bob cycle frequency (Hz) at walk speed.
+@export var bob_freq: float = 1.8
+## Multipliers applied to bob amplitude and frequency while sprinting.
+@export var sprint_bob_mult: float = 1.3
+## Sprint-bob frequency multiplier (separate from amplitude).
+@export var sprint_bob_freq_mult: float = 1.4
+## Slide duration in seconds before settling into crouch or stand.
+@export var slide_duration: float = 0.55
+## Friction (decel rate) applied to horizontal velocity during a slide.
+@export var slide_friction: float = 3.5
+## Optional small speed boost on slide entry (0 = no boost).
+@export var slide_speed_boost: float = 1.5
+## Maximum stamina pool.
+@export var stamina_max: float = 100.0
+## Stamina drained per second while sprinting.
+@export var stamina_drain: float = 25.0
+## Stamina regenerated per second when not sprinting.
+@export var stamina_regen: float = 18.0
+## Seconds after sprint ends before regen begins.
+@export var stamina_regen_delay: float = 0.6
+## Minimum stamina required to START a new sprint.
+@export var stamina_min_to_sprint: float = 10.0
 
 # SEAM: ProjectSettings.get_setting() returns Variant; the physics gravity setting is always float.
 @warning_ignore("unsafe_cast")
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity") as float
 var _was_on_floor: bool = false
-var _swapping: bool = false
-var _hit_stop_active: bool = false
+var _crouch_amount: float = 0.0
 var _aiming: bool = false
 var _look_pitch: float = 0.0
 var _recoil_pitch: float = 0.0
 var _recoil_yaw: float = 0.0
+var _recoil_yaw_prev: float = 0.0
 var _ads_tween: Tween
-var _crosshair: Crosshair
-var _ammo_hud: ArenaHud
-var _active_weapon: Weapon
+# Head-bob state — additive Y/X offsets on _head, never fight look/recoil/crouch.
+var _bob_t: float = 0.0
+var _bob_offset_y: float = 0.0
+var _bob_offset_x: float = 0.0
+# Slide state.
+var _sliding: bool = false
+var _slide_timer: float = 0.0
+var _slide_vel: Vector3 = Vector3.ZERO
+# Stamina state.
+var _stamina: float = 100.0
+var _stamina_regen_timer: float = 0.0
+var _was_sprinting: bool = false
+# HUD ref for stamina forwarding (player owns this; ammo goes via WeaponController).
+var _arena_hud: ArenaHud
 
-@onready var _head: Node3D = $Head
-@onready var _camera: Camera3D = $Head/Camera3D
-@onready var _pistol: Weapon = $Head/Weapon
-@onready var _rifle: Weapon = $Head/Rifle
-@onready var _melee: Melee = $Head/Melee
+@onready var _weapon_controller: WeaponController = $WeaponController
+@onready var _head: Node3D = $WeaponController/Head
+@onready var _camera: Camera3D = $WeaponController/Head/Camera3D
 @onready var _jump_sfx: AudioStreamPlayer = $JumpSfx
 @onready var _land_sfx: AudioStreamPlayer = $LandSfx
+@onready var _collision: CollisionShape3D = $CollisionShape3D
 
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	_active_weapon = _pistol
-	_pistol.visible = true
-	_rifle.visible = false
-	_connect_weapon_signals(_pistol)
-	_connect_weapon_signals(_rifle)
-	_melee.hit_confirmed.connect(_on_hit_confirmed)
-	_melee.kill_confirmed.connect(_on_kill_confirmed)
-	_melee.hit_with_position.connect(_on_melee_hit)
 	_camera.fov = hip_fov
+	_stamina = stamina_max
 
 
 ## Called by the level host (main.gd) after load to inject the HUD crosshair.
 func set_crosshair(crosshair: Crosshair) -> void:
-	_crosshair = crosshair
+	_weapon_controller.set_crosshair(crosshair)
 
 
 ## Called by main.gd after load to wire weapon ammo/reload signals to the HUD.
+## Player also keeps the ref to forward stamina each frame.
 func set_ammo_hud(hud: ArenaHud) -> void:
-	_ammo_hud = hud
-	_wire_ammo_hud(_active_weapon)
+	_arena_hud = hud
+	_weapon_controller.set_ammo_hud(hud)
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var motion := event as InputEventMouseMotion
+		var scale_factor: float = get_window().content_scale_factor
+		if scale_factor < 0.001:
+			scale_factor = 1.0
+		var sens: float = mouse_sensitivity / scale_factor
 		# Yaw on the body, pitch tracked in _look_pitch (recoil added separately in physics).
-		rotate_y(-motion.relative.x * mouse_sensitivity)
-		_look_pitch = clampf(
-			_look_pitch - motion.relative.y * mouse_sensitivity, -PI / 2.0, PI / 2.0
-		)
+		rotate_y(-motion.relative.x * sens)
+		_look_pitch = clampf(_look_pitch - motion.relative.y * sens, -PI / 2.0, PI / 2.0)
 		_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -103,196 +140,206 @@ func _physics_process(delta: float) -> void:
 
 	_was_on_floor = on_floor_now
 
-	# 4. ADS: hold aim to zoom; release to zoom back.
-	if Input.is_action_just_pressed("aim"):
-		_set_aiming(true)
-	elif Input.is_action_just_released("aim"):
-		_set_aiming(false)
-
-	# 5. Recoil decay — pitch and yaw recover toward zero when not actively firing.
-	if _recoil_pitch > 0.0:
-		_recoil_pitch = maxf(0.0, _recoil_pitch - recoil_recover * delta)
-	if _recoil_yaw != 0.0:
-		var sign_yaw: float = signf(_recoil_yaw)
-		_recoil_yaw = sign_yaw * maxf(0.0, absf(_recoil_yaw) - recoil_recover * delta)
-
-	# 6. Apply accumulated recoil as additive offset on top of mouse-look pitch.
-	# _look_pitch holds the pure mouse-look value; _recoil_pitch is layered on top.
-	# Writing head.rotation.x here is safe: _unhandled_input already updated _look_pitch.
-	_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
-
-	# 7. Movement — scale speed when aiming.
-	var effective_speed: float = move_speed * (ads_move_scale if _aiming else 1.0)
-	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var direction := (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
-	if direction != Vector3.ZERO:
-		velocity.x = direction.x * effective_speed
-		velocity.z = direction.z * effective_speed
+	# 4. ADS: hold aim to zoom; release to zoom back. Weapon state + FOV tween.
+	var is_aiming_pressed: bool = Input.is_action_just_pressed("aim")
+	var ads_released: bool = Input.is_action_just_released("aim")
+	if is_aiming_pressed or ads_released:
+		_weapon_controller.process_input(is_aiming_pressed, ads_released)
+		_aiming = _weapon_controller.is_aiming()
+		_update_ads_fov()
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, effective_speed)
-		velocity.z = move_toward(velocity.z, 0.0, effective_speed)
+		_weapon_controller.process_input(false, false)
+		_aiming = _weapon_controller.is_aiming()
 
-	# 8. Fire on left-click (held); cooldown timer caps cadence, not input.
-	if Input.is_action_pressed("shoot"):
-		_active_weapon.try_fire()
+	# 5. Spring recoil — two-stage lerp. Two-stage update via weapon_controller.
+	_weapon_controller.update_recoil(delta)
+	_recoil_pitch = _weapon_controller.get_recoil_pitch()
+	_recoil_yaw = _weapon_controller.get_recoil_yaw()
+	_recoil_yaw_prev = _weapon_controller.get_recoil_yaw_prev()
 
-	# 9. Manual reload (R); weapon guards against full mag / already reloading.
-	if Input.is_action_just_pressed("reload"):
-		_active_weapon.start_reload()
+	# 6. Apply accumulated recoil as additive offset on top of mouse-look.
+	_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
+	rotation.y += _recoil_yaw - _recoil_yaw_prev
+	_weapon_controller.set_recoil_yaw_prev(_recoil_yaw)
 
-	# 10. Swap weapon (Q) — debounced: ignore while swap in flight.
-	if Input.is_action_just_pressed("equip_weapon") and not _swapping:
-		_swap_weapon()
+	# 7. Crouch — lerp crouch_amount toward 1 (held) or 0 (released/blocked), then apply shape.
+	_update_crouch(delta)
 
-	# 11. Melee swing (V) — always available, independent of active gun.
-	if Input.is_action_just_pressed("melee"):
-		_melee.try_melee()
+	# 7a. Crouch-accuracy: inform active weapon of crouch state every frame.
+	_weapon_controller.set_active_weapon_crouch(_crouch_amount >= 0.5)
 
-	# 12. Engine resolves collisions and updates position.
+	# 8. Movement — whole-vector lerp so direction changes carry momentum.
+	# Per-axis lerp snapped each axis independently; reversing X while Z moves felt robotic.
+	# Lerping the XZ vector as a unit means reversing bleeds through existing momentum.
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	# Sprint: computed each frame — on floor, not aiming, not crouched, has forward input.
+	# Hoisted above slide so both slide entry and movement block share the same value.
+	var is_sprinting: bool = (
+		Input.is_action_pressed("sprint")
+		and on_floor_now
+		and not _aiming
+		and _crouch_amount < 0.5
+		and input_dir != Vector2.ZERO
+		and input_dir.y < 0.0
+	)
+	# Stamina gate: keep sprinting only while stamina remains; require a minimum to START.
+	if is_sprinting:
+		if _was_sprinting:
+			is_sprinting = _stamina > 0.0
+		else:
+			is_sprinting = _stamina >= stamina_min_to_sprint
+
+	# 8a. Slide — entry/tick/exit. Must run before normal movement block.
+	# While _sliding, _update_slide owns velocity.x/z; normal block is skipped that frame.
+	_update_slide(delta, is_sprinting, on_floor_now)
+
+	# 8b. Stamina drain / regen.
+	if is_sprinting:
+		_stamina = maxf(0.0, _stamina - stamina_drain * delta)
+		_stamina_regen_timer = stamina_regen_delay
+	else:
+		_stamina_regen_timer = maxf(0.0, _stamina_regen_timer - delta)
+		if _stamina_regen_timer <= 0.0:
+			_stamina = minf(stamina_max, _stamina + stamina_regen * delta)
+	_was_sprinting = is_sprinting
+	if _arena_hud != null:
+		_arena_hud.set_stamina(_stamina, stamina_max)
+
+	if not _sliding:
+		# Layered effective_speed: base → ADS → sprint → crouch.
+		var effective_speed: float = move_speed
+		if _aiming:
+			effective_speed *= ads_move_scale
+		if is_sprinting:
+			effective_speed *= sprint_mult
+		effective_speed *= lerpf(1.0, crouch_speed_mult, _crouch_amount)
+		# Sprint FOV kick: separate per-frame lerp, never touches the recoil spring.
+		# Gated behind not _aiming so ADS tween owns fov exclusively while aimed.
+		if not _aiming:
+			var target_fov: float = sprint_fov if is_sprinting else hip_fov
+			_camera.fov = lerpf(_camera.fov, target_fov, sprint_fov_lerp * delta)
+		var direction := (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
+		var flat_vel := Vector3(velocity.x, 0.0, velocity.z)
+		if direction != Vector3.ZERO:
+			var target_vel: Vector3 = direction * effective_speed
+			flat_vel = flat_vel.lerp(target_vel, move_accel * delta)
+		else:
+			flat_vel = flat_vel.lerp(Vector3.ZERO, move_decel * delta)
+		velocity.x = flat_vel.x
+		velocity.z = flat_vel.z
+
+	# 9. Engine resolves collisions and updates position.
 	move_and_slide()
 
+	# 14. Head-bob — runs AFTER move_and_slide() and AFTER _update_crouch() has set
+	# _head.position.y to the crouch eye height. _update_bob adds _bob_offset_y on top
+	# (additive += confirmed in _update_bob body). Recoil writes _head.rotation.x, not
+	# position, so no conflict.
+	_update_bob(delta, is_sprinting, on_floor_now)
 
-func _set_aiming(aiming: bool) -> void:
-	_aiming = aiming
-	_active_weapon.set_aiming(aiming)
-	var target_fov: float = ads_fov if aiming else hip_fov
+
+## Lerps crouch_amount toward target each frame and applies capsule/eye height.
+## Ceiling gate: if key released but test_move detects overhead obstruction, hold at 1.
+func _update_crouch(delta: float) -> void:
+	const STAND_HEIGHT: float = 1.8
+	const STAND_EYE: float = 1.6
+	var want_crouch: bool = Input.is_action_pressed("crouch")
+	# Ceiling check: attempt to un-crouch only if key released; if blocked, stay crouched.
+	if not want_crouch and _crouch_amount > 0.01:
+		var stand_delta: float = STAND_HEIGHT - lerpf(STAND_HEIGHT, crouch_height, _crouch_amount)
+		if stand_delta > 0.001 and test_move(global_transform, Vector3.UP * stand_delta):
+			want_crouch = true
+	var crouch_target: float = 1.0 if want_crouch else 0.0
+	_crouch_amount = lerpf(_crouch_amount, crouch_target, crouch_lerp_speed * delta)
+	# Apply capsule height and re-anchor center so bottom stays at local Y = 0.
+	# SEAM: _collision.shape is Shape3D; cast to CapsuleShape3D to set height/radius.
+	@warning_ignore("unsafe_cast")
+	var cap: CapsuleShape3D = _collision.shape as CapsuleShape3D
+	var current_height: float = lerpf(STAND_HEIGHT, crouch_height, _crouch_amount)
+	cap.height = current_height
+	# Center-anchored capsule: position.y = height/2 keeps bottom at local 0.
+	# Crouching DECREASES position.y (e.g. 0.9 → 0.6 at height 1.2).
+	_collision.position.y = current_height / 2.0
+	# Drive eye/head height.
+	_head.position.y = lerpf(STAND_EYE, crouch_eye, _crouch_amount)
+
+
+## Additive head-bob: advances sine clock by horizontal speed, applies Y+X offset to _head.
+## Never overwrites _head.position.y directly — adds _bob_offset_y on top of crouch eye height.
+func _update_bob(delta: float, is_sprinting: bool, on_floor: bool) -> void:
+	var flat_speed: float = Vector3(velocity.x, 0.0, velocity.z).length()
+	# Amplitude eases to 0 when still or airborne (lerp toward 0 each frame).
+	var amp_target: float = 0.0
+	if flat_speed > 0.2 and on_floor:
+		var sprint_a: float = sprint_bob_mult if is_sprinting else 1.0
+		amp_target = bob_amount * sprint_a
+	# Smooth amplitude transitions (ease-out when stopping).
+	var bob_amp: float = lerpf(
+		_bob_offset_y / bob_amount if bob_amount > 0.0 else 0.0,
+		amp_target / bob_amount if bob_amount > 0.0 else 0.0,
+		8.0 * delta
+	)
+	bob_amp = bob_amp * bob_amount
+
+	# Advance clock scaled by current speed (faster walk = faster bob).
+	var freq_mult: float = sprint_bob_freq_mult if is_sprinting else 1.0
+	var speed_scale: float = clampf(flat_speed / move_speed, 0.0, 2.0)
+	_bob_t += delta * bob_freq * freq_mult * speed_scale
+
+	_bob_offset_y = sin(_bob_t * TAU) * bob_amp
+	# Lateral: half-amplitude, half-frequency (subtle sway).
+	_bob_offset_x = sin(_bob_t * PI) * bob_amp * 0.4
+
+	# Apply ADDITIVELY: base crouch eye height already written to _head.position.y by _update_crouch.
+	# We offset from that base rather than overwrite it.
+	_head.position.y += _bob_offset_y
+	_head.position.x = _bob_offset_x
+
+
+## Slide entry/tick/exit logic (feature 3). No FSM — bool + timer.
+## Entry: sprinting + just-pressed crouch + not already sliding.
+## Tick: preserve slide velocity with low friction, force crouch.
+## Exit: timer expired, jump pressed, or wall hit; settle to crouch-or-stand.
+func _update_slide(delta: float, is_sprinting: bool, on_floor: bool) -> void:
+	var crouch_just_pressed: bool = Input.is_action_just_pressed("crouch")
+
+	# Entry: sprint + crouch-press + grounded + not mid-slide.
+	if not _sliding and is_sprinting and crouch_just_pressed and on_floor:
+		_sliding = true
+		_slide_timer = slide_duration
+		# Capture current horizontal velocity + optional boost along facing.
+		var flat: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
+		var boost_dir: Vector3 = (-transform.basis.z).normalized()
+		_slide_vel = flat + boost_dir * slide_speed_boost
+
+	if not _sliding:
+		return
+
+	_slide_timer -= delta
+
+	# Exit conditions: timer, jump input, or no floor contact (hit wall → velocity killed by engine).
+	var jumped: bool = Input.is_action_just_pressed("jump") and on_floor
+	var wall_stop: bool = Vector3(velocity.x, 0.0, velocity.z).length() < 0.3
+	if _slide_timer <= 0.0 or jumped or wall_stop:
+		_sliding = false
+		_slide_timer = 0.0
+		return
+
+	# Tick: bleed slide velocity via friction; engine applies via velocity.x/z.
+	_slide_vel = _slide_vel.lerp(Vector3.ZERO, slide_friction * delta)
+	velocity.x = _slide_vel.x
+	velocity.z = _slide_vel.z
+
+
+## Updates ADS FOV tween based on current aiming state. Crosshair visibility handled here.
+func _update_ads_fov() -> void:
+	var target_fov: float = ads_fov if _aiming else hip_fov
 	if _ads_tween:
 		_ads_tween.kill()
 	_ads_tween = create_tween()
 	_ads_tween.tween_property(_camera, "fov", target_fov, ads_tween_time)
-	if _crosshair != null:
-		_crosshair.visible = not aiming
 
 
-func _swap_weapon() -> void:
-	# Cancel ADS before swapping.
-	if _aiming:
-		_set_aiming(false)
-		_camera.fov = hip_fov
-		if _ads_tween:
-			_ads_tween.kill()
-	_swapping = true
-	var outgoing: Weapon = _active_weapon
-	var incoming: Weapon = _rifle if _active_weapon == _pistol else _pistol
-	outgoing.play_holster()
-	# Wait for the holster (0.12 s) then flip visibility and start the draw.
-	get_tree().create_timer(0.12).timeout.connect(
-		func() -> void:
-			outgoing.visible = false
-			incoming.visible = true
-			_active_weapon = incoming
-			if _ammo_hud != null:
-				_wire_ammo_hud(_active_weapon)
-			incoming.play_draw()
-			incoming.swap_draw_finished.connect(_on_swap_draw_finished, CONNECT_ONE_SHOT),
-		CONNECT_ONE_SHOT
-	)
-
-
-func _on_swap_draw_finished() -> void:
-	_swapping = false
-
-
-## Wire ammo/reload signals from weapon to HUD. Disconnects previous weapon first.
-func _wire_ammo_hud(weapon: Weapon) -> void:
-	# Disconnect old weapon signals if connected to avoid duplicate HUD updates.
-	for w: Weapon in [_pistol, _rifle]:
-		if w.ammo_changed.is_connected(_ammo_hud.set_ammo):
-			w.ammo_changed.disconnect(_ammo_hud.set_ammo)
-		if w.reload_started.is_connected(_on_reload_started_hud):
-			w.reload_started.disconnect(_on_reload_started_hud)
-		if w.reload_finished.is_connected(_on_reload_finished_hud):
-			w.reload_finished.disconnect(_on_reload_finished_hud)
-	weapon.ammo_changed.connect(_ammo_hud.set_ammo)
-	weapon.reload_started.connect(_on_reload_started_hud)
-	weapon.reload_finished.connect(_on_reload_finished_hud)
-	weapon.emit_ammo()
-
-
-func _on_reload_started_hud(_duration: float) -> void:
-	_ammo_hud.set_reloading(true)
-
-
-func _on_reload_finished_hud() -> void:
-	_ammo_hud.set_reloading(false)
-
-
-func _connect_weapon_signals(weapon: Weapon) -> void:
-	weapon.fired.connect(_on_weapon_fired)
-	weapon.hit_confirmed.connect(_on_hit_confirmed)
-	weapon.kill_confirmed.connect(_on_kill_confirmed)
-
-
-func _on_weapon_fired() -> void:
-	# Accumulate recoil from the active weapon's per-weapon exports.
-	_recoil_pitch = minf(_recoil_pitch + _active_weapon.recoil_pitch, recoil_max)
-	_recoil_yaw += randf_range(-_active_weapon.recoil_yaw, _active_weapon.recoil_yaw)
-	if _crosshair != null:
-		_crosshair.fire_pop()
-
-
-func _on_hit_confirmed() -> void:
-	if _crosshair != null:
-		_crosshair.hit_pop()
-
-
-func _on_kill_confirmed() -> void:
-	if _crosshair != null:
-		_crosshair.kill_pop()
-
-
-## Collects a pickup by kind. AMMO → refills active weapon; HEALTH → adds a life via WaveManager.
-## Returns true if something changed (pickup consumed), false if no-op (already full).
-func collect_pickup(kind: Pickup.Kind) -> bool:
-	match kind:
-		Pickup.Kind.AMMO:
-			return _active_weapon.refill_ammo()
-		Pickup.Kind.HEALTH:
-			# SEAM: WaveManager is a sibling in the loaded level — found by name, duck-typed.
-			var parent: Node = get_parent()
-			if parent == null:
-				return false
-			var wm: Node = parent.find_child("WaveManager", false, false)
-			if wm == null:
-				return false
-			if not wm.has_method("add_life"):
-				return false
-			@warning_ignore("unsafe_method_access")
-			return wm.add_life()
-	return false
-
-
-## Fires on every melee body connect. Owns hit-stop, melee camera kick, knockback relay.
-func _on_melee_hit(hitter_pos: Vector3) -> void:
-	_do_hit_stop()
-	_do_melee_camera_kick()
-	# Relay knockback to every overlapping body that supports it (duck-typed, godot-composition).
-	# _melee hitbox overlapping bodies are the same set that triggered the hit.
-	for body: Node3D in _melee._hitbox.get_overlapping_bodies():
-		if body.has_method("apply_knockback"):
-			# SEAM: duck-typed knockback — any body with apply_knockback(Vector3) is valid.
-			@warning_ignore("unsafe_method_access")
-			body.apply_knockback(hitter_pos)
-
-
-## Brief time_scale dip on melee connect. Re-entrant-safe: guard prevents overlapping dips
-## from stacking (only one active at a time). Always restores to 1.0 via real-time timer.
-func _do_hit_stop() -> void:
-	if _hit_stop_active:
-		return
-	_hit_stop_active = true
-	Engine.time_scale = hit_stop_scale
-	# ignore_time_scale = true → timer runs in real time regardless of Engine.time_scale.
-	get_tree().create_timer(hit_stop_duration, true, false, true).timeout.connect(
-		func() -> void:
-			Engine.time_scale = 1.0
-			_hit_stop_active = false
-	)
-
-
-func _do_melee_camera_kick() -> void:
-	var base_x: float = _head.rotation.x
-	var tw := create_tween()
-	# Sharper downward punch (positive X = look down) for melee impact feel.
-	tw.tween_property(_head, "rotation:x", base_x + melee_kick_angle, kick_duration * 0.2)
-	tw.tween_property(_head, "rotation:x", base_x, kick_duration * 1.2)
+## Forwarding method: delegates to weapon controller. Called by pickups (duck-typed).
+func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> bool:
+	return _weapon_controller.collect_pickup(kind, ammo_caliber)

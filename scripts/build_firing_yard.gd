@@ -23,9 +23,7 @@ const COVER_COLOR: Color = Color(0.376, 0.376, 0.439, 1.0)
 
 const LEVEL_SCRIPT: String = "res://levels/firing_yard.gd"
 const TARGET_SCENE: String = "res://entities/target/target.tscn"
-const TARGET_SCRIPT: String = "res://entities/target/target.gd"
 const PLAYER_SCENE: String = "res://entities/player/player.tscn"
-const PLAYER_SCRIPT: String = "res://entities/player/player.gd"
 const OUT_PATH: String = "res://levels/firing_yard.tscn"
 const GRID_JSON: String = "res://levels/drawn/current.json"
 
@@ -73,11 +71,12 @@ func _build() -> void:
 
 	# Props/actors/lighting phase.
 	FiringYardProps.add_platforms(scene_root, COVER_COLOR)
-	FiringYardProps.add_targets(scene_root, TARGET_SCENE, TARGET_SCRIPT)
+	FiringYardProps.add_targets(scene_root, TARGET_SCENE)
 	FiringYardProps.add_lighting(scene_root)
-	FiringYardProps.add_player(scene_root, PLAYER_SCENE, PLAYER_SCRIPT, SPAWN_POS, SPAWN_ROT_Y)
+	FiringYardProps.add_player(scene_root, PLAYER_SCENE, SPAWN_POS, SPAWN_ROT_Y)
 	FiringYardProps.add_navmesh(scene_root)
 	FiringYardProps.add_enemies(scene_root)
+	FiringYardProps.add_npcs(scene_root, FiringYardProps.NPC_SCENE)
 
 	# Hazards phase.
 	FiringYardHazards.add_hazard_floor(scene_root)

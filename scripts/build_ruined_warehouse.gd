@@ -8,13 +8,10 @@ const CELL_Z: float = 2.0
 const WALL_H: float = 3.5
 const GRID_W: int = 24
 const GRID_H: int = 16
-const FLOOR_THICK: float = 0.2
-const FLOOR_Y: float = -0.1
-
+const FLOOR_COLOR: Color = Color(0.078, 0.078, 0.125, 1.0)
 const WALL_COLOR: Color = Color(0.251, 0.251, 0.314, 1.0)
 const WALL_CORRIDOR_COLOR: Color = Color(0.18, 0.18, 0.22, 1.0)
 const WALL_POCKET_COLOR: Color = Color(0.20, 0.20, 0.28, 1.0)
-const FLOOR_COLOR: Color = Color(0.078, 0.078, 0.125, 1.0)
 const BARRIER_COLOR: Color = Color(0.35, 0.30, 0.25, 1.0)
 
 const BARRIER_H: float = 0.8
@@ -82,8 +79,14 @@ func _build() -> void:
 	scene_root.add_child(gm)
 	gm.owner = scene_root
 
-	# Floor slab: single 48×32 m StaticBody3D.
-	_add_floor_slab(scene_root)
+	# Floor slab: perforated — leaves 2×2 holes under fake-floor cells (E4).
+	BuildRWSliceE4.add_perforated_floor(scene_root, GRID_W, GRID_H, CELL_X, CELL_Z)
+
+	# Fake-floor visual tiles (no collision) at id=7 cells (E4).
+	BuildRWSliceE4.add_fake_floor_tiles(scene_root, CELL_X, CELL_Z)
+
+	# FallZone trigger below arena (E4); wired in ruined_warehouse.gd _ready().
+	BuildRWSliceE4.add_fall_zone(scene_root)
 
 	# Lighting: DirectionalLight3D Sun + WorldEnvironment.
 	_add_lighting(scene_root)
@@ -199,40 +202,6 @@ func _build_gridmap(grid: Dictionary) -> GridMap:
 			gm.set_cell_item(Vector3i(col, 0, row), item)
 
 	return gm
-
-
-func _add_floor_slab(scene_root: Node3D) -> void:
-	var floor_w: float = float(GRID_W) * CELL_X
-	var floor_d: float = float(GRID_H) * CELL_Z
-	var sz: Vector3 = Vector3(floor_w, FLOOR_THICK, floor_d)
-	var pos: Vector3 = Vector3(floor_w * 0.5, FLOOR_Y, floor_d * 0.5)
-
-	var floor_mat: StandardMaterial3D = StandardMaterial3D.new()
-	floor_mat.albedo_color = FLOOR_COLOR
-
-	var body: StaticBody3D = StaticBody3D.new()
-	body.name = "FloorSlab"
-	scene_root.add_child(body)
-	body.owner = scene_root
-
-	var mi: MeshInstance3D = MeshInstance3D.new()
-	mi.name = "FloorMesh"
-	var bm: BoxMesh = BoxMesh.new()
-	bm.size = sz
-	bm.material = floor_mat
-	mi.mesh = bm
-	mi.position = pos
-	body.add_child(mi)
-	mi.owner = scene_root
-
-	var cs: CollisionShape3D = CollisionShape3D.new()
-	cs.name = "FloorCollision"
-	var bs: BoxShape3D = BoxShape3D.new()
-	bs.size = sz
-	cs.shape = bs
-	cs.position = pos
-	body.add_child(cs)
-	cs.owner = scene_root
 
 
 func _add_player(scene_root: Node3D) -> void:

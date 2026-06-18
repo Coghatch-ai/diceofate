@@ -8,6 +8,7 @@ var _last_ammo_text: String = ""
 @onready var _active_label: Label = $ActiveLabel
 @onready var _lives_label: Label = $LivesLabel
 @onready var _ammo_label: Label = $AmmoLabel
+@onready var _stamina_label: Label = $StaminaLabel
 @onready var _result_panel: Panel = $ResultPanel
 @onready var _result_label: Label = $ResultPanel/ResultLabel
 
@@ -18,6 +19,7 @@ func _ready() -> void:
 	set_active(0)
 	set_lives(3)
 	set_ammo(0, 0)
+	set_stamina(100.0, 100.0)
 	_result_panel.visible = false
 
 
@@ -33,8 +35,8 @@ func set_lives(n: int) -> void:
 	_lives_label.text = "LIVES  %d" % n
 
 
-func set_ammo(current: int, maximum: int) -> void:
-	_last_ammo_text = "AMMO  %d / %d" % [current, maximum]
+func set_ammo(current: int, reserve: int) -> void:
+	_last_ammo_text = "AMMO  %d / %d" % [current, reserve]
 	_ammo_label.text = _last_ammo_text
 
 
@@ -53,3 +55,8 @@ func show_result(won: bool, score: int) -> void:
 
 func hide_result() -> void:
 	_result_panel.visible = false
+
+
+func set_stamina(current: float, maximum: float) -> void:
+	var pct: int = int(current / maximum * 100.0) if maximum > 0.0 else 0
+	_stamina_label.text = "STAMINA  %d%%" % pct

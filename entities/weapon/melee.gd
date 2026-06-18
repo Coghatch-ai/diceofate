@@ -6,8 +6,9 @@
 # On swing: query get_overlapping_bodies() for stationary/already-in-range enemies first,
 # then body_entered handles enemies that walk into the hitbox during the swing window.
 # Damage gated by _swing_active flag, NOT by toggling monitoring.
-# Animation: vertical hammer chop — pitches UP (X negative) on wind-up, smashes DOWN (X positive),
-# recovers to rest. Pure X-rotation, no Y-yaw — straight top-to-down chop.
+# Animation: diagonal overhead smash — wind-up lifts hammer up-and-back with a right-side
+# pull (X pitch up, Y yaw right, shift +X off-screen edge), then fast smash down-and-across
+# to lower-left (X pitch forward, Y yaw left). Gives arc depth vs pure-X overhead chop.
 class_name Melee
 extends Node3D
 
@@ -20,12 +21,12 @@ signal hit_with_position(hitter_pos: Vector3)
 # Rest: centred, neutral.
 const _VM_REST_POS := Vector3(0.0, 0.0, 0.0)
 const _VM_REST_ROT := Vector3.ZERO
-# Wind-up: pulled overhead/back — pure pitch up (negative X = tilts up in view-model space).
-const _VM_WINDUP_POS := Vector3(0.0, 0.08, -0.05)
-const _VM_WINDUP_ROT := Vector3(-70.0, 0.0, 0.0)
-# Strike: hammered straight down — pitch forward past neutral.
-const _VM_SLASH_POS := Vector3(0.0, -0.08, -0.10)
-const _VM_SLASH_ROT := Vector3(55.0, 0.0, 0.0)
+# Wind-up: lifted overhead-right — pitch up (neg X), yaw right (+Y), push slightly off +X edge.
+const _VM_WINDUP_POS := Vector3(0.12, 0.10, -0.05)
+const _VM_WINDUP_ROT := Vector3(-65.0, 25.0, 0.0)
+# Strike: smashed down-and-across to lower-left — pitch forward (pos X), yaw left (-Y).
+const _VM_SLASH_POS := Vector3(-0.06, -0.08, -0.10)
+const _VM_SLASH_ROT := Vector3(55.0, -20.0, 0.0)
 
 ## Seconds between swings.
 @export var cooldown: float = 0.75

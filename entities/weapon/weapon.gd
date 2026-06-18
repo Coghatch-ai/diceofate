@@ -5,7 +5,7 @@ extends Node3D
 signal fired
 signal hit_confirmed
 signal kill_confirmed
-signal ammo_changed(current: int, maximum: int)
+signal ammo_changed(current: int, reserve: int)
 signal out_of_ammo
 signal reload_started(duration: float)
 signal reload_finished
@@ -24,13 +24,21 @@ const _VM_DIP_ROT := Vector3(25.0, 0.0, 0.0)
 @export var spread_hip: float = 2.5
 ## Cone half-angle (degrees) for ADS spread.
 @export var spread_ads: float = 0.3
+## Spread multiplier when crouched (stacks with ADS; 1.0 = no effect).
+@export var crouch_spread_mult: float = 0.5
 ## Pitch impulse (radians) added to player recoil per shot — read by player via export.
-@export var recoil_pitch: float = 0.012
+@export var recoil_pitch: float = 0.08
 ## Max yaw jitter (radians) per shot — read by player via export.
-@export var recoil_yaw: float = 0.004
+@export var recoil_yaw: float = 0.03
+## Maximum rounds in the reserve pool (pistol default 48 = 4 spare mags).
+@export var reserve_max: int = 48
+## Ammo type this weapon consumes. Matched against Pickup.ammo_caliber on collect.
+@export var caliber: StringName = &"light"
 
 var _aiming: bool = false
+var _crouched: bool = false
 var _ammo: int = 0
+var _reserve: int = 0
 var _reloading: bool = false
 var _swapping: bool = false
 var _reload_tween: Tween
@@ -54,7 +62,8 @@ func _ready() -> void:
 	_reload_timer.wait_time = reload_time
 	_reload_timer.timeout.connect(_on_reload_done)
 	_ammo = ammo_max
-	ammo_changed.emit(_ammo, ammo_max)
+	_reserve = reserve_max
+	ammo_changed.emit(_ammo, _reserve)
 
 
 ## Called by the host on the shoot input. Returns true if a shot was fired.
@@ -64,7 +73,8 @@ func try_fire() -> bool:
 	if _ammo <= 0:
 		out_of_ammo.emit()
 		_empty_sfx.play()
-		start_reload()
+		if _reserve > 0:
+			start_reload()
 		return false
 	if not _cooldown.is_stopped():
 		return false
@@ -74,23 +84,24 @@ func try_fire() -> bool:
 	_cooldown.start()
 	fired.emit()
 	_ammo -= 1
-	ammo_changed.emit(_ammo, ammo_max)
+	ammo_changed.emit(_ammo, _reserve)
 	return true
 
 
-## Refills magazine to full. Returns false (no-op) if already full.
-## Instant — no reload timer or dip animation. Active-weapon-only seam for pickups.
+## Adds one magazine worth of rounds to the reserve (capped at reserve_max).
+## Returns false (no-op) if reserve already full.
+## Active-weapon-only seam for AMMO pickups — signature unchanged.
 func refill_ammo() -> bool:
-	if _ammo >= ammo_max:
+	if _reserve >= reserve_max:
 		return false
-	_ammo = ammo_max
-	ammo_changed.emit(_ammo, ammo_max)
+	_reserve = mini(_reserve + ammo_max, reserve_max)
+	ammo_changed.emit(_ammo, _reserve)
 	return true
 
 
 ## Re-emits ammo_changed so late-connecting HUDs can seed their display.
 func emit_ammo() -> void:
-	ammo_changed.emit(_ammo, ammo_max)
+	ammo_changed.emit(_ammo, _reserve)
 
 
 ## Called by the player on aim press/release to switch hip/ADS spread.
@@ -98,9 +109,15 @@ func set_aiming(aiming: bool) -> void:
 	_aiming = aiming
 
 
-## Starts a reload. No-ops if already reloading or magazine is full.
+## Called by the player each frame when crouch_amount crosses 0.5 threshold.
+## Crouched spread stacks multiplicatively with ADS (crouch+ADS = tightest cone).
+func set_crouched(crouched: bool) -> void:
+	_crouched = crouched
+
+
+## Starts a reload. No-ops if already reloading, magazine is full, or reserve empty.
 func start_reload() -> void:
-	if _reloading or _ammo >= ammo_max:
+	if _reloading or _ammo >= ammo_max or _reserve <= 0:
 		return
 	_reloading = true
 	_reload_timer.start()
@@ -156,10 +173,13 @@ func _on_draw_done() -> void:
 
 
 func _on_reload_done() -> void:
-	_ammo = ammo_max
+	var need: int = ammo_max - _ammo
+	var pulled: int = mini(need, _reserve)
+	_ammo += pulled
+	_reserve -= pulled
 	_reloading = false
 	reload_finished.emit()
-	ammo_changed.emit(_ammo, ammo_max)
+	ammo_changed.emit(_ammo, _reserve)
 	_restore_view_model()
 
 
@@ -223,7 +243,9 @@ func _fire() -> void:
 	get_tree().current_scene.add_child(projectile)
 	projectile.top_level = true
 	# Apply spread: perturb the muzzle basis by a random cone before launch.
-	var half_angle: float = deg_to_rad(spread_ads if _aiming else spread_hip)
+	# Crouch multiplier stacks with ADS: crouch+ADS = tightest cone.
+	var base_spread: float = spread_ads if _aiming else spread_hip
+	var half_angle: float = deg_to_rad(base_spread * (crouch_spread_mult if _crouched else 1.0))
 	var spread_basis: Basis = _muzzle.global_transform.basis
 	if half_angle > 0.0:
 		var rand_yaw: float = randf_range(-half_angle, half_angle)

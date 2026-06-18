@@ -15,6 +15,14 @@ const WALL_MASK: int = 1
 ## Eye height used for LOS raycasts to avoid floor collider hits.
 const EYE_HEIGHT: float = 1.0
 
+## Close-ring spawn tunables (design doc constants).
+const CLOSE_MIN: float = 6.0
+const CLOSE_MAX: float = 12.0
+const CLOSE_FRACTION: float = 0.4
+const FRONT_CONE_DEG: float = 90.0
+const NAV_SNAP_TOLERANCE: float = 1.5
+const CLOSE_RETRIES: int = 6
+
 ## Player spawn position for life-loss respawn. Set per-level by the builder or scene.
 ## Default matches FiringYard so that scene requires no override.
 @export var spawn_pos: Vector3 = Vector3(24.0, 1.0, 30.0)
@@ -67,6 +75,10 @@ var _occupied_markers: Array[Marker3D] = []
 # Reusable PhysicsRayQueryParameters3D allocated once, reused per LOS check.
 var _ray_query: PhysicsRayQueryParameters3D
 
+# Cached nav map RID for navmesh-snap of close-ring candidates.
+# Populated in _ready() once NavigationRegion3D is available in the tree.
+var _nav_map: RID
+
 
 func _ready() -> void:
 	# Resolve NodePath exports → typed arrays (hand-authored .tscn can't store Array[Marker3D]).
@@ -85,6 +97,18 @@ func _ready() -> void:
 
 	_ray_query = PhysicsRayQueryParameters3D.new()
 	_ray_query.collision_mask = WALL_MASK
+
+	# Cache the nav map RID from the first NavigationRegion3D in the parent scene.
+	var nav_region: NavigationRegion3D = (
+		get_tree().get_first_node_in_group("nav_region") as NavigationRegion3D
+	)
+	if nav_region == null:
+		# Fallback: search parent for any NavigationRegion3D child.
+		nav_region = _find_nav_region()
+	if nav_region != null:
+		_nav_map = nav_region.get_navigation_map()
+	else:
+		push_warning("WaveManager: no NavigationRegion3D found — close-ring will fall back to FAR")
 
 	if enemy_scene == null:
 		push_error("WaveManager: enemy_scene not assigned")
@@ -144,8 +168,7 @@ func _spawn_one(
 ) -> void:
 	if enemy_scene == null:
 		return
-	var marker: Marker3D = _pick_spawn_marker(seed_phase)
-	var pos: Vector3 = marker.global_position if marker != null else spawn_pos
+	var pos: Vector3 = _pick_spawn_point(seed_phase)
 
 	# Type selection priority: force_magnet > force_grunt > random roll by ratios.
 	var chosen_scene: PackedScene = enemy_scene
@@ -188,10 +211,6 @@ func _spawn_one(
 	get_parent().add_child(enemy)
 	# global_position requires the node to be in the tree; set after add_child.
 	enemy.global_position = pos + Vector3(0.0, 0.1, 0.0)
-
-	# Track occupied marker so the next call in the same batch avoids it.
-	if marker != null:
-		_occupied_markers.append(marker)
 
 	_connect_enemy(enemy)
 	_active_enemies.append(enemy)
@@ -277,22 +296,32 @@ func _on_enemy_touched_player(_enemy: Enemy) -> void:
 # ── Spawn point selection ─────────────────────────────────────────────────────
 
 
-## Returns the best available Marker3D for spawning, avoiding markers already used
-## in the current batch (_occupied_markers). Falls back gracefully if all markers
-## are occupied: clears the batch list and picks freely.
-func _pick_spawn_marker(_seed_phase: bool) -> Marker3D:
+## Returns a world-space spawn position. seed_phase=true always picks a FAR marker
+## (out-of-sight, or farthest fallback). Otherwise rolls CLOSE_FRACTION chance for a
+## procedural close-ring point behind the player; falls back to FAR on nav-snap failure.
+func _pick_spawn_point(seed_phase: bool) -> Vector3:
 	if _spawn_markers.is_empty():
-		return _spawn_markers[0] if not _spawn_markers.is_empty() else null
+		return spawn_pos
 
+	if not seed_phase and randf() < CLOSE_FRACTION:
+		var close_pos: Vector3 = _try_close_ring_point()
+		if close_pos != Vector3.ZERO:
+			print("WaveManager: CLOSE spawn at %s" % close_pos)
+			return close_pos
+
+	return _pick_far_marker_pos()
+
+
+## Pick a FAR marker: prefer out-of-sight + unoccupied; fallback = farthest marker.
+func _pick_far_marker_pos() -> Vector3:
 	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
 	if player == null:
-		return _pick_unoccupied_random()
+		return _pick_unoccupied_random().global_position
 
 	var player_pos: Vector3 = player.global_position
 	var ray_from: Vector3 = player_pos + Vector3(0.0, EYE_HEIGHT, 0.0)
 	var space: PhysicsDirectSpaceState3D = get_tree().root.get_world_3d().direct_space_state
 
-	# Separate markers into hidden/visible pools, both excluding already-occupied markers.
 	var hidden_free: Array[Marker3D] = []
 	var visible_free: Array[Marker3D] = []
 	var farthest: Marker3D = _spawn_markers[0]
@@ -305,7 +334,6 @@ func _pick_spawn_marker(_seed_phase: bool) -> Marker3D:
 			farthest_dist = dist
 			farthest = marker
 
-		# Skip markers already assigned in this spawn batch.
 		if _occupied_markers.has(marker):
 			continue
 
@@ -321,22 +349,86 @@ func _pick_spawn_marker(_seed_phase: bool) -> Marker3D:
 	if not hidden_free.is_empty():
 		chosen = hidden_free[randi() % hidden_free.size()]
 	elif not visible_free.is_empty():
-		# No hidden free markers — pick random visible-but-unoccupied.
 		chosen = visible_free[randi() % visible_free.size()]
 	else:
-		# All markers occupied (batch larger than marker count): clear occupancy and
-		# fall back to farthest so at least different positions are tried across calls.
 		push_warning("WaveManager: all markers occupied — clearing batch list, using farthest")
 		_occupied_markers.clear()
 		chosen = farthest
 
+	_occupied_markers.append(chosen)
 	print(
 		(
-			"WaveManager: spawn pick — %d hidden_free / %d vis_free / %d occupied → %s"
+			"WaveManager: FAR spawn pick — %d hidden_free / %d vis_free / %d occupied → %s"
 			% [hidden_free.size(), visible_free.size(), _occupied_markers.size(), chosen.name]
 		)
 	)
-	return chosen
+	return chosen.global_position
+
+
+## Attempt to pick a navmesh-valid point on the close ring behind the player.
+## Returns Vector3.ZERO if all retries fail (caller falls back to FAR).
+func _try_close_ring_point() -> Vector3:
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+	if player == null:
+		return Vector3.ZERO
+
+	var player_pos: Vector3 = player.global_position
+	# Player forward in XZ: rotation.y is the yaw; forward = -Z rotated by yaw.
+	var facing_y: float = player.rotation.y
+	# Rear arc: angles where the candidate falls OUTSIDE the front ±45° cone.
+	# We bias toward the rear half by sampling in [front+45°, front+315°] range
+	# (i.e. 270° of the rear+side arc), with equal probability across that range.
+	var half_cone: float = deg_to_rad(FRONT_CONE_DEG * 0.5)
+
+	for _i: int in range(CLOSE_RETRIES):
+		# Sample angle in rear 270° arc (exclude front 90° cone).
+		# rear arc = [facing_y + half_cone, facing_y + 2PI - half_cone]
+		# arc_span = 2PI - FRONT_CONE_DEG_rad
+		var arc_span: float = TAU - deg_to_rad(FRONT_CONE_DEG)
+		var angle: float = facing_y + half_cone + randf() * arc_span
+
+		var radius: float = CLOSE_MIN + randf() * (CLOSE_MAX - CLOSE_MIN)
+		var offset: Vector3 = Vector3(sin(angle) * radius, 0.0, cos(angle) * radius)
+		var candidate: Vector3 = player_pos + offset
+		# Keep candidate at floor height (y=0 on navmesh; enemy spawns +0.1 above).
+		candidate.y = 0.5
+
+		var snapped_pos: Vector3 = _nav_snap(candidate)
+		if snapped_pos == Vector3.ZERO:
+			continue
+		# Accept if snapped point is within tolerance of candidate (XZ only).
+		var xz_dist: float = (
+			Vector2(snapped_pos.x - candidate.x, snapped_pos.z - candidate.z).length()
+		)
+		if xz_dist <= NAV_SNAP_TOLERANCE:
+			# Also verify minimum distance from player to prevent spawning on top of them.
+			if player_pos.distance_to(snapped_pos) >= CLOSE_MIN:
+				return snapped_pos
+
+	return Vector3.ZERO
+
+
+## Snap a world position to the navmesh. Returns Vector3.ZERO if nav map not ready.
+func _nav_snap(pos: Vector3) -> Vector3:
+	if not _nav_map.is_valid():
+		# Try to re-acquire on demand (map may not have been ready at _ready time).
+		var nav_region: NavigationRegion3D = _find_nav_region()
+		if nav_region != null:
+			_nav_map = nav_region.get_navigation_map()
+		if not _nav_map.is_valid():
+			return Vector3.ZERO
+	return NavigationServer3D.map_get_closest_point(_nav_map, pos)
+
+
+## Walk the parent scene tree to find the first NavigationRegion3D child.
+func _find_nav_region() -> NavigationRegion3D:
+	var parent: Node = get_parent()
+	if parent == null:
+		return null
+	for child: Node in parent.get_children():
+		if child is NavigationRegion3D:
+			return child as NavigationRegion3D
+	return null
 
 
 ## Pick a random unoccupied marker (no-player fallback path).

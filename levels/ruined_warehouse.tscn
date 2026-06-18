@@ -68,37 +68,181 @@ albedo_color = Color(0.078, 0.078, 0.125, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_n7odx"]
 material = SubResource("StandardMaterial3D_2broj")
-size = Vector3(48, 0.2, 32)
+size = Vector3(48, 0.2, 2)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_vx8uj"]
-size = Vector3(48, 0.2, 32)
+size = Vector3(48, 0.2, 2)
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r2sbr"]
+[sub_resource type="BoxMesh" id="BoxMesh_r2sbr"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
 
-[sub_resource type="Sky" id="Sky_il0gu"]
-sky_material = SubResource("ProceduralSkyMaterial_r2sbr")
+[sub_resource type="BoxShape3D" id="BoxShape3D_il0gu"]
+size = Vector3(48, 0.2, 2)
 
-[sub_resource type="Environment" id="Environment_kt1av"]
+[sub_resource type="BoxMesh" id="BoxMesh_kt1av"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ybvlj"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6exs2"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ypfv6"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_d3vwm"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_72h8d"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xcii4"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(26, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_43t31"]
+size = Vector3(26, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ttcuf"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(20, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0rhrv"]
+size = Vector3(20, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_71bfh"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_n11t4"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_psll3"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(32, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lbtqq"]
+size = Vector3(32, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_t016n"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(14, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_up3sw"]
+size = Vector3(14, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_htv0x"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(18, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_n7qyd"]
+size = Vector3(18, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vcsfi"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(28, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_aogq7"]
+size = Vector3(28, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cucu1"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_82arr"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lxl0s"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ipnag"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_01gqc"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7hotb"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sw0gw"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ni47w"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ievxr"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_dui3e"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xe1jm"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kx8el"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ci32k"]
+material = SubResource("StandardMaterial3D_2broj")
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_knevb"]
+size = Vector3(48, 0.2, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dofsu"]
+albedo_color = Color(0.122, 0.118, 0.172, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_h704l"]
+material = SubResource("StandardMaterial3D_dofsu")
+size = Vector3(2, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_atbj8"]
+material = SubResource("StandardMaterial3D_dofsu")
+size = Vector3(2, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yipff"]
+material = SubResource("StandardMaterial3D_dofsu")
+size = Vector3(2, 0.2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ne2qn"]
+size = Vector3(56, 1, 40)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mxpmr"]
+
+[sub_resource type="Sky" id="Sky_m81p5"]
+sky_material = SubResource("ProceduralSkyMaterial_mxpmr")
+
+[sub_resource type="Environment" id="Environment_tumfh"]
 background_mode = 2
-sky = SubResource("Sky_il0gu")
+sky = SubResource("Sky_m81p5")
 ambient_light_source = 3
 tonemap_mode = 2
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ybvlj"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c7ali"]
 albedo_color = Color(0.35, 0.3, 0.25, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_6exs2"]
-material = SubResource("StandardMaterial3D_ybvlj")
+[sub_resource type="BoxMesh" id="BoxMesh_n2ksk"]
+material = SubResource("StandardMaterial3D_c7ali")
 size = Vector3(8, 0.8, 2)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_ypfv6"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_psfuc"]
 size = Vector3(8, 0.8, 2)
 
-[sub_resource type="BoxMesh" id="BoxMesh_d3vwm"]
-material = SubResource("StandardMaterial3D_ybvlj")
+[sub_resource type="BoxMesh" id="BoxMesh_0w27i"]
+material = SubResource("StandardMaterial3D_c7ali")
 size = Vector3(10, 0.8, 2)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_72h8d"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_b0d4u"]
 size = Vector3(10, 0.8, 2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dtbry"]
@@ -211,129 +355,129 @@ shadow_mesh = SubResource("ArrayMesh_g624c")
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_pickup"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xcii4"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_khywv"]
 albedo_color = Color(0.078, 0.078, 0.125, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_43t31"]
-material = SubResource("StandardMaterial3D_xcii4")
+[sub_resource type="BoxMesh" id="BoxMesh_nsnmd"]
+material = SubResource("StandardMaterial3D_khywv")
 size = Vector3(4, 0.2, 4)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_ttcuf"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_otpxn"]
 size = Vector3(4, 0.2, 4)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0rhrv"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xdol3"]
 albedo_color = Color(0.078, 0.078, 0.125, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_71bfh"]
-material = SubResource("StandardMaterial3D_0rhrv")
+[sub_resource type="BoxMesh" id="BoxMesh_os36w"]
+material = SubResource("StandardMaterial3D_xdol3")
 size = Vector3(1.4142135, 0.2, 4)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_n11t4"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_shf32"]
 size = Vector3(1.4142135, 0.2, 4)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_psll3"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4avkt"]
 albedo_color = Color(0.3, 0.27, 0.22, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_lbtqq"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_no6wi"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_t016n"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_kxk45"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_up3sw"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_ipy6l"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_htv0x"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_v7v4d"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_n7qyd"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_cu6ja"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_vcsfi"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_xbiw1"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_aogq7"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_s5nif"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_cucu1"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_o4r3b"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_82arr"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_nv4og"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_lxl0s"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_xvd6r"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_ipnag"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_p6ep5"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_01gqc"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_7dfqs"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_7hotb"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_lru7v"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_sw0gw"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_sgli8"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_ni47w"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_nvgqp"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_ievxr"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_ptyuy"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_dui3e"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_ock8b"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_xe1jm"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_ur1mr"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_kx8el"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_osf8x"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_ci32k"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_0h8th"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_knevb"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_lg8wa"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_dofsu"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_d255o"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_h704l"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_54tgf"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[sub_resource type="BoxMesh" id="BoxMesh_atbj8"]
-material = SubResource("StandardMaterial3D_psll3")
+[sub_resource type="BoxMesh" id="BoxMesh_xtlh4"]
+material = SubResource("StandardMaterial3D_4avkt")
 size = Vector3(1.8, 0.25, 1.8)
 
-[node name="RuinedWarehouse" type="Node3D" unique_id=762523225]
+[node name="RuinedWarehouse" type="Node3D" unique_id=90577162]
 script = ExtResource("1_c646o")
 
-[node name="RuinedWarehouseMap" type="GridMap" parent="." unique_id=90333055]
+[node name="RuinedWarehouseMap" type="GridMap" parent="." unique_id=720648402]
 mesh_library = SubResource("MeshLibrary_ar2hr")
 cell_size = Vector3(2, 3.5, 2)
 cell_center_x = false
@@ -343,17 +487,215 @@ data = {
 "cells": PackedInt32Array(0, 0, 1, 20, 0, 0, 21, 0, 0, 22, 0, 0, 23, 0, 0, 0, 1, 1, 4, 1, 1, 0, 2, 1, 4, 2, 1, 11, 2, 0, 0, 3, 1, 4, 3, 1, 12, 3, 0, 23, 3, 2, 5, 4, 1, 11, 4, 0, 23, 4, 0, 6, 5, 0, 12, 5, 0, 15, 5, 0, 23, 5, 0, 7, 6, 0, 14, 6, 0, 16, 6, 0, 23, 6, 0, 6, 7, 0, 11, 7, 0, 17, 7, 0, 0, 8, 0, 5, 8, 0, 12, 8, 0, 23, 8, 0, 0, 9, 0, 11, 9, 0, 23, 9, 0, 0, 10, 0, 4, 10, 0, 10, 10, 0, 23, 10, 0, 0, 11, 0, 4, 11, 0, 11, 11, 0, 4, 12, 0, 1, 15, 0, 2, 15, 0, 3, 15, 0, 19, 15, 0, 20, 15, 0, 21, 15, 0, 22, 15, 0, 23, 15, 0)
 }
 
-[node name="FloorSlab" type="StaticBody3D" parent="." unique_id=299422884]
+[node name="FloorSlab_r0_c0" type="StaticBody3D" parent="." unique_id=224385139]
 
-[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab" unique_id=857004663]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 16)
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r0_c0" unique_id=984387453]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 1)
 mesh = SubResource("BoxMesh_n7odx")
 
-[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab" unique_id=1915353220]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 16)
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r0_c0" unique_id=1618816967]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 1)
 shape = SubResource("BoxShape3D_vx8uj")
 
-[node name="Sun" type="DirectionalLight3D" parent="." unique_id=374785325]
+[node name="FloorSlab_r1_c0" type="StaticBody3D" parent="." unique_id=1606698590]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r1_c0" unique_id=407939383]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 3)
+mesh = SubResource("BoxMesh_r2sbr")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r1_c0" unique_id=142173827]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 3)
+shape = SubResource("BoxShape3D_il0gu")
+
+[node name="FloorSlab_r2_c0" type="StaticBody3D" parent="." unique_id=195899160]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r2_c0" unique_id=1751721807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 5)
+mesh = SubResource("BoxMesh_kt1av")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r2_c0" unique_id=1533991687]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 5)
+shape = SubResource("BoxShape3D_ybvlj")
+
+[node name="FloorSlab_r3_c0" type="StaticBody3D" parent="." unique_id=171059557]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r3_c0" unique_id=412001393]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 7)
+mesh = SubResource("BoxMesh_6exs2")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r3_c0" unique_id=83996102]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 7)
+shape = SubResource("BoxShape3D_ypfv6")
+
+[node name="FloorSlab_r4_c0" type="StaticBody3D" parent="." unique_id=1708300882]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r4_c0" unique_id=882857232]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 9)
+mesh = SubResource("BoxMesh_d3vwm")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r4_c0" unique_id=118613175]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 9)
+shape = SubResource("BoxShape3D_72h8d")
+
+[node name="FloorSlab_r5_c0" type="StaticBody3D" parent="." unique_id=921163652]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r5_c0" unique_id=78882453]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, -0.1, 11)
+mesh = SubResource("BoxMesh_xcii4")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r5_c0" unique_id=1750588278]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, -0.1, 11)
+shape = SubResource("BoxShape3D_43t31")
+
+[node name="FloorSlab_r5_c14" type="StaticBody3D" parent="." unique_id=777695272]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r5_c14" unique_id=1062517468]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, -0.1, 11)
+mesh = SubResource("BoxMesh_ttcuf")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r5_c14" unique_id=556721298]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, -0.1, 11)
+shape = SubResource("BoxShape3D_0rhrv")
+
+[node name="FloorSlab_r6_c0" type="StaticBody3D" parent="." unique_id=1530190447]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r6_c0" unique_id=335693502]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 13)
+mesh = SubResource("BoxMesh_71bfh")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r6_c0" unique_id=1769462284]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 13)
+shape = SubResource("BoxShape3D_n11t4")
+
+[node name="FloorSlab_r7_c0" type="StaticBody3D" parent="." unique_id=1073218338]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r7_c0" unique_id=1690559191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, -0.1, 15)
+mesh = SubResource("BoxMesh_psll3")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r7_c0" unique_id=369997003]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, -0.1, 15)
+shape = SubResource("BoxShape3D_lbtqq")
+
+[node name="FloorSlab_r7_c17" type="StaticBody3D" parent="." unique_id=565525247]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r7_c17" unique_id=342777600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41, -0.1, 15)
+mesh = SubResource("BoxMesh_t016n")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r7_c17" unique_id=1280286444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41, -0.1, 15)
+shape = SubResource("BoxShape3D_up3sw")
+
+[node name="FloorSlab_r8_c0" type="StaticBody3D" parent="." unique_id=1624288534]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r8_c0" unique_id=1193522209]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -0.1, 17)
+mesh = SubResource("BoxMesh_htv0x")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r8_c0" unique_id=619038283]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -0.1, 17)
+shape = SubResource("BoxShape3D_n7qyd")
+
+[node name="FloorSlab_r8_c10" type="StaticBody3D" parent="." unique_id=2082324196]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r8_c10" unique_id=1105384846]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34, -0.1, 17)
+mesh = SubResource("BoxMesh_vcsfi")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r8_c10" unique_id=818918414]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34, -0.1, 17)
+shape = SubResource("BoxShape3D_aogq7")
+
+[node name="FloorSlab_r9_c0" type="StaticBody3D" parent="." unique_id=600541190]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r9_c0" unique_id=931848136]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 19)
+mesh = SubResource("BoxMesh_cucu1")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r9_c0" unique_id=960638953]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 19)
+shape = SubResource("BoxShape3D_82arr")
+
+[node name="FloorSlab_r10_c0" type="StaticBody3D" parent="." unique_id=2036398964]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r10_c0" unique_id=839096754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 21)
+mesh = SubResource("BoxMesh_lxl0s")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r10_c0" unique_id=1032702929]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 21)
+shape = SubResource("BoxShape3D_ipnag")
+
+[node name="FloorSlab_r11_c0" type="StaticBody3D" parent="." unique_id=1093529986]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r11_c0" unique_id=713197839]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 23)
+mesh = SubResource("BoxMesh_01gqc")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r11_c0" unique_id=588638185]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 23)
+shape = SubResource("BoxShape3D_7hotb")
+
+[node name="FloorSlab_r12_c0" type="StaticBody3D" parent="." unique_id=1182399056]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r12_c0" unique_id=645748204]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 25)
+mesh = SubResource("BoxMesh_sw0gw")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r12_c0" unique_id=1295301056]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 25)
+shape = SubResource("BoxShape3D_ni47w")
+
+[node name="FloorSlab_r13_c0" type="StaticBody3D" parent="." unique_id=834797933]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r13_c0" unique_id=337552551]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 27)
+mesh = SubResource("BoxMesh_ievxr")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r13_c0" unique_id=1402135437]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 27)
+shape = SubResource("BoxShape3D_dui3e")
+
+[node name="FloorSlab_r14_c0" type="StaticBody3D" parent="." unique_id=2088363532]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r14_c0" unique_id=1277032035]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 29)
+mesh = SubResource("BoxMesh_xe1jm")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r14_c0" unique_id=998588631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 29)
+shape = SubResource("BoxShape3D_kx8el")
+
+[node name="FloorSlab_r15_c0" type="StaticBody3D" parent="." unique_id=512353838]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorSlab_r15_c0" unique_id=1385470128]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 31)
+mesh = SubResource("BoxMesh_ci32k")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="FloorSlab_r15_c0" unique_id=641372393]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.1, 31)
+shape = SubResource("BoxShape3D_knevb")
+
+[node name="FakeFloor0" type="MeshInstance3D" parent="." unique_id=370177820]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, -0.1, 17)
+mesh = SubResource("BoxMesh_h704l")
+
+[node name="FakeFloor1" type="MeshInstance3D" parent="." unique_id=2091043537]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, -0.1, 15)
+mesh = SubResource("BoxMesh_atbj8")
+
+[node name="FakeFloor2" type="MeshInstance3D" parent="." unique_id=1654907240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, -0.1, 11)
+mesh = SubResource("BoxMesh_yipff")
+
+[node name="FallZone" type="Area3D" parent="." unique_id=1920342924]
+
+[node name="FallZoneShape" type="CollisionShape3D" parent="FallZone" unique_id=1889847213]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -6.5, 16)
+shape = SubResource("BoxShape3D_ne2qn")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=2145059388]
 transform = Transform3D(0.8660254, 0.35355338, -0.35355338, 0, 0.70710677, 0.70710677, 0.5, -0.6123724, 0.6123724, 0, 0, 0)
 light_color = Color(1, 0.95, 0.9, 1)
 light_energy = 1.2
@@ -362,335 +704,337 @@ shadow_bias = 0.05
 shadow_normal_bias = 1.0
 directional_shadow_max_distance = 50.0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1511114085]
-environment = SubResource("Environment_kt1av")
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1859847368]
+environment = SubResource("Environment_tumfh")
 
-[node name="Player" type="CharacterBody3D" parent="." unique_id=2027514627 groups=["player"] instance=ExtResource("2_lcq6m")]
+[node name="Player" type="CharacterBody3D" parent="." unique_id=137624651 groups=["player"] instance=ExtResource("2_lcq6m")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 12, 1, 2)
 collision_layer = 2
 script = ExtResource("3_hoqah")
 
-[node name="Barrier_r1_c14" type="StaticBody3D" parent="." unique_id=1586588866]
+[node name="Barrier_r1_c14" type="StaticBody3D" parent="." unique_id=1406094673]
 
-[node name="BarrierMesh" type="MeshInstance3D" parent="Barrier_r1_c14" unique_id=569160650]
+[node name="BarrierMesh" type="MeshInstance3D" parent="Barrier_r1_c14" unique_id=1599302925]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.4, 3)
-mesh = SubResource("BoxMesh_6exs2")
+mesh = SubResource("BoxMesh_n2ksk")
 
-[node name="BarrierCollision" type="CollisionShape3D" parent="Barrier_r1_c14" unique_id=24660181]
+[node name="BarrierCollision" type="CollisionShape3D" parent="Barrier_r1_c14" unique_id=441722399]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.4, 3)
-shape = SubResource("BoxShape3D_ypfv6")
+shape = SubResource("BoxShape3D_psfuc")
 
-[node name="Barrier_r13_c9" type="StaticBody3D" parent="." unique_id=1504356353]
+[node name="Barrier_r13_c9" type="StaticBody3D" parent="." unique_id=39507733]
 
-[node name="BarrierMesh" type="MeshInstance3D" parent="Barrier_r13_c9" unique_id=612075328]
+[node name="BarrierMesh" type="MeshInstance3D" parent="Barrier_r13_c9" unique_id=1330528819]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0.4, 27)
-mesh = SubResource("BoxMesh_d3vwm")
+mesh = SubResource("BoxMesh_0w27i")
 
-[node name="BarrierCollision" type="CollisionShape3D" parent="Barrier_r13_c9" unique_id=2032576091]
+[node name="BarrierCollision" type="CollisionShape3D" parent="Barrier_r13_c9" unique_id=4467813]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0.4, 27)
-shape = SubResource("BoxShape3D_72h8d")
+shape = SubResource("BoxShape3D_b0d4u")
 
-[node name="AmmoPickup0" type="Area3D" parent="." unique_id=487060940 instance=ExtResource("4_dtqxe")]
+[node name="AmmoPickup0" type="Area3D" parent="." unique_id=1021461571 instance=ExtResource("4_dtqxe")]
 editor_description = "Ammo pickup — refills active weapon magazine to full."
 transform = Transform3D(0.99939084, 0, 0.034899496, 0, 1, 0, -0.034899496, 0, 0.99939084, 5, 0, 13)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("5_fwk2r")
 
-[node name="Mesh" type="Node3D" parent="AmmoPickup0" unique_id=1826990360 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="AmmoPickup0" unique_id=1394347281 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup0/Mesh" unique_id=1170182012]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="AmmoPickup0/Mesh" unique_id=2044710436]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup0/Mesh" unique_id=928643269]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="AmmoPickup0/Mesh" unique_id=2038120011]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup0/Mesh" unique_id=1638042708]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="AmmoPickup0/Mesh" unique_id=122759984]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup0" unique_id=1071068139]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup0" unique_id=237942945]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup0" unique_id=1998463062]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup0" unique_id=1147890505]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="AmmoPickup0" unique_id=1763564344]
+[node name="Respawn" type="Timer" parent="AmmoPickup0" unique_id=1878212185]
 one_shot = true
 
-[node name="AmmoPickup1" type="Area3D" parent="." unique_id=1897512017 instance=ExtResource("4_dtqxe")]
+[node name="AmmoPickup1" type="Area3D" parent="." unique_id=1954732075 instance=ExtResource("4_dtqxe")]
 editor_description = "Ammo pickup — refills active weapon magazine to full."
 transform = Transform3D(0.97437006, 0, 0.22495104, 0, 1, 0, -0.22495104, 0, 0.97437006, 17, 0, 17)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("5_fwk2r")
 
-[node name="Mesh" type="Node3D" parent="AmmoPickup1" unique_id=364696349 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="AmmoPickup1" unique_id=166909090 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup1/Mesh" unique_id=583468290]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="AmmoPickup1/Mesh" unique_id=1746241451]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup1/Mesh" unique_id=919138876]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="AmmoPickup1/Mesh" unique_id=1699339444]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup1/Mesh" unique_id=1538516813]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="AmmoPickup1/Mesh" unique_id=1449173734]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup1" unique_id=58513892]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup1" unique_id=192381106]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup1" unique_id=1229467303]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup1" unique_id=816313921]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="AmmoPickup1" unique_id=534971821]
+[node name="Respawn" type="Timer" parent="AmmoPickup1" unique_id=1667063778]
 one_shot = true
 
-[node name="AmmoPickup2" type="Area3D" parent="." unique_id=1253408203 instance=ExtResource("4_dtqxe")]
+[node name="AmmoPickup2" type="Area3D" parent="." unique_id=785223760 instance=ExtResource("4_dtqxe")]
 editor_description = "Ammo pickup — refills active weapon magazine to full."
 transform = Transform3D(0.99254614, 0, -0.12186935, 0, 1, 0, 0.12186935, 0, 0.99254614, 13, 0, 21)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("5_fwk2r")
 
-[node name="Mesh" type="Node3D" parent="AmmoPickup2" unique_id=502561201 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="AmmoPickup2" unique_id=2067125949 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup2/Mesh" unique_id=1344333600]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="AmmoPickup2/Mesh" unique_id=64672512]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup2/Mesh" unique_id=502421553]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="AmmoPickup2/Mesh" unique_id=410701562]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup2/Mesh" unique_id=43505207]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="AmmoPickup2/Mesh" unique_id=761954092]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup2" unique_id=1666594318]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup2" unique_id=1736590371]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup2" unique_id=1309223015]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup2" unique_id=1785481764]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="AmmoPickup2" unique_id=1325046426]
+[node name="Respawn" type="Timer" parent="AmmoPickup2" unique_id=533188316]
 one_shot = true
 
-[node name="AmmoPickup3" type="Area3D" parent="." unique_id=1202578147 instance=ExtResource("4_dtqxe")]
-editor_description = "Ammo pickup — refills active weapon magazine to full."
+[node name="AmmoPickup3" type="Area3D" parent="." unique_id=21214437 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup (heavy) — refills rifle reserve."
 transform = Transform3D(0.9975641, 0, 0.06975647, 0, 1, 0, -0.06975647, 0, 0.9975641, 31, 0, 21)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("5_fwk2r")
+ammo_caliber = &"heavy"
 
-[node name="Mesh" type="Node3D" parent="AmmoPickup3" unique_id=1711770048 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="AmmoPickup3" unique_id=620885295 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup3/Mesh" unique_id=880449199]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="AmmoPickup3/Mesh" unique_id=1090120008]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup3/Mesh" unique_id=954095707]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="AmmoPickup3/Mesh" unique_id=144875126]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup3/Mesh" unique_id=1779642354]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="AmmoPickup3/Mesh" unique_id=344130032]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup3" unique_id=1618626723]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup3" unique_id=939133550]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup3" unique_id=1528841549]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup3" unique_id=365396911]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="AmmoPickup3" unique_id=886076055]
+[node name="Respawn" type="Timer" parent="AmmoPickup3" unique_id=951516416]
 one_shot = true
 
-[node name="AmmoPickup4" type="Area3D" parent="." unique_id=843438283 instance=ExtResource("4_dtqxe")]
-editor_description = "Ammo pickup — refills active weapon magazine to full."
+[node name="AmmoPickup4" type="Area3D" parent="." unique_id=39008716 instance=ExtResource("4_dtqxe")]
+editor_description = "Ammo pickup (heavy) — refills rifle reserve."
 transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, 5, 0, 27)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("5_fwk2r")
+ammo_caliber = &"heavy"
 
-[node name="Mesh" type="Node3D" parent="AmmoPickup4" unique_id=713192004 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="AmmoPickup4" unique_id=1955181899 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoPickup4/Mesh" unique_id=566603088]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="AmmoPickup4/Mesh" unique_id=1122329698]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoPickup4/Mesh" unique_id=1345651260]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="AmmoPickup4/Mesh" unique_id=1510279271]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoPickup4/Mesh" unique_id=212521439]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="AmmoPickup4/Mesh" unique_id=81820448]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup4" unique_id=427617946]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup4" unique_id=223783091]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup4" unique_id=941961703]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoPickup4" unique_id=1909703484]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="AmmoPickup4" unique_id=327878196]
+[node name="Respawn" type="Timer" parent="AmmoPickup4" unique_id=329548640]
 one_shot = true
 
-[node name="PlatformSlab" type="StaticBody3D" parent="." unique_id=252479440]
+[node name="PlatformSlab" type="StaticBody3D" parent="." unique_id=1561828697]
 
-[node name="PlatformMesh" type="MeshInstance3D" parent="PlatformSlab" unique_id=1034015242]
+[node name="PlatformMesh" type="MeshInstance3D" parent="PlatformSlab" unique_id=2133893834]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0.9, 24)
-mesh = SubResource("BoxMesh_43t31")
+mesh = SubResource("BoxMesh_nsnmd")
 
-[node name="PlatformCollision" type="CollisionShape3D" parent="PlatformSlab" unique_id=57936346]
+[node name="PlatformCollision" type="CollisionShape3D" parent="PlatformSlab" unique_id=466134369]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0.9, 24)
-shape = SubResource("BoxShape3D_ttcuf")
+shape = SubResource("BoxShape3D_otpxn")
 
-[node name="PlatformRamp" type="StaticBody3D" parent="." unique_id=490819729]
+[node name="PlatformRamp" type="StaticBody3D" parent="." unique_id=30640308]
 
-[node name="RampMesh" type="MeshInstance3D" parent="PlatformRamp" unique_id=874380689]
+[node name="RampMesh" type="MeshInstance3D" parent="PlatformRamp" unique_id=116288647]
 transform = Transform3D(0.70710677, -0.70710677, 0, 0.70710677, 0.70710677, 0, 0, 0, 1, 37.5, 0.5, 24)
-mesh = SubResource("BoxMesh_71bfh")
+mesh = SubResource("BoxMesh_os36w")
 
-[node name="RampCollision" type="CollisionShape3D" parent="PlatformRamp" unique_id=666995642]
+[node name="RampCollision" type="CollisionShape3D" parent="PlatformRamp" unique_id=1149961738]
 transform = Transform3D(0.70710677, -0.70710677, 0, 0.70710677, 0.70710677, 0, 0, 0, 1, 37.5, 0.5, 24)
-shape = SubResource("BoxShape3D_n11t4")
+shape = SubResource("BoxShape3D_shf32")
 
-[node name="RubbleSill0" type="MeshInstance3D" parent="." unique_id=1737650508]
+[node name="RubbleSill0" type="MeshInstance3D" parent="." unique_id=117021390]
 transform = Transform3D(0.9986295, 0, -0.05233596, 0, 1, 0, 0.05233596, 0, 0.9986295, 19, 0.125, 1)
-mesh = SubResource("BoxMesh_lbtqq")
+mesh = SubResource("BoxMesh_no6wi")
 
-[node name="RubbleSill1" type="MeshInstance3D" parent="." unique_id=656709760]
+[node name="RubbleSill1" type="MeshInstance3D" parent="." unique_id=362287089]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0.125, 1)
-mesh = SubResource("BoxMesh_t016n")
+mesh = SubResource("BoxMesh_kxk45")
 
-[node name="RubbleSill2" type="MeshInstance3D" parent="." unique_id=859930911]
+[node name="RubbleSill2" type="MeshInstance3D" parent="." unique_id=1428370303]
 transform = Transform3D(0.9986295, 0, 0.05233596, 0, 1, 0, -0.05233596, 0, 0.9986295, 23, 0.125, 1)
-mesh = SubResource("BoxMesh_up3sw")
+mesh = SubResource("BoxMesh_ipy6l")
 
-[node name="RubbleSill3" type="MeshInstance3D" parent="." unique_id=2006802469]
+[node name="RubbleSill3" type="MeshInstance3D" parent="." unique_id=1709344252]
 transform = Transform3D(0.9945219, 0, 0.104528464, 0, 1, 0, -0.104528464, 0, 0.9945219, 25, 0.125, 1)
-mesh = SubResource("BoxMesh_htv0x")
+mesh = SubResource("BoxMesh_v7v4d")
 
-[node name="RubbleSill4" type="MeshInstance3D" parent="." unique_id=548635143]
+[node name="RubbleSill4" type="MeshInstance3D" parent="." unique_id=985873235]
 transform = Transform3D(0.99026805, 0, -0.1391731, 0, 1, 0, 0.1391731, 0, 0.99026805, 1, 0.125, 9)
-mesh = SubResource("BoxMesh_n7qyd")
+mesh = SubResource("BoxMesh_cu6ja")
 
-[node name="RubbleSill5" type="MeshInstance3D" parent="." unique_id=496154940]
+[node name="RubbleSill5" type="MeshInstance3D" parent="." unique_id=877770151]
 transform = Transform3D(0.9961947, 0, -0.08715574, 0, 1, 0, 0.08715574, 0, 0.9961947, 1, 0.125, 11)
-mesh = SubResource("BoxMesh_vcsfi")
+mesh = SubResource("BoxMesh_xbiw1")
 
-[node name="RubbleSill6" type="MeshInstance3D" parent="." unique_id=695168477]
+[node name="RubbleSill6" type="MeshInstance3D" parent="." unique_id=675421449]
 transform = Transform3D(0.99939084, 0, -0.034899496, 0, 1, 0, 0.034899496, 0, 0.99939084, 1, 0.125, 13)
-mesh = SubResource("BoxMesh_aogq7")
+mesh = SubResource("BoxMesh_s5nif")
 
-[node name="RubbleSill7" type="MeshInstance3D" parent="." unique_id=632421066]
+[node name="RubbleSill7" type="MeshInstance3D" parent="." unique_id=1510195327]
 transform = Transform3D(0.9998477, 0, 0.017452406, 0, 1, 0, -0.017452406, 0, 0.9998477, 1, 0.125, 15)
-mesh = SubResource("BoxMesh_cucu1")
+mesh = SubResource("BoxMesh_o4r3b")
 
-[node name="RubbleSill8" type="MeshInstance3D" parent="." unique_id=1200418132]
+[node name="RubbleSill8" type="MeshInstance3D" parent="." unique_id=1304181534]
 transform = Transform3D(0.9975641, 0, 0.06975647, 0, 1, 0, -0.06975647, 0, 0.9975641, 47, 0.125, 23)
-mesh = SubResource("BoxMesh_82arr")
+mesh = SubResource("BoxMesh_nv4og")
 
-[node name="RubbleSill9" type="MeshInstance3D" parent="." unique_id=192802938]
+[node name="RubbleSill9" type="MeshInstance3D" parent="." unique_id=1160386698]
 transform = Transform3D(0.99254614, 0, 0.12186935, 0, 1, 0, -0.12186935, 0, 0.99254614, 1, 0.125, 25)
-mesh = SubResource("BoxMesh_lxl0s")
+mesh = SubResource("BoxMesh_xvd6r")
 
-[node name="RubbleSill10" type="MeshInstance3D" parent="." unique_id=1486808055]
+[node name="RubbleSill10" type="MeshInstance3D" parent="." unique_id=68310629]
 transform = Transform3D(0.99254614, 0, -0.12186935, 0, 1, 0, 0.12186935, 0, 0.99254614, 47, 0.125, 25)
-mesh = SubResource("BoxMesh_ipnag")
+mesh = SubResource("BoxMesh_p6ep5")
 
-[node name="RubbleSill11" type="MeshInstance3D" parent="." unique_id=277572647]
+[node name="RubbleSill11" type="MeshInstance3D" parent="." unique_id=639158308]
 transform = Transform3D(0.9975641, 0, -0.06975647, 0, 1, 0, 0.06975647, 0, 0.9975641, 1, 0.125, 27)
-mesh = SubResource("BoxMesh_01gqc")
+mesh = SubResource("BoxMesh_7dfqs")
 
-[node name="RubbleSill12" type="MeshInstance3D" parent="." unique_id=1466036230]
+[node name="RubbleSill12" type="MeshInstance3D" parent="." unique_id=1165393666]
 transform = Transform3D(0.9998477, 0, -0.017452406, 0, 1, 0, 0.017452406, 0, 0.9998477, 47, 0.125, 27)
-mesh = SubResource("BoxMesh_7hotb")
+mesh = SubResource("BoxMesh_lru7v")
 
-[node name="RubbleSill13" type="MeshInstance3D" parent="." unique_id=76632389]
+[node name="RubbleSill13" type="MeshInstance3D" parent="." unique_id=123873608]
 transform = Transform3D(0.99939084, 0, 0.034899496, 0, 1, 0, -0.034899496, 0, 0.99939084, 1, 0.125, 29)
-mesh = SubResource("BoxMesh_sw0gw")
+mesh = SubResource("BoxMesh_sgli8")
 
-[node name="RubbleSill14" type="MeshInstance3D" parent="." unique_id=2024070305]
+[node name="RubbleSill14" type="MeshInstance3D" parent="." unique_id=511298846]
 transform = Transform3D(0.9961947, 0, 0.08715574, 0, 1, 0, -0.08715574, 0, 0.9961947, 47, 0.125, 29)
-mesh = SubResource("BoxMesh_ni47w")
+mesh = SubResource("BoxMesh_nvgqp")
 
-[node name="RubbleSill15" type="MeshInstance3D" parent="." unique_id=1957952650]
+[node name="RubbleSill15" type="MeshInstance3D" parent="." unique_id=1186257199]
 transform = Transform3D(0.99026805, 0, 0.1391731, 0, 1, 0, -0.1391731, 0, 0.99026805, 1, 0.125, 31)
-mesh = SubResource("BoxMesh_ievxr")
+mesh = SubResource("BoxMesh_ptyuy")
 
-[node name="RubbleSill16" type="MeshInstance3D" parent="." unique_id=1983734898]
+[node name="RubbleSill16" type="MeshInstance3D" parent="." unique_id=230063848]
 transform = Transform3D(0.9945219, 0, -0.104528464, 0, 1, 0, 0.104528464, 0, 0.9945219, 9, 0.125, 31)
-mesh = SubResource("BoxMesh_dui3e")
+mesh = SubResource("BoxMesh_ock8b")
 
-[node name="RubbleSill17" type="MeshInstance3D" parent="." unique_id=1906518365]
+[node name="RubbleSill17" type="MeshInstance3D" parent="." unique_id=147373535]
 transform = Transform3D(0.9986295, 0, -0.05233596, 0, 1, 0, 0.05233596, 0, 0.9986295, 11, 0.125, 31)
-mesh = SubResource("BoxMesh_xe1jm")
+mesh = SubResource("BoxMesh_ur1mr")
 
-[node name="RubbleSill18" type="MeshInstance3D" parent="." unique_id=231617773]
+[node name="RubbleSill18" type="MeshInstance3D" parent="." unique_id=273309541]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0.125, 31)
-mesh = SubResource("BoxMesh_kx8el")
+mesh = SubResource("BoxMesh_osf8x")
 
-[node name="RubbleSill19" type="MeshInstance3D" parent="." unique_id=1770652502]
+[node name="RubbleSill19" type="MeshInstance3D" parent="." unique_id=478779436]
 transform = Transform3D(0.9986295, 0, 0.05233596, 0, 1, 0, -0.05233596, 0, 0.9986295, 15, 0.125, 31)
-mesh = SubResource("BoxMesh_ci32k")
+mesh = SubResource("BoxMesh_0h8th")
 
-[node name="RubbleSill20" type="MeshInstance3D" parent="." unique_id=224121387]
+[node name="RubbleSill20" type="MeshInstance3D" parent="." unique_id=1511317640]
 transform = Transform3D(0.9945219, 0, 0.104528464, 0, 1, 0, -0.104528464, 0, 0.9945219, 31, 0.125, 31)
-mesh = SubResource("BoxMesh_knevb")
+mesh = SubResource("BoxMesh_lg8wa")
 
-[node name="RubbleSill21" type="MeshInstance3D" parent="." unique_id=1223794061]
+[node name="RubbleSill21" type="MeshInstance3D" parent="." unique_id=1738274197]
 transform = Transform3D(0.99026805, 0, -0.1391731, 0, 1, 0, 0.1391731, 0, 0.99026805, 33, 0.125, 31)
-mesh = SubResource("BoxMesh_dofsu")
+mesh = SubResource("BoxMesh_d255o")
 
-[node name="RubbleSill22" type="MeshInstance3D" parent="." unique_id=1188888490]
+[node name="RubbleSill22" type="MeshInstance3D" parent="." unique_id=1236883673]
 transform = Transform3D(0.9961947, 0, -0.08715574, 0, 1, 0, 0.08715574, 0, 0.9961947, 35, 0.125, 31)
-mesh = SubResource("BoxMesh_h704l")
+mesh = SubResource("BoxMesh_54tgf")
 
-[node name="RubbleSill23" type="MeshInstance3D" parent="." unique_id=767545677]
+[node name="RubbleSill23" type="MeshInstance3D" parent="." unique_id=1614530123]
 transform = Transform3D(0.99939084, 0, -0.034899496, 0, 1, 0, 0.034899496, 0, 0.99939084, 37, 0.125, 31)
-mesh = SubResource("BoxMesh_atbj8")
+mesh = SubResource("BoxMesh_xtlh4")
 
-[node name="EnemyWP0" type="Marker3D" parent="." unique_id=1656171649]
+[node name="EnemyWP0" type="Marker3D" parent="." unique_id=1181435498]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 16)
 
-[node name="EnemyWP1" type="Marker3D" parent="." unique_id=1095079100]
+[node name="EnemyWP1" type="Marker3D" parent="." unique_id=1281453699]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 20)
 
-[node name="EnemyWP2" type="Marker3D" parent="." unique_id=287397017]
+[node name="EnemyWP2" type="Marker3D" parent="." unique_id=985424660]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0, 10)
 
-[node name="WaveManager" type="Node" parent="." unique_id=766946611]
+[node name="WaveManager" type="Node" parent="." unique_id=2115314482]
 script = ExtResource("8_hqugi")
 spawn_pos = Vector3(12, 1, 2)
 enemy_scene = ExtResource("9_a66wt")
@@ -701,79 +1045,79 @@ enemy_scene_e = ExtResource("13_8kvnu")
 spawn_marker_paths = Array[NodePath]([NodePath("SpawnMarker0"), NodePath("SpawnMarker1"), NodePath("SpawnMarker2"), NodePath("SpawnMarker3"), NodePath("SpawnMarker4"), NodePath("SpawnMarker5"), NodePath("SpawnMarker6"), NodePath("SpawnMarker7"), NodePath("SpawnMarker8"), NodePath("SpawnMarker9"), NodePath("SpawnMarker10"), NodePath("SpawnMarker11"), NodePath("SpawnMarker12"), NodePath("SpawnMarker13"), NodePath("SpawnMarker14"), NodePath("SpawnMarker15"), NodePath("SpawnMarker16"), NodePath("SpawnMarker17"), NodePath("SpawnMarker18"), NodePath("SpawnMarker19"), NodePath("SpawnMarker20"), NodePath("SpawnMarker21"), NodePath("SpawnMarker22"), NodePath("SpawnMarker23")])
 patrol_waypoint_paths = Array[NodePath]([NodePath("../EnemyWP0"), NodePath("../EnemyWP1"), NodePath("../EnemyWP2")])
 
-[node name="SpawnMarker0" type="Marker3D" parent="WaveManager" unique_id=1656304565]
+[node name="SpawnMarker0" type="Marker3D" parent="WaveManager" unique_id=1159338154]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 1)
 
-[node name="SpawnMarker1" type="Marker3D" parent="WaveManager" unique_id=156721726]
+[node name="SpawnMarker1" type="Marker3D" parent="WaveManager" unique_id=475140760]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0, 1)
 
-[node name="SpawnMarker2" type="Marker3D" parent="WaveManager" unique_id=930335836]
+[node name="SpawnMarker2" type="Marker3D" parent="WaveManager" unique_id=576837147]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0, 1)
 
-[node name="SpawnMarker3" type="Marker3D" parent="WaveManager" unique_id=1351244636]
+[node name="SpawnMarker3" type="Marker3D" parent="WaveManager" unique_id=397000143]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, 1)
 
-[node name="SpawnMarker4" type="Marker3D" parent="WaveManager" unique_id=1214243127]
+[node name="SpawnMarker4" type="Marker3D" parent="WaveManager" unique_id=631498742]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 9)
 
-[node name="SpawnMarker5" type="Marker3D" parent="WaveManager" unique_id=1792965514]
+[node name="SpawnMarker5" type="Marker3D" parent="WaveManager" unique_id=1333168709]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 11)
 
-[node name="SpawnMarker6" type="Marker3D" parent="WaveManager" unique_id=853996834]
+[node name="SpawnMarker6" type="Marker3D" parent="WaveManager" unique_id=1533436009]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 13)
 
-[node name="SpawnMarker7" type="Marker3D" parent="WaveManager" unique_id=1321020313]
+[node name="SpawnMarker7" type="Marker3D" parent="WaveManager" unique_id=537287239]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 15)
 
-[node name="SpawnMarker8" type="Marker3D" parent="WaveManager" unique_id=1560427910]
+[node name="SpawnMarker8" type="Marker3D" parent="WaveManager" unique_id=1326357822]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 23)
 
-[node name="SpawnMarker9" type="Marker3D" parent="WaveManager" unique_id=1909277074]
+[node name="SpawnMarker9" type="Marker3D" parent="WaveManager" unique_id=1975421856]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 25)
 
-[node name="SpawnMarker10" type="Marker3D" parent="WaveManager" unique_id=783046936]
+[node name="SpawnMarker10" type="Marker3D" parent="WaveManager" unique_id=1364851354]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 25)
 
-[node name="SpawnMarker11" type="Marker3D" parent="WaveManager" unique_id=124773817]
+[node name="SpawnMarker11" type="Marker3D" parent="WaveManager" unique_id=373235558]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 27)
 
-[node name="SpawnMarker12" type="Marker3D" parent="WaveManager" unique_id=1583869297]
+[node name="SpawnMarker12" type="Marker3D" parent="WaveManager" unique_id=2034160155]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 27)
 
-[node name="SpawnMarker13" type="Marker3D" parent="WaveManager" unique_id=1357830966]
+[node name="SpawnMarker13" type="Marker3D" parent="WaveManager" unique_id=723562350]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 29)
 
-[node name="SpawnMarker14" type="Marker3D" parent="WaveManager" unique_id=750547760]
+[node name="SpawnMarker14" type="Marker3D" parent="WaveManager" unique_id=505240427]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 29)
 
-[node name="SpawnMarker15" type="Marker3D" parent="WaveManager" unique_id=1964082411]
+[node name="SpawnMarker15" type="Marker3D" parent="WaveManager" unique_id=258041757]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 31)
 
-[node name="SpawnMarker16" type="Marker3D" parent="WaveManager" unique_id=1120356549]
+[node name="SpawnMarker16" type="Marker3D" parent="WaveManager" unique_id=1524467906]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 31)
 
-[node name="SpawnMarker17" type="Marker3D" parent="WaveManager" unique_id=1856717396]
+[node name="SpawnMarker17" type="Marker3D" parent="WaveManager" unique_id=1203149390]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 31)
 
-[node name="SpawnMarker18" type="Marker3D" parent="WaveManager" unique_id=225296017]
+[node name="SpawnMarker18" type="Marker3D" parent="WaveManager" unique_id=1961786795]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 31)
 
-[node name="SpawnMarker19" type="Marker3D" parent="WaveManager" unique_id=866436345]
+[node name="SpawnMarker19" type="Marker3D" parent="WaveManager" unique_id=1230582642]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 31)
 
-[node name="SpawnMarker20" type="Marker3D" parent="WaveManager" unique_id=371642197]
+[node name="SpawnMarker20" type="Marker3D" parent="WaveManager" unique_id=1246382676]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 0, 31)
 
-[node name="SpawnMarker21" type="Marker3D" parent="WaveManager" unique_id=1547882735]
+[node name="SpawnMarker21" type="Marker3D" parent="WaveManager" unique_id=1791394253]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 0, 31)
 
-[node name="SpawnMarker22" type="Marker3D" parent="WaveManager" unique_id=1440426754]
+[node name="SpawnMarker22" type="Marker3D" parent="WaveManager" unique_id=1431053368]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 0, 31)
 
-[node name="SpawnMarker23" type="Marker3D" parent="WaveManager" unique_id=1131588439]
+[node name="SpawnMarker23" type="Marker3D" parent="WaveManager" unique_id=804820225]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37, 0, 31)
 
-[node name="HealthCache0" type="Area3D" parent="." unique_id=233742201 instance=ExtResource("14_fvbeo")]
+[node name="HealthCache0" type="Area3D" parent="." unique_id=876249344 instance=ExtResource("14_fvbeo")]
 editor_description = "Health pickup — grants +1 life (capped at 3)."
 transform = Transform3D(0.9975641, 0, -0.06975647, 0, 1, 0, 0.06975647, 0, 0.9975641, 39, 0, 5)
 collision_layer = 0
@@ -781,35 +1125,35 @@ collision_mask = 2
 script = ExtResource("5_fwk2r")
 kind = 1
 
-[node name="Mesh" type="Node3D" parent="HealthCache0" unique_id=1863289368 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="HealthCache0" unique_id=155167487 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="HealthCache0/Mesh" unique_id=1682857349]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="HealthCache0/Mesh" unique_id=1332172886]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="HealthCache0/Mesh" unique_id=566319875]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="HealthCache0/Mesh" unique_id=46835495]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="HealthCache0/Mesh" unique_id=248454366]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="HealthCache0/Mesh" unique_id=2011649721]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache0" unique_id=1426867934]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache0" unique_id=2086025973]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache0" unique_id=144935511]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache0" unique_id=2059532004]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="HealthCache0" unique_id=1072474298]
+[node name="Respawn" type="Timer" parent="HealthCache0" unique_id=1279342531]
 one_shot = true
 
-[node name="HealthCache1" type="Area3D" parent="." unique_id=1747982635 instance=ExtResource("14_fvbeo")]
+[node name="HealthCache1" type="Area3D" parent="." unique_id=462787335 instance=ExtResource("14_fvbeo")]
 editor_description = "Health pickup — grants +1 life (capped at 3)."
 transform = Transform3D(0.97437006, 0, -0.22495104, 0, 1, 0, 0.22495104, 0, 0.97437006, 41, 0, 5)
 collision_layer = 0
@@ -817,35 +1161,35 @@ collision_mask = 2
 script = ExtResource("5_fwk2r")
 kind = 1
 
-[node name="Mesh" type="Node3D" parent="HealthCache1" unique_id=427800447 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="HealthCache1" unique_id=869393019 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="HealthCache1/Mesh" unique_id=2126764599]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="HealthCache1/Mesh" unique_id=1316653440]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="HealthCache1/Mesh" unique_id=1932402167]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="HealthCache1/Mesh" unique_id=823185659]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="HealthCache1/Mesh" unique_id=1536220169]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="HealthCache1/Mesh" unique_id=1552757158]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache1" unique_id=620424812]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache1" unique_id=33700056]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache1" unique_id=473950873]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache1" unique_id=1398683721]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="HealthCache1" unique_id=424107366]
+[node name="Respawn" type="Timer" parent="HealthCache1" unique_id=2019394119]
 one_shot = true
 
-[node name="HealthCache2" type="Area3D" parent="." unique_id=165114317 instance=ExtResource("14_fvbeo")]
+[node name="HealthCache2" type="Area3D" parent="." unique_id=326383078 instance=ExtResource("14_fvbeo")]
 editor_description = "Health pickup — grants +1 life (capped at 3)."
 transform = Transform3D(0.98768836, 0, 0.15643448, 0, 1, 0, -0.15643448, 0, 0.98768836, 39, 0, 7)
 collision_layer = 0
@@ -853,35 +1197,35 @@ collision_mask = 2
 script = ExtResource("5_fwk2r")
 kind = 1
 
-[node name="Mesh" type="Node3D" parent="HealthCache2" unique_id=994178579 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="HealthCache2" unique_id=558117657 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="HealthCache2/Mesh" unique_id=1306214284]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="HealthCache2/Mesh" unique_id=1304807550]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="HealthCache2/Mesh" unique_id=1433551108]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="HealthCache2/Mesh" unique_id=2031920176]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="HealthCache2/Mesh" unique_id=1162942847]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="HealthCache2/Mesh" unique_id=496958452]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache2" unique_id=1979186377]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache2" unique_id=1640383440]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache2" unique_id=1096582841]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache2" unique_id=178331431]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="HealthCache2" unique_id=873906545]
+[node name="Respawn" type="Timer" parent="HealthCache2" unique_id=1113478597]
 one_shot = true
 
-[node name="HealthCache3" type="Area3D" parent="." unique_id=1431248241 instance=ExtResource("14_fvbeo")]
+[node name="HealthCache3" type="Area3D" parent="." unique_id=755970279 instance=ExtResource("14_fvbeo")]
 editor_description = "Health pickup — grants +1 life (capped at 3)."
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41, 0, 7)
 collision_layer = 0
@@ -889,173 +1233,173 @@ collision_mask = 2
 script = ExtResource("5_fwk2r")
 kind = 1
 
-[node name="Mesh" type="Node3D" parent="HealthCache3" unique_id=332759159 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="HealthCache3" unique_id=1912397960 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="HealthCache3/Mesh" unique_id=362977018]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="HealthCache3/Mesh" unique_id=247095914]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="HealthCache3/Mesh" unique_id=514437644]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="HealthCache3/Mesh" unique_id=1388730386]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="HealthCache3/Mesh" unique_id=1258904234]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="HealthCache3/Mesh" unique_id=1411564037]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache3" unique_id=1897317762]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HealthCache3" unique_id=800092529]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache3" unique_id=2085628529]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="HealthCache3" unique_id=344358771]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="HealthCache3" unique_id=2021461020]
+[node name="Respawn" type="Timer" parent="HealthCache3" unique_id=175739808]
 one_shot = true
 
-[node name="AmmoCache0" type="Area3D" parent="." unique_id=1214938208 instance=ExtResource("4_dtqxe")]
+[node name="AmmoCache0" type="Area3D" parent="." unique_id=320904159 instance=ExtResource("4_dtqxe")]
 editor_description = "Ammo pickup — refills active weapon magazine to full."
 transform = Transform3D(0.99026805, 0, 0.1391731, 0, 1, 0, -0.1391731, 0, 0.99026805, 39, 1, 23)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("5_fwk2r")
 
-[node name="Mesh" type="Node3D" parent="AmmoCache0" unique_id=16476932 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="AmmoCache0" unique_id=282994098 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoCache0/Mesh" unique_id=355463956]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="AmmoCache0/Mesh" unique_id=906049815]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoCache0/Mesh" unique_id=137139798]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="AmmoCache0/Mesh" unique_id=631286258]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoCache0/Mesh" unique_id=1657168627]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="AmmoCache0/Mesh" unique_id=1552935479]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache0" unique_id=709780113]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache0" unique_id=1535922433]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache0" unique_id=329677981]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache0" unique_id=888955127]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="AmmoCache0" unique_id=74533682]
+[node name="Respawn" type="Timer" parent="AmmoCache0" unique_id=1048690384]
 one_shot = true
 
-[node name="AmmoCache1" type="Area3D" parent="." unique_id=2131696429 instance=ExtResource("4_dtqxe")]
+[node name="AmmoCache1" type="Area3D" parent="." unique_id=1273508607 instance=ExtResource("4_dtqxe")]
 editor_description = "Ammo pickup — refills active weapon magazine to full."
 transform = Transform3D(0.97437006, 0, 0.22495104, 0, 1, 0, -0.22495104, 0, 0.97437006, 41, 1, 23)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("5_fwk2r")
 
-[node name="Mesh" type="Node3D" parent="AmmoCache1" unique_id=925288141 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="AmmoCache1" unique_id=1052023140 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoCache1/Mesh" unique_id=1919213647]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="AmmoCache1/Mesh" unique_id=1497294141]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoCache1/Mesh" unique_id=817684055]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="AmmoCache1/Mesh" unique_id=1538992354]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoCache1/Mesh" unique_id=896836841]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="AmmoCache1/Mesh" unique_id=1123816684]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache1" unique_id=845385213]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache1" unique_id=1705696246]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache1" unique_id=867784996]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache1" unique_id=1135727672]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="AmmoCache1" unique_id=176208004]
+[node name="Respawn" type="Timer" parent="AmmoCache1" unique_id=845891459]
 one_shot = true
 
-[node name="AmmoCache2" type="Area3D" parent="." unique_id=1494053557 instance=ExtResource("4_dtqxe")]
+[node name="AmmoCache2" type="Area3D" parent="." unique_id=259268674 instance=ExtResource("4_dtqxe")]
 editor_description = "Ammo pickup — refills active weapon magazine to full."
 transform = Transform3D(0.97437006, 0, -0.22495104, 0, 1, 0, 0.22495104, 0, 0.97437006, 39, 1, 25)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("5_fwk2r")
 
-[node name="Mesh" type="Node3D" parent="AmmoCache2" unique_id=268286649 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="AmmoCache2" unique_id=292768728 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoCache2/Mesh" unique_id=600034124]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="AmmoCache2/Mesh" unique_id=1639191948]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoCache2/Mesh" unique_id=1832892926]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="AmmoCache2/Mesh" unique_id=1296249837]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoCache2/Mesh" unique_id=115827952]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="AmmoCache2/Mesh" unique_id=1388527005]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache2" unique_id=859583587]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache2" unique_id=33895461]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache2" unique_id=1245964128]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache2" unique_id=1148579891]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="AmmoCache2" unique_id=459298336]
+[node name="Respawn" type="Timer" parent="AmmoCache2" unique_id=2107505483]
 one_shot = true
 
-[node name="AmmoCache3" type="Area3D" parent="." unique_id=1580941720 instance=ExtResource("4_dtqxe")]
+[node name="AmmoCache3" type="Area3D" parent="." unique_id=117502695 instance=ExtResource("4_dtqxe")]
 editor_description = "Ammo pickup — refills active weapon magazine to full."
 transform = Transform3D(0.99026805, 0, -0.1391731, 0, 1, 0, 0.1391731, 0, 0.99026805, 41, 1, 25)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("5_fwk2r")
 
-[node name="Mesh" type="Node3D" parent="AmmoCache3" unique_id=91548965 instance=ExtResource("6_smki2")]
+[node name="Mesh" type="Node3D" parent="AmmoCache3" unique_id=400376927 instance=ExtResource("6_smki2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 
-[node name="_MeshInstance3D_62" type="MeshInstance3D" parent="AmmoCache3/Mesh" unique_id=385098407]
+[node name="_MeshInstance3D_65" type="MeshInstance3D" parent="AmmoCache3/Mesh" unique_id=573809002]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("ArrayMesh_qg7dp")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_63" type="MeshInstance3D" parent="AmmoCache3/Mesh" unique_id=1599654929]
+[node name="_MeshInstance3D_66" type="MeshInstance3D" parent="AmmoCache3/Mesh" unique_id=347899636]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39, 0)
 mesh = SubResource("ArrayMesh_fumnq")
 skeleton = NodePath("")
 
-[node name="_MeshInstance3D_64" type="MeshInstance3D" parent="AmmoCache3/Mesh" unique_id=1910682569]
+[node name="_MeshInstance3D_67" type="MeshInstance3D" parent="AmmoCache3/Mesh" unique_id=1593852209]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 mesh = SubResource("ArrayMesh_uf5pu")
 skeleton = NodePath("")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache3" unique_id=141423260]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoCache3" unique_id=1660550001]
 shape = SubResource("SphereShape3D_pickup")
 
-[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache3" unique_id=2141661222]
+[node name="CollectSfx" type="AudioStreamPlayer" parent="AmmoCache3" unique_id=125415670]
 stream = ExtResource("7_ci2yd")
 bus = &"SFX"
 
-[node name="Respawn" type="Timer" parent="AmmoCache3" unique_id=437590901]
+[node name="Respawn" type="Timer" parent="AmmoCache3" unique_id=1346586465]
 one_shot = true
 
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1645758934]
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1168295514]
 navigation_mesh = ExtResource("15_66wmt")
