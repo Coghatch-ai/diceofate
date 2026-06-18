@@ -131,8 +131,8 @@ static func add_health_pickups(
 		pickup.position = Vector3(cell.wx, 0.0, cell.wz)
 		pickup.rotation_degrees.y = yaw_deg
 		scene_root.add_child(pickup)
+		# Instance root only — do NOT recurse into packed-scene children.
 		pickup.owner = scene_root
-		_set_owner_recursive(pickup, scene_root)
 
 
 ## Add 4 ammo pickups at id=4 cells (x19–20, y11–12) — on the +1 m raised platform.
@@ -152,12 +152,5 @@ static func add_ammo_cache_pickups(
 		pickup.position = Vector3(cell.wx, PLATFORM_Y, cell.wz)
 		pickup.rotation_degrees.y = yaw_deg
 		scene_root.add_child(pickup)
+		# Instance root only — do NOT recurse into packed-scene children.
 		pickup.owner = scene_root
-		_set_owner_recursive(pickup, scene_root)
-
-
-## Recursively set owner on all children (required for PackedScene serialisation).
-static func _set_owner_recursive(node: Node, owner: Node) -> void:
-	for child: Node in node.get_children():
-		child.owner = owner
-		_set_owner_recursive(child, owner)

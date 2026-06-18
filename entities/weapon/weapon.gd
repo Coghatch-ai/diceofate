@@ -17,6 +17,9 @@ const _VM_DIP_POS := Vector3(0.12, -0.32, -0.20)
 const _VM_DIP_ROT := Vector3(25.0, 0.0, 0.0)
 
 @export var projectile_scene: PackedScene
+## NodePath to the view-model Node3D holding the mesh, Muzzle and MuzzleFlash.
+## Override in derived weapon scenes to swap in a different view-model mesh.
+@export var view_model_path: NodePath = ^"PistolViewModel"
 @export var fire_rate: float = 0.2
 @export var ammo_max: int = 12
 @export var reload_time: float = 1.2
@@ -45,19 +48,46 @@ var _reload_tween: Tween
 var _swap_tween: Tween
 var _flash_tween: Tween
 
-@onready var _muzzle: Marker3D = $PistolViewModel/Muzzle
-@onready var _muzzle_flash: OmniLight3D = $PistolViewModel/Muzzle/MuzzleFlash
+var _muzzle: Marker3D
+var _muzzle_flash: OmniLight3D
+var _view_model: Node3D
+var _sprint_sway: SprintSway
+var _firing: bool = false
+
 @onready var _cooldown: Timer = $Cooldown
 @onready var _reload_timer: Timer = $Reload
 @onready var _fire_sfx: AudioStreamPlayer = $FireSfx
 @onready var _empty_sfx: AudioStreamPlayer = $EmptySfx
 @onready var _reload_sfx: AudioStreamPlayer = $ReloadSfx
-@onready var _view_model: Node3D = $PistolViewModel
 
 
 func _ready() -> void:
+	# Resolve view-model via export so derived scenes can override with a different mesh node.
+	_view_model = get_node(view_model_path) as Node3D
+	if _view_model == null:
+		push_error("Weapon: view_model_path '%s' not found or not Node3D" % view_model_path)
+		return
+	# Hide every sibling *ViewModel node that is NOT the active one.
+	# Inherited scenes (e.g. rifle.tscn) carry the base PistolViewModel; hiding it
+	# here is authoritative regardless of scene-property-override quirks.
+	for child: Node in get_children():
+		if child is Node3D and child.name.ends_with("ViewModel") and child != _view_model:
+			(child as Node3D).visible = false
+	# SprintSway sits between view-model and mesh/muzzle children.
+	_sprint_sway = _view_model.get_node_or_null(^"SprintSway") as SprintSway
+	# Muzzle/MuzzleFlash live under SprintSway when present, else directly under view-model.
+	var muzzle_root: Node3D = _sprint_sway if _sprint_sway != null else _view_model
+	_muzzle = muzzle_root.get_node_or_null(^"Muzzle") as Marker3D
+	if _muzzle == null:
+		push_error("Weapon: Muzzle not found under view-model '%s'" % view_model_path)
+		return
+	_muzzle_flash = _muzzle.get_node_or_null(^"MuzzleFlash") as OmniLight3D
+	if _muzzle_flash == null:
+		push_error("Weapon: MuzzleFlash not found under Muzzle")
+		return
 	_cooldown.one_shot = true
 	_cooldown.wait_time = fire_rate
+	_cooldown.timeout.connect(_on_cooldown_done)
 	_reload_timer.one_shot = true
 	_reload_timer.wait_time = reload_time
 	_reload_timer.timeout.connect(_on_reload_done)
@@ -235,7 +265,21 @@ func _on_flash_done() -> void:
 	_muzzle_flash.visible = false
 
 
+## Relays sprint state from player to SprintSway child each physics frame.
+func update_sprint(is_sprinting: bool, velocity_factor: float, delta: float) -> void:
+	if _sprint_sway == null:
+		return
+	_sprint_sway.update_sprint(
+		is_sprinting, velocity_factor, _aiming, _firing, _reloading, _swapping, delta
+	)
+
+
+func _on_cooldown_done() -> void:
+	_firing = false
+
+
 func _fire() -> void:
+	_firing = true
 	if projectile_scene == null:
 		return
 	var projectile := projectile_scene.instantiate() as Projectile

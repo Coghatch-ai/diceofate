@@ -74,7 +74,13 @@ func load_level(path: String) -> void:
 		wave_manager.lives_changed.connect(_arena_hud.set_lives)
 		wave_manager.run_lost.connect(_on_run_ended.bind(false))
 		wave_manager.advance_level.connect(_on_advance_level)
+		wave_manager.life_lost.connect(_arena_hud.flash_life_lost)
 		_arena_hud.set_lives(wave_manager.lives)
+		# Inject wave_manager into the level so fall/hazard handlers can call lose_life().
+		# SEAM: duck-typed set — level scripts (FiringYard/RuinedWarehouse) share the
+		# wave_manager export but have no common base class.
+		@warning_ignore("unsafe_property_access")
+		current_level.wave_manager = wave_manager
 
 
 func _on_advance_level(score: int, lives: int) -> void:
@@ -91,5 +97,25 @@ func _on_advance_level(score: int, lives: int) -> void:
 func _on_run_ended(score: int, won: bool) -> void:
 	_result_showing = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if not won:
+		_play_death_sfx()
 	get_tree().paused = true
 	_arena_hud.show_result(won, score)
+
+
+## Play a one-shot death SFX before the tree pauses.
+## AudioStreamPlayer lives on Main (PROCESS_MODE_ALWAYS) so it survives the pause.
+## PLACEHOLDER: uses enemy_death.wav — swap for a dedicated player-death sound later.
+func _play_death_sfx() -> void:
+	var stream := load("res://assets/audio/enemy_death.wav") as AudioStream
+	if stream == null:
+		push_warning("main: death SFX asset not found")
+		return
+	var player := AudioStreamPlayer.new()
+	player.stream = stream
+	player.bus = &"SFX"
+	player.process_mode = PROCESS_MODE_ALWAYS
+	add_child(player)
+	if not player.finished.is_connected(player.queue_free):
+		player.finished.connect(player.queue_free)
+	player.play()

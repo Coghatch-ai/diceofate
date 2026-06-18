@@ -128,8 +128,8 @@ static func add_fall_zone(scene_root: Node3D) -> void:
 	var area: Area3D = Area3D.new()
 	area.name = "FallZone"
 	area.monitoring = true
-	# Layer 0 = world/default; player is also on layer 0 by default.
-	area.collision_mask = 1
+	# Player CharacterBody3D is on collision_layer 2 (see player.tscn). Mask must match.
+	area.collision_mask = 2
 	scene_root.add_child(area)
 	area.owner = scene_root
 

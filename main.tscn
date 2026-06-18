@@ -45,13 +45,17 @@ script = ExtResource("3")
 
 [node name="ArenaHud" type="Control" parent="HUD"]
 unique_name_in_owner = true
-anchors_preset = 0
+anchors_preset = 15
 anchor_left = 0.0
 anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_right = 200.0
-offset_bottom = 80.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
 mouse_filter = 2
 script = ExtResource("4")
 
@@ -132,6 +136,25 @@ offset_bottom = 80.0
 horizontal_alignment = 1
 vertical_alignment = 1
 text = ""
+
+[node name="LifeLostLabel" type="Label" parent="HUD/ArenaHud"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = -300.0
+offset_top = -60.0
+offset_right = 300.0
+offset_bottom = 60.0
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 64
+text = "LIFE LOST"
+visible = false
+editor_description = "Transient centered flash shown on each non-final life-loss; fades via tween in script."
 
 [node name="ControlsHud" type="Control" parent="HUD"]
 unique_name_in_owner = true

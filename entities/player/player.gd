@@ -35,9 +35,11 @@ extends CharacterBody3D
 ## Head-bob cycle frequency (Hz) at walk speed.
 @export var bob_freq: float = 1.8
 ## Multipliers applied to bob amplitude and frequency while sprinting.
-@export var sprint_bob_mult: float = 1.3
+## Dialled back from 1.3 — view-model SprintSway carries the arm-swing; avoid doubling.
+@export var sprint_bob_mult: float = 1.05
 ## Sprint-bob frequency multiplier (separate from amplitude).
-@export var sprint_bob_freq_mult: float = 1.4
+## Dialled back from 1.4 — footfall cadence only; sway handles the swing feel.
+@export var sprint_bob_freq_mult: float = 1.1
 ## Slide duration in seconds before settling into crouch or stand.
 @export var slide_duration: float = 0.55
 ## Friction (decel rate) applied to horizontal velocity during a slide.
@@ -167,6 +169,13 @@ func _physics_process(delta: float) -> void:
 
 	# 7a. Crouch-accuracy: inform active weapon of crouch state every frame.
 	_weapon_controller.set_active_weapon_crouch(_crouch_amount >= 0.5)
+
+	# 7b. Sprint feel: forward sprint state + velocity factor to weapon SprintSway.
+	# velocity_factor computed here; is_sprinting not yet determined (computed at step 8).
+	# We forward a provisional value using last frame's velocity — close enough for sway.
+	var flat_speed_prev: float = Vector3(velocity.x, 0.0, velocity.z).length()
+	var vf: float = clampf(flat_speed_prev / (move_speed * sprint_mult), 0.0, 1.0)
+	_weapon_controller.update_sprint(_was_sprinting, vf, delta)
 
 	# 8. Movement — whole-vector lerp so direction changes carry momentum.
 	# Per-axis lerp snapped each axis independently; reversing X while Z moves felt robotic.

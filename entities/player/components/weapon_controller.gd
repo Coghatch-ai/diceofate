@@ -120,6 +120,12 @@ func set_active_weapon_crouch(crouched: bool) -> void:
 		_active_weapon.set_crouched(crouched)
 
 
+## Relays sprint state to active weapon's SprintSway component each physics frame.
+func update_sprint(is_sprinting: bool, velocity_factor: float, delta: float) -> void:
+	if _active_weapon != null:
+		_active_weapon.update_sprint(is_sprinting, velocity_factor, delta)
+
+
 ## Collects a pickup by kind. AMMO → refills all weapons matching ammo_caliber; HEALTH → add life.
 ## Returns true if something changed (pickup consumed), false if no-op (already full).
 func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> bool:

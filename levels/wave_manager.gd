@@ -5,10 +5,12 @@ extends Node
 signal kills_changed(total: int)
 signal active_changed(count: int)
 signal score_changed(total: int)
-signal run_won(score: int)
 signal run_lost(score: int)
 signal advance_level(score: int, lives: int)
 signal lives_changed(remaining: int)
+## Emitted when the player loses a life but the run continues (remaining > 0).
+## Connect to ArenaHud.flash_life_lost() in main.gd.
+signal life_lost
 
 ## Collision mask bit for the world/wall layer (layer 1 = bit 0).
 const WALL_MASK: int = 1
@@ -262,17 +264,18 @@ func _on_enemy_died(enemy: Enemy) -> void:
 	print("WaveManager: active after respawn %d" % _active_enemies.size())
 
 
-func _on_enemy_touched_player(_enemy: Enemy) -> void:
+## Shared life-loss entry point — decrement, emit signals, re-seed or end run.
+## Call from enemy touches AND fall/hazard resets so all life-loss routes are unified.
+func lose_life() -> void:
 	if _run_over:
 		return
 
-	print("WaveManager: touched — losing life")
+	print("WaveManager: lose_life — lives before: %d" % _lives)
 	_lives -= 1
 	lives_changed.emit(_lives)
 
 	if _lives <= 0:
 		_run_over = true
-		# Free all live enemies before emitting run_lost.
 		for e: Enemy in _active_enemies:
 			if is_instance_valid(e):
 				e.queue_free()
@@ -282,7 +285,8 @@ func _on_enemy_touched_player(_enemy: Enemy) -> void:
 		run_lost.emit(_score)
 		return
 
-	# Lives remain — advance to the next level carrying the decremented lives + current score.
+	# Lives remain — flash, clear enemies, advance to re-seed.
+	life_lost.emit()
 	_run_over = true
 	for e: Enemy in _active_enemies:
 		if is_instance_valid(e):
@@ -291,6 +295,10 @@ func _on_enemy_touched_player(_enemy: Enemy) -> void:
 	_occupied_markers.clear()
 	active_changed.emit(_active_enemies.size())
 	advance_level.emit(_score, _lives)
+
+
+func _on_enemy_touched_player(_enemy: Enemy) -> void:
+	lose_life()
 
 
 # ── Spawn point selection ─────────────────────────────────────────────────────

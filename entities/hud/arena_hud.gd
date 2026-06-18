@@ -11,6 +11,7 @@ var _last_ammo_text: String = ""
 @onready var _stamina_label: Label = $StaminaLabel
 @onready var _result_panel: Panel = $ResultPanel
 @onready var _result_label: Label = $ResultPanel/ResultLabel
+@onready var _life_lost_label: Label = $LifeLostLabel
 
 
 func _ready() -> void:
@@ -48,7 +49,7 @@ func set_reloading(active: bool) -> void:
 
 
 func show_result(won: bool, score: int) -> void:
-	var title: String = "YOU WIN" if won else "GAME OVER"
+	var title: String = "YOU WIN" if won else "YOU DIE"
 	_result_label.text = "%s\nSCORE  %d\n\nPress Enter to restart" % [title, score]
 	_result_panel.visible = true
 
@@ -60,3 +61,15 @@ func hide_result() -> void:
 func set_stamina(current: float, maximum: float) -> void:
 	var pct: int = int(current / maximum * 100.0) if maximum > 0.0 else 0
 	_stamina_label.text = "STAMINA  %d%%" % pct
+
+
+## Show a brief centered "LIFE LOST" flash that fades out over ~1 s.
+## No-op if the end result panel is already visible (final life — panel takes over).
+func flash_life_lost() -> void:
+	if _result_panel.visible:
+		return
+	_life_lost_label.modulate = Color.WHITE
+	_life_lost_label.visible = true
+	var tw: Tween = create_tween()
+	tw.tween_property(_life_lost_label, "modulate", Color(1.0, 1.0, 1.0, 0.0), 1.0)
+	tw.tween_callback(_life_lost_label.hide)

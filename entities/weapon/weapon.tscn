@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://weapon0001"]
+[gd_scene load_steps=8 format=3 uid="uid://weapon0001"]
 
 [ext_resource type="Script" path="res://entities/weapon/weapon.gd" id="1"]
 [ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/pistol_shoot.wav" id="4"]
 [ext_resource type="AudioStream" path="res://assets/audio/weapon_empty.wav" id="5"]
 [ext_resource type="AudioStream" path="res://assets/audio/weapon_reload.wav" id="6"]
+[ext_resource type="Script" path="res://entities/weapon/sprint_sway.gd" id="7"]
 
 [node name="Weapon" type="Node3D"]
 script = ExtResource("1")
@@ -24,12 +25,21 @@ autostart = false
 [node name="PistolViewModel" type="Node3D" parent="."]
 position = Vector3(0.12, -0.12, -0.25)
 
-[node name="Pistol" parent="PistolViewModel" instance=ExtResource("3")]
+[node name="SprintSway" type="Node3D" parent="PistolViewModel"]
+script = ExtResource("7")
+sprint_pose_pos = Vector3(0.08, -0.06, 0.02)
+sprint_pose_rot = Vector3(-5.0, 3.0, -8.0)
+sway_roll_deg = 4.0
+sway_lateral_deg = 1.2
+sway_vert_deg = 1.8
+editor_description = "Sprint pose + sine sway layer — children inherit this offset; tweens write PistolViewModel above"
 
-[node name="Muzzle" type="Marker3D" parent="PistolViewModel"]
+[node name="Pistol" parent="PistolViewModel/SprintSway" instance=ExtResource("3")]
+
+[node name="Muzzle" type="Marker3D" parent="PistolViewModel/SprintSway"]
 position = Vector3(0.0, 0.0, -0.3)
 
-[node name="MuzzleFlash" type="OmniLight3D" parent="PistolViewModel/Muzzle"]
+[node name="MuzzleFlash" type="OmniLight3D" parent="PistolViewModel/SprintSway/Muzzle"]
 light_color = Color(1.0, 0.7, 0.3, 1.0)
 light_energy = 4.0
 omni_range = 1.2

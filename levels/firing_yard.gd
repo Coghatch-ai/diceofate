@@ -69,6 +69,10 @@ const CRUSHER_SPEED: float = 4.0  # m/s
 
 # Total period in seconds: ~5 min daylight arc + ~2 min night = ~7 min.
 # Lower for verification runs (e.g. 14.0 = 10x speed).
+## WaveManager sibling — injected by main.gd after level load.
+## Used to route fall/hazard life-loss through the shared lose_life() seam.
+@export var wave_manager: WaveManager
+
 @export var period_seconds: float = 420.0
 
 # Normalized day-time in [0, 1). Starts at sunrise (t=0) per design doc.
@@ -94,7 +98,7 @@ func _ready() -> void:
 	# levels/firing_yard_navmesh.tres — no runtime bake needed.
 
 
-# Shared reset helper — teleports a Player body back to spawn.
+# Shared reset helper — teleports a Player body back to spawn and costs a life.
 func _reset_player(body: Node3D) -> void:
 	if not body.is_in_group("player"):
 		return
@@ -103,6 +107,8 @@ func _reset_player(body: Node3D) -> void:
 	# SEAM: duck-typed reset — velocity is on CharacterBody3D, not the Node3D base type.
 	@warning_ignore("unsafe_property_access")
 	body.velocity = Vector3.ZERO
+	if wave_manager != null:
+		wave_manager.lose_life()
 
 
 # Respawn the player when they fall through a fake-wall hole.
