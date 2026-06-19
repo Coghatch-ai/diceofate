@@ -80,7 +80,7 @@ func _spawn_vfx(scene: PackedScene, at: Transform3D) -> void:
 	if root == null:
 		return
 	var fx: Node3D = scene.instantiate() as Node3D
-	root.add_child(fx)
+	root.add_child(fx, true)
 	fx.global_transform = at
 
 
@@ -115,5 +115,5 @@ func _warmup_vfx() -> void:
 		_FX_MUZZLE, _FX_IMPACT, _FX_HIT_BURST, _FX_DEATH_BURST, _FX_SHOCKWAVE
 	]:
 		var fx: Node3D = scene.instantiate() as Node3D
-		root.add_child(fx)
+		root.add_child(fx, true)
 		fx.global_transform = warmup_t

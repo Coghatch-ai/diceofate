@@ -24,7 +24,7 @@ func _on_rescued(npc: Npc) -> void:
 	if root == null:
 		return
 	var fx: Node3D = _FX_HALO.instantiate() as Node3D
-	root.add_child(fx)
+	root.add_child(fx, true)
 	fx.global_transform = npc.global_transform
 
 
