@@ -234,10 +234,115 @@ exists/is callable, leaving the real overlap to F5.
    Glob `smoke_*.gd` so new seams auto-join the gate. Each script self-reports
    pass/fail counts and sets the exit code; validate.sh only needs the exit code.
 
+## Input-driven playthrough (headless)
+
+The signal/state smoke above drives ONE seam by calling its method. A **playthrough
+bot** drives the actual *input* layer — walk/jump/crouch/aim/fire on a timeline — and
+asserts the player+combat systems respond. Same `extends SceneTree` family, no GdUnit4.
+Verified on Godot 4.6.3, this machine. Two input paths, pick by how the controller reads:
+
+- **Polled actions** (move/jump/crouch/fire — anything read via
+  `Input.is_action_pressed` / `Input.get_vector` / `Input.get_action_strength`):
+  `Input.action_press(action)` / `Input.action_release(action)`. Works headless,
+  **state-only**, and **does NOT fire `_input()`**. The CharacterBody3D reads the held
+  state in `_physics_process`, so this drives movement correctly.
+- **Typed `InputEvent`s** (anything that flows through `_input` / `_unhandled_input`,
+  incl. mouse-look): `viewport.push_input(event)` — the canonical headless path.
+  Feed an `InputEventMouseMotion` with `.relative` set for look; `InputEventMouseButton`
+  for click-driven fire. `root.push_input(ev)` runs headless.
+
+Headless mouse-look limits (load-bearing):
+- `Input.parse_input_event(ev)` needs a manual `Input.flush_buffered_events()` to
+  deliver under headless (godot#73557) — so prefer `push_input` (no flush needed).
+- `Input.warp_mouse()` and `Input.MOUSE_MODE_CAPTURED` are **UNAVAILABLE headless**
+  (need a window). So test mouse-look by feeding `InputEventMouseMotion.relative` and
+  asserting **Head pitch / body yaw deltas**, NOT cursor/warp position.
+
+Driver + stepping:
+- Run: `$GODOT --headless --fixed-fps 60 --path . --script tools/bot_playthrough.gd`.
+  `--fixed-fps 60` makes physics integration deterministic per step.
+- Step with `await tree.physics_frame` (NOT a `_process` frame count) so
+  CharacterBody3D movement integrates between presses.
+- Assert on position/state **DELTAS** (snapshot before, snapshot after) — not just
+  "input landed". A held action that moves the body 0 units is a failure even though
+  the press "worked".
+- Signal-await-with-timeout (hand-rolled, no GdUnit4): race the signal against a timer
+  via a bool flag, fail if the timer wins.
+
+Minimal reusable press-for-N-frames pattern:
+
+```gdscript
+func _press_for(tree: SceneTree, action: StringName, frames: int) -> void:
+    Input.action_press(action)
+    for _i in frames:
+        await tree.physics_frame
+    Input.action_release(action)
+```
+
+Look / typed-event pattern (mouse-look — assert Head pitch delta, not cursor):
+
+```gdscript
+func _look(viewport: Viewport, dx: float, dy: float) -> void:
+    var ev := InputEventMouseMotion.new()
+    ev.relative = Vector2(dx, dy)
+    viewport.push_input(ev)  # flows through _input/_unhandled_input; no flush needed
+```
+
+Signal-await-with-timeout helper (await signal OR N-frame timeout → fail):
+
+```gdscript
+func _await_signal(tree: SceneTree, sig: Signal, timeout: float) -> bool:
+    var fired: Array = [false]
+    sig.connect(func(_a: Variant = null) -> void: fired[0] = true, CONNECT_ONE_SHOT)
+    var timer := tree.create_timer(timeout)
+    while not (fired[0] as bool):
+        if timer.time_left <= 0.0:
+            return false
+        await tree.physics_frame
+    return true
+```
+
+(Implementation lives in `tools/bot_playthrough.gd` — a godot-dev task, not this skill.)
+
+## Engine-error log capture
+
+The static gate greps stderr per-scene. A **`--log-file` capture** per gate run is more
+robust (survives piping, captures the multi-line GDScript backtrace intact) and feeds the
+dev-agent structured failures. Verified on Godot 4.6.3, this machine.
+
+- Add `--log-file <path>` to each smoke/scene run; the engine writes all output+errors
+  there. Optional: project setting `debug/file_logging/enable_file_logging = true` makes
+  file logging the default even without the flag (the per-run flag alone suffices).
+- Grep the FILE with the CORRECTED regex, **after** the benign-teardown exclusion filter:
+
+  ```bash
+  grep -nE '^(ERROR|SCRIPT ERROR):' "$LOG"
+  ```
+
+  DROP the Hermes short form `E <ts>:` — it does NOT appear in 4.6 `--log-file` output.
+  `push_error()` → `ERROR: <msg>`; a GDScript runtime error → `SCRIPT ERROR: <msg>` +
+  `at: fn (file:line)` + a `GDScript backtrace` block (file:line present, 4.5+).
+- On a hit, emit the matched lines AND the following `GDScript backtrace` block (file +
+  line + message) as structured dev-agent feedback — not just the first line.
+
+THE HEADLESS / WINDOWED SPLIT (critical — do NOT assume headless catches everything):
+- Headless `--log-file`+grep catches: parse errors, `SCRIPT ERROR` (runtime null, bad
+  arity at runtime), node name clashes, non-render engine errors. ✓
+- RENDER-PATH error classes (e.g. `material_casts_shadows: material is null` on a
+  shadow-caster) NEVER execute under the `--headless` DUMMY renderer — so they CANNOT
+  be caught headless. They need a windowed / Xvfb run (DEFERRED for the POC; see
+  tech_debt #4). State this so no one trusts headless to catch render-path errors.
+
 ## Verification checklist
 
 - Run `$GODOT --headless --path . --script tools/smoke_combat.gd` directly →
   prints `=== RESULTS: N pass / 0 fail ===` and exits 0.
+- Bot playthrough: pressing `move_forward` N frames moves `player.position.z` by a
+  non-zero delta; `jump` flips `is_on_floor()` false then true; crouch lowers eye
+  height / collider; a mouse-look `InputEventMouseMotion` changes Head pitch.
+- `--log-file` capture: a deliberate `push_error("x")` in a smoke run appears as
+  `ERROR: x` in the log and the grep flags it; a forced runtime null prints a
+  `SCRIPT ERROR:` + `GDScript backtrace` block with file:line.
 - Deliberately break the seam (rename `died` arity, comment out the recoil mutation)
   → the matching assert prints `FAIL:` and the script exits 1. (A smoke test that
   can't fail proves nothing.)
@@ -259,6 +364,12 @@ exists/is callable, leaving the real overlap to F5.
 | Script exits 0 even though the seam is broken | The assert reads a value that's true regardless — assert the *delta* (before != after) or the exact payload, not mere "not null". |
 | New leak lines appear in validate.sh smoke greps | `queue_free()` every spawned node at the end of each test; check `is_instance_valid` first. |
 | Editing `tools/validate.sh` doesn't persist | `tools/` is plugin-materialized + gitignored — don't hand-edit; report the step to the verifier to add upstream. |
+| Bot input had no effect (body never moved) | Controller reads `_input()`, not polled state — `action_press` is state-only and skips `_input`; feed the event via `viewport.push_input(ev)` instead. |
+| Mouse-look assert fails / cursor never moves headless | `warp_mouse` + `MOUSE_MODE_CAPTURED` are unavailable headless — feed `InputEventMouseMotion.relative` via `push_input` and assert the Head pitch / body yaw delta, not cursor position. |
+| Bot moves 0 units but assert passes | Assert the position/state DELTA (before != after), not "input landed"; step with `await tree.physics_frame` so movement integrates. |
+| `parse_input_event` event never delivered headless | godot#73557 — needs `Input.flush_buffered_events()`; prefer `push_input` (no flush) or `action_press` (polled). |
+| Log grep finds nothing though errors occurred | Regex is `^(ERROR|SCRIPT ERROR):` — drop Hermes `E <ts>:` (absent in 4.6); run grep AFTER the benign-teardown filter, on the `--log-file` path. |
+| `material.*is null` never fires headless | Render-path errors don't execute under the `--headless` dummy renderer — needs a windowed/Xvfb run (deferred, tech_debt #4); do not expect headless to catch it. |
 
 This is a game-local skill authored for DiceOfFate from the project's own proven
 `tools/test_combat_integration.gd` / `tools/verify_enemy_ai.gd` pattern; no external
