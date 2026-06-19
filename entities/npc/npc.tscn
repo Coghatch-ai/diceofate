@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://entities/npc/npc.gd" id="1"]
+[ext_resource type="Script" path="res://entities/npc/npc_vfx.gd" id="2"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.3
@@ -45,3 +46,7 @@ shape = SubResource("SphereShape3D_rescue")
 [node name="RescueTimer" type="Timer" parent="."]
 wait_time = 3.0
 one_shot = true
+
+[node name="NpcVfx" type="Node" parent="."]
+script = ExtResource("2")
+editor_description = "VFX component: spawns rescue halo on saved branch only."

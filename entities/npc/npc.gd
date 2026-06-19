@@ -2,8 +2,10 @@
 class_name Npc
 extends StaticBody3D
 
-## Emitted just before queue_free() so listeners can react.
+## Emitted just before queue_free() so listeners can react (both outcomes).
 signal died(npc: Npc)
+## Emitted on the saved (+1 life) branch only — used by NpcVfx for the halo effect.
+signal rescued(npc: Npc)
 
 ## WaveManager injected by the level root in _ready() (same DI pattern as FiringYard).
 @export var wave_manager: WaveManager
@@ -59,6 +61,7 @@ func _on_RescueTimer_timeout() -> void:
 	if wave_manager != null:
 		wave_manager.add_life()
 	_flash(Color(0.18, 0.72, 0.28))
+	rescued.emit(self)
 	died.emit(self)
 	queue_free()
 

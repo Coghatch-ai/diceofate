@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://xpu2uu5iytmj"]
 
 [ext_resource type="Script" uid="uid://bh5pypvfo12ut" path="res://main.gd" id="1"]
+[ext_resource type="PackedScene" path="res://entities/vfx/scorch_pool.tscn" id="6"]
 [ext_resource type="PackedScene" uid="uid://c5pqr2xk8yvl4" path="res://entities/camera_rig/camera_rig.tscn" id="2"]
 [ext_resource type="Script" path="res://entities/hud/crosshair.gd" id="3"]
 [ext_resource type="Script" path="res://entities/hud/arena_hud.gd" id="4"]
@@ -29,6 +30,9 @@ transform = Transform3D(0.70710677, -0.35355338, 0.6123724, 0, 0.8660254, 0.5, -
 
 [node name="VfxRoot" type="Node3D" parent="SubViewportContainer/SubViewport"]
 editor_description = "Surviving parent for one-shot VFX nodes — outlives LevelHost level swaps."
+
+[node name="ScorchPool" parent="SubViewportContainer/SubViewport/VfxRoot" instance=ExtResource("6")]
+editor_description = "Round-robin pool of 8 Decal nodes for impact/death scorches."
 
 [node name="LevelHost" type="Node" parent="SubViewportContainer/SubViewport" unique_id=96008215]
 unique_name_in_owner = true

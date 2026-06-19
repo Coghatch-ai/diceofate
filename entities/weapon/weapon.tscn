@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://weapon0001"]
+[gd_scene load_steps=10 format=3 uid="uid://weapon0001"]
 
 [ext_resource type="Script" path="res://entities/weapon/weapon.gd" id="1"]
 [ext_resource type="Script" path="res://entities/vfx/vfx_router.gd" id="8"]
+[ext_resource type="Script" path="res://entities/vfx/decal_pool_router.gd" id="9"]
 [ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://b8md52wt2l0xj" path="res://assets/models/pistol.glb" id="3"]
 [ext_resource type="AudioStream" path="res://assets/audio/pistol_shoot.wav" id="4"]
@@ -64,3 +65,7 @@ editor_description = "Mechanical clack at reload start — played by weapon.gd o
 [node name="VfxRouter" type="Node" parent="."]
 script = ExtResource("8")
 editor_description = "Thin router: weapon fired/vfx_impact signals -> one-shot VFX scenes."
+
+[node name="DecalPoolRouter" type="Node" parent="."]
+script = ExtResource("9")
+editor_description = "Routes vfx_impact/vfx_kill -> ScorchDecalPool. Pool found by name fallback."

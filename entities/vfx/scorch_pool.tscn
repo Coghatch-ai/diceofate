@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/vfx/scorch_decal_pool.gd" id="1"]
+
+[node name="ScorchPool" type="Node3D"]
+script = ExtResource("1")
+editor_description = "Round-robin pool of 8 Decal nodes for impact/death scorches. Place under VfxRoot."
