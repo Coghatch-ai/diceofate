@@ -73,6 +73,8 @@ var _run_over: bool = false
 # Tracks which markers are occupied by live spawned enemies (cleared when an enemy dies/frees).
 # Used to avoid placing two enemies on the same marker within one spawn batch.
 var _occupied_markers: Array[Marker3D] = []
+# Last marker chosen by _pick_far_marker_pos; tagged onto the spawned enemy for death cleanup.
+var _last_spawn_marker: Marker3D = null
 
 # Reusable PhysicsRayQueryParameters3D allocated once, reused per LOS check.
 var _ray_query: PhysicsRayQueryParameters3D
@@ -213,6 +215,10 @@ func _spawn_one(
 	get_parent().add_child(enemy)
 	# global_position requires the node to be in the tree; set after add_child.
 	enemy.global_position = pos + Vector3(0.0, 0.1, 0.0)
+	# Tag the marker used so _on_enemy_died can release it from _occupied_markers.
+	if _last_spawn_marker != null:
+		enemy.set_meta("spawn_marker", _last_spawn_marker)
+	_last_spawn_marker = null
 
 	_connect_enemy(enemy)
 	_active_enemies.append(enemy)
@@ -229,6 +235,12 @@ func _connect_enemy(enemy: Enemy) -> void:
 
 
 func _on_enemy_died(enemy: Enemy) -> void:
+	# Release any marker this enemy occupied so future spawns can reuse it.
+	if enemy.has_meta("spawn_marker"):
+		# SEAM: meta value is Marker3D by construction (set in _spawn_one).
+		@warning_ignore("unsafe_cast")
+		var m: Marker3D = enemy.get_meta("spawn_marker") as Marker3D
+		_occupied_markers.erase(m)
 	if _run_over:
 		_active_enemies.erase(enemy)
 		active_changed.emit(_active_enemies.size())
@@ -376,6 +388,7 @@ func _pick_far_marker_pos() -> Vector3:
 		chosen = farthest
 
 	_occupied_markers.append(chosen)
+	_last_spawn_marker = chosen
 	print(
 		(
 			"WaveManager: FAR spawn pick — %d hidden_free / %d vis_free / %d occupied → %s"

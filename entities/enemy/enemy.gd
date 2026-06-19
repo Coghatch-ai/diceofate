@@ -107,7 +107,12 @@ func move_along_path(speed: float, delta: float) -> void:
 		var next: Vector3 = _nav.get_next_path_position()
 		desired = (next - global_position)
 		desired.y = 0.0
-		desired = desired.normalized() * speed
+		if desired.length_squared() > 0.0001:
+			desired = desired.normalized() * speed
+			# Rotate body to face movement direction.
+			var look_target: Vector3 = global_position + desired
+			look_target.y = global_position.y
+			look_at(look_target, Vector3.UP)
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	desired.y = velocity.y
