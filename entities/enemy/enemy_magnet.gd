@@ -48,6 +48,7 @@ func _update_contact() -> void:
 		if _hit_count >= HITS_TO_DAMAGE:
 			_hit_count = 0
 			touched_player.emit(self)
+			bumped_player.emit(self)
 
 	_player_in_range = in_range
 

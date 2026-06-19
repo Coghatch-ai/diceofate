@@ -9,7 +9,6 @@
 [ext_resource type="Script" path="res://levels/wave_manager.gd" id="7_fqhaa"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="8_t1gec"]
 [ext_resource type="PackedScene" path="res://entities/npc/npc.tscn" id="9_s0383"]
-[ext_resource type="Script" path="res://entities/npc/npc.gd" id="10_4skpc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m6nd0"]
 albedo_color = Color(0.251, 0.251, 0.314, 1)
@@ -739,33 +738,10 @@ patrol_waypoint_paths = Array[NodePath]([NodePath("../EnemyWP0"), NodePath("../E
 
 [node name="Npc0" type="StaticBody3D" parent="." unique_id=1844057137 instance=ExtResource("9_s0383")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.9, 14)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
 
 [node name="Npc1" type="StaticBody3D" parent="." unique_id=1350015156 instance=ExtResource("9_s0383")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0.9, 18)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
 
-[node name="Npc2" type="StaticBody3D" parent="." unique_id=1143760989 instance=ExtResource("9_s0383")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.9, 22)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
-
-[node name="Npc3" type="StaticBody3D" parent="." unique_id=1358388135 instance=ExtResource("9_s0383")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.9, 16)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
-
-[node name="Npc4" type="StaticBody3D" parent="." unique_id=1912850124 instance=ExtResource("9_s0383")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.9, 20)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
 
 [node name="HazardFloorMesh" type="MeshInstance3D" parent="." unique_id=1816642741]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.25, 4)

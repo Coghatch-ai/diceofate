@@ -84,6 +84,7 @@ func _on_projectile_hit(body: Node3D) -> void:
 
 
 ## Routes a projectile-player collision to the existing touch→life seam.
-## Mirrors the magnet's touched_player.emit(self) path so WaveManager needs no changes.
+## Also emits bumped_player so WaveManager can apply directional knockback.
 func report_ranged_hit() -> void:
 	touched_player.emit(self)
+	bumped_player.emit(self)

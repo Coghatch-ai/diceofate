@@ -5,6 +5,8 @@ extends Node3D
 signal fired
 signal hit_confirmed
 signal kill_confirmed
+## Emitted with world position when a projectile hits any body — consumed by VfxRouter.
+signal vfx_impact(pos: Vector3)
 signal ammo_changed(current: int, reserve: int)
 signal out_of_ammo
 signal reload_started(duration: float)
@@ -85,6 +87,8 @@ func _ready() -> void:
 	if _muzzle_flash == null:
 		push_error("Weapon: MuzzleFlash not found under Muzzle")
 		return
+	# Flash must never cast shadows — perf + correctness (skill: godot-oneshot-vfx).
+	_muzzle_flash.shadow_enabled = false
 	_cooldown.one_shot = true
 	_cooldown.wait_time = fire_rate
 	_cooldown.timeout.connect(_on_cooldown_done)
@@ -302,6 +306,7 @@ func _fire() -> void:
 
 
 func _on_projectile_hit(target: Node3D) -> void:
+	vfx_impact.emit(target.global_position)
 	hit_confirmed.emit()
 	# If the target exposes a `died` signal, subscribe one-shot to detect a kill this frame.
 	# SEAM: duck-typed kill detection — only enemies with `died` trigger kill_confirmed;

@@ -86,6 +86,8 @@ var _crusher_dir: float = 1.0
 @onready var _hazard_floor: Area3D = $HazardFloor
 @onready var _crusher: StaticBody3D = $Crusher
 @onready var _crusher_hit: Area3D = $Crusher/CrusherHit
+@onready var _npc0: Npc = $Npc0
+@onready var _npc1: Npc = $Npc1
 
 
 func _ready() -> void:
@@ -94,6 +96,9 @@ func _ready() -> void:
 	_fall_zone.body_entered.connect(_on_FallZone_body_entered)
 	_hazard_floor.body_entered.connect(_on_HazardFloor_body_entered)
 	_crusher_hit.body_entered.connect(_on_CrusherHit_body_entered)
+	# Inject WaveManager into all civilian NPCs (DI — no find_child/autoload).
+	_npc0.wave_manager = wave_manager
+	_npc1.wave_manager = wave_manager
 	# Navigation mesh is pre-baked (tools/bake_navmesh.gd) and stored in
 	# levels/firing_yard_navmesh.tres — no runtime bake needed.
 

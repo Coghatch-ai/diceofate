@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://weapon0001"]
+[gd_scene load_steps=9 format=3 uid="uid://weapon0001"]
 
 [ext_resource type="Script" path="res://entities/weapon/weapon.gd" id="1"]
+[ext_resource type="Script" path="res://entities/vfx/vfx_router.gd" id="8"]
 [ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://b8md52wt2l0xj" path="res://assets/models/pistol.glb" id="3"]
 [ext_resource type="AudioStream" path="res://assets/audio/pistol_shoot.wav" id="4"]
@@ -59,3 +60,7 @@ editor_description = "Dry-click on empty trigger — played by weapon.gd on out_
 stream = ExtResource("6")
 bus = &"SFX"
 editor_description = "Mechanical clack at reload start — played by weapon.gd on start_reload"
+
+[node name="VfxRouter" type="Node" parent="."]
+script = ExtResource("8")
+editor_description = "Thin router: weapon fired/vfx_impact signals -> one-shot VFX scenes."

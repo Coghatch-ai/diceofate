@@ -6,7 +6,14 @@ extends CharacterBody3D
 @export var move_speed: float = 4.0
 @export var move_accel: float = 6.0
 @export var move_decel: float = 7.0
-@export var jump_velocity: float = 5.0
+@export var jump_velocity: float = 9.0
+## Overall gravity scale applied on top of the project-settings gravity (9.8 m/s²).
+## Raise to make the whole arc faster without changing peak height formula:
+## peak_height = jump_velocity² / (2 × gravity × gravity_scale).
+@export var gravity_scale: float = 2.25
+## Gravity multiplier applied while falling (velocity.y < 0). Values > 1 make the
+## descent faster than the rise — snappier, less floaty feel. Tune alongside jump_velocity.
+@export var fall_gravity_mult: float = 1.5
 @export var mouse_sensitivity: float = 0.0016
 ## FOV while hip-firing (default).
 @export var hip_fov: float = 75.0
@@ -56,6 +63,10 @@ extends CharacterBody3D
 @export var stamina_regen_delay: float = 0.6
 ## Minimum stamina required to START a new sprint.
 @export var stamina_min_to_sprint: float = 10.0
+## Impulse speed (m/s) applied when an enemy bumps the player. Mirrors enemy _KNOCKBACK_SPEED.
+@export var knockback_speed: float = 6.0
+## Duration (s) input is suppressed and knockback decays after a bump. Mirrors enemy _STUN_DURATION.
+@export var knockback_stun_duration: float = 0.15
 
 # SEAM: ProjectSettings.get_setting() returns Variant; the physics gravity setting is always float.
 @warning_ignore("unsafe_cast")
@@ -80,6 +91,9 @@ var _slide_vel: Vector3 = Vector3.ZERO
 var _stamina: float = 100.0
 var _stamina_regen_timer: float = 0.0
 var _was_sprinting: bool = false
+# Knockback stun state — movement input skipped while _kb_stun_timer > 0.
+var _kb_stun_timer: float = 0.0
+var _kb_velocity: Vector3 = Vector3.ZERO
 # HUD ref for stamina forwarding (player owns this; ammo goes via WeaponController).
 var _arena_hud: ArenaHud
 
@@ -127,9 +141,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	var on_floor_now: bool = is_on_floor()
 
-	# 1. Gravity while airborne.
+	# 1. Gravity while airborne. fall_gravity_mult applied when descending for snappier landing.
 	if not on_floor_now:
-		velocity.y -= _gravity * delta
+		var grav_mult: float = fall_gravity_mult if velocity.y < 0.0 else 1.0
+		velocity.y -= _gravity * gravity_scale * grav_mult * delta
 
 	# 2. Jump only when grounded.
 	if Input.is_action_just_pressed("jump") and on_floor_now:
@@ -177,7 +192,17 @@ func _physics_process(delta: float) -> void:
 	var vf: float = clampf(flat_speed_prev / (move_speed * sprint_mult), 0.0, 1.0)
 	_weapon_controller.update_sprint(_was_sprinting, vf, delta)
 
-	# 8. Movement — whole-vector lerp so direction changes carry momentum.
+	# 8. Knockback stun: decay impulse, override XZ, skip movement input while stunned.
+	if _kb_stun_timer > 0.0:
+		_kb_stun_timer -= delta
+		_kb_velocity = _kb_velocity.move_toward(Vector3.ZERO, knockback_speed * delta)
+		velocity.x = _kb_velocity.x
+		velocity.z = _kb_velocity.z
+		move_and_slide()
+		_update_bob(delta, false, on_floor_now)
+		return
+
+	# 9. Movement — whole-vector lerp so direction changes carry momentum.
 	# Per-axis lerp snapped each axis independently; reversing X while Z moves felt robotic.
 	# Lerping the XZ vector as a unit means reversing bleeds through existing momentum.
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
@@ -237,10 +262,10 @@ func _physics_process(delta: float) -> void:
 		velocity.x = flat_vel.x
 		velocity.z = flat_vel.z
 
-	# 9. Engine resolves collisions and updates position.
+	# 10. Engine resolves collisions and updates position.
 	move_and_slide()
 
-	# 14. Head-bob — runs AFTER move_and_slide() and AFTER _update_crouch() has set
+	# 11. Head-bob — runs AFTER move_and_slide() and AFTER _update_crouch() has set
 	# _head.position.y to the crouch eye height. _update_bob adds _bob_offset_y on top
 	# (additive += confirmed in _update_bob body). Recoil writes _head.rotation.x, not
 	# position, so no conflict.
@@ -352,3 +377,14 @@ func _update_ads_fov() -> void:
 ## Forwarding method: delegates to weapon controller. Called by pickups (duck-typed).
 func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> bool:
 	return _weapon_controller.collect_pickup(kind, ammo_caliber)
+
+
+## Shove the player away from hitter_pos. Input locked for knockback_stun_duration seconds.
+## Duck-typed seam — same signature as Enemy.apply_knockback (godot-composition rule).
+func apply_knockback(hitter_pos: Vector3) -> void:
+	var dir: Vector3 = global_position - hitter_pos
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		dir = global_transform.basis.z
+	_kb_velocity = dir.normalized() * knockback_speed
+	_kb_stun_timer = knockback_stun_duration

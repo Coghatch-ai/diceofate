@@ -6,6 +6,9 @@ extends CharacterBody3D
 signal died(enemy: Enemy)
 ## Emitted when the enemy reaches attack_range of the player (C2).
 signal touched_player(enemy: Enemy)
+## Emitted alongside touched_player on each attack — carries self so the receiver
+## knows the hit source for directional knockback.
+signal bumped_player(enemy: Enemy)
 
 const _STUN_DURATION: float = 0.15
 const _KNOCKBACK_SPEED: float = 6.0
@@ -156,6 +159,7 @@ func perform_attack() -> void:
 	print("Enemy attack telegraph!")
 	_touch_reset_sfx.play()
 	touched_player.emit(self)
+	bumped_player.emit(self)
 	# Guard: signal handler may have freed this enemy (level advance/life-loss path).
 	if not is_instance_valid(self):
 		return

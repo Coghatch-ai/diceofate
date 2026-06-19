@@ -54,6 +54,7 @@ live in this repo's `.claude/`; everything else comes from the plugin.
 - Hand-authoring `.tscn`: rules (Transform3D ban, Sky resource requirement) live in skill `godot-verify`.
 - Enemy combat: the shootable-enemy hit/death/kill-confirm contract lives in skill `godot-fps-enemy-combat`
   — distinct from `godot-enemy-ai` (nav/FSM) and `godot-travelling-projectile-3d` (firing/despawn).
+- godot-oneshot-vfx: fire-and-free 3D VFX (GPUParticles3D one-shot freed on `finished`) routed off combat seams (fired/hit/died) — muzzle, impact, death burst, shockwave; perf budget; Forward+. NOT the vignette (godot-screen-effects) nor the projectile trail (godot-travelling-projectile-3d).
 - Composition over inheritance (skill `godot-composition`): engine-node base + component children,
   signals up / calls down; modularize ON DEMAND only.
 - Code rules: strict typed GDScript (skill `godot-code-rules`); gate `tools/validate.sh`, mandatory

@@ -222,6 +222,7 @@ func _spawn_one(
 func _connect_enemy(enemy: Enemy) -> void:
 	enemy.died.connect(_on_enemy_died)
 	enemy.touched_player.connect(_on_enemy_touched_player)
+	enemy.bumped_player.connect(_on_enemy_bumped_player)
 
 
 # ── Event handlers ────────────────────────────────────────────────────────────
@@ -299,6 +300,17 @@ func lose_life() -> void:
 
 func _on_enemy_touched_player(_enemy: Enemy) -> void:
 	lose_life()
+
+
+func _on_enemy_bumped_player(enemy: Enemy) -> void:
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+	if player == null:
+		return
+	if not player.has_method("apply_knockback"):
+		return
+	# SEAM: duck-typed apply_knockback seam — any node with apply_knockback(Vector3) accepted.
+	@warning_ignore("unsafe_method_access")
+	player.apply_knockback(enemy.global_position)
 
 
 # ── Spawn point selection ─────────────────────────────────────────────────────
