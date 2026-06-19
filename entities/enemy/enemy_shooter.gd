@@ -78,7 +78,7 @@ func _fire_at_player() -> void:
 	proj.hit.connect(_on_projectile_hit, CONNECT_ONE_SHOT)
 
 
-func _on_projectile_hit(body: Node3D) -> void:
+func _on_projectile_hit(body: Node3D, _normal: Vector3, _hit_pos: Vector3) -> void:
 	if body.is_in_group("player"):
 		report_ranged_hit()
 

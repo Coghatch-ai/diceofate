@@ -44,7 +44,8 @@ func _on_fired() -> void:
 
 
 ## Called on weapon.vfx_impact — generic impact burst at hit world position (wall/generic).
-func _on_impact(pos: Vector3) -> void:
+## Normal carried for seam completeness; burst orientation is identity (omnidirectional particles).
+func _on_impact(pos: Vector3, _normal: Vector3) -> void:
 	var t := Transform3D(Basis.IDENTITY, pos)
 	_spawn_vfx(_FX_IMPACT, t)
 
@@ -56,7 +57,7 @@ func _on_hit_burst(pos: Vector3) -> void:
 
 
 ## Called on weapon.vfx_kill — large death burst + shockwave ring at kill position.
-func _on_kill(pos: Vector3) -> void:
+func _on_kill(pos: Vector3, _normal: Vector3) -> void:
 	var t := Transform3D(Basis.IDENTITY, pos)
 	_spawn_vfx(_FX_DEATH_BURST, t)
 	_spawn_vfx(_FX_SHOCKWAVE, t)

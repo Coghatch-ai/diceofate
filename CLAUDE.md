@@ -55,6 +55,7 @@ live in this repo's `.claude/`; everything else comes from the plugin.
 - Enemy combat: the shootable-enemy hit/death/kill-confirm contract lives in skill `godot-fps-enemy-combat`
   — distinct from `godot-enemy-ai` (nav/FSM) and `godot-travelling-projectile-3d` (firing/despawn).
 - godot-oneshot-vfx: fire-and-free 3D VFX (GPUParticles3D one-shot freed on `finished`) routed off combat seams (fired/hit/died) — muzzle, impact, death burst, shockwave; perf budget; Forward+. NOT the vignette (godot-screen-effects) nor the projectile trail (godot-travelling-projectile-3d).
+- godot-decal-vfx: pooled surface-projected `Decal` marks (scorch/bullet-hole/blood) — N reused round-robin slots under VfxRoot, fade+recycle with Tween.kill before reuse, degenerate-safe normal→basis orientation (flat on floor/ceiling/wall), clustered (NOT deferred) 512-element cost model, decal-mask import contract (premult OFF / fix_alpha_border ON / mipmaps ON). Consumes the projectile hit-signal normal (godot-travelling-projectile-3d). Decals = THIS skill; fire-and-free particle/mesh one-shots = godot-oneshot-vfx.
 - Composition over inheritance (skill `godot-composition`): engine-node base + component children,
   signals up / calls down; modularize ON DEMAND only.
 - Code rules: strict typed GDScript (skill `godot-code-rules`); gate `tools/validate.sh`, mandatory

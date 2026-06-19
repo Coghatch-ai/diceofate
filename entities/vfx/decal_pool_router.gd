@@ -19,29 +19,40 @@ func _ready() -> void:
 
 
 ## Place a scorch decal at generic impact position (wall, floor hit).
-func _on_impact(pos: Vector3) -> void:
+func _on_impact(pos: Vector3, normal: Vector3) -> void:
 	var p: ScorchDecalPool = _get_pool()
 	if p == null:
 		return
-	p.place(pos)
+	p.place(pos, normal)
 
 
-## Place a scorch decal at kill position (enemy death).
-func _on_kill(pos: Vector3) -> void:
+## Place a scorch decal at kill position (enemy death). Normal typically UP for floor kills.
+func _on_kill(pos: Vector3, normal: Vector3) -> void:
 	var p: ScorchDecalPool = _get_pool()
 	if p == null:
 		return
-	p.place(pos)
+	p.place(pos, normal)
 
 
 func _get_pool() -> ScorchDecalPool:
 	if pool != null:
 		return pool
-	# Fallback: find ScorchPool by name in the current scene tree.
+	# Fallback: find first ScorchDecalPool by type anywhere in the current scene.
+	# Type-based search is rename-safe; no hard-coded node name required.
 	var scene_root: Node = get_tree().current_scene
 	if scene_root == null:
 		return null
-	var found: Node = scene_root.find_child("ScorchPool", true, false)
-	if found is ScorchDecalPool:
-		pool = found as ScorchDecalPool
+	var found: ScorchDecalPool = _find_pool_in(scene_root)
+	if found != null:
+		pool = found
 	return pool
+
+
+func _find_pool_in(node: Node) -> ScorchDecalPool:
+	if node is ScorchDecalPool:
+		return node as ScorchDecalPool
+	for child: Node in node.get_children():
+		var result: ScorchDecalPool = _find_pool_in(child)
+		if result != null:
+			return result
+	return null
