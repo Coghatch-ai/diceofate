@@ -15,11 +15,16 @@ const _FX_HIT_BURST: PackedScene = preload("res://entities/vfx/hit_burst.tscn")
 const _FX_DEATH_BURST: PackedScene = preload("res://entities/vfx/death_burst.tscn")
 const _FX_SHOCKWAVE: PackedScene = preload("res://entities/vfx/shockwave_ring.tscn")
 
+## Warmup position: far off-screen so compiled-shader warmup instances are invisible.
+const _WARMUP_POS := Vector3(0.0, -9999.0, 0.0)
+
 ## Path to a surviving VfxRoot Node3D. Optional: if empty, find_child("VfxRoot") is used.
 ## Set explicitly to avoid the tree search cost (e.g. ../../../VfxRoot from weapon context).
 @export var vfx_root_path: NodePath = ^""
 
 var _vfx_root: Node3D
+## Cached Muzzle Marker3D — resolved once in _ready() to avoid per-shot find_child tree walk.
+var _muzzle_cache: Marker3D
 
 
 func _ready() -> void:
@@ -33,14 +38,21 @@ func _ready() -> void:
 	weapon.vfx_impact.connect(_on_impact)
 	weapon.vfx_hit_burst.connect(_on_hit_burst)
 	weapon.vfx_kill.connect(_on_kill)
+	# Cache the Muzzle marker once — avoids find_child() tree walk on every fired signal.
+	var found: Node = weapon.find_child("Muzzle", true, false)
+	if found is Marker3D:
+		_muzzle_cache = found as Marker3D
+	# Warmup: spawn each effect once off-screen so Forward+ compiles their shader variants
+	# at load time, not on the first mid-combat spawn (which causes the frame hitch).
+	# Effects self-free (VfxOneShot on finished, ShockwaveRing on tween end) — no manual cleanup.
+	_warmup_vfx.call_deferred()
 
 
 ## Called on weapon.fired — spawn muzzle spark at Muzzle world position.
 func _on_fired() -> void:
-	var muzzle: Marker3D = _find_muzzle()
-	if muzzle == null:
+	if _muzzle_cache == null:
 		return
-	_spawn_vfx(_FX_MUZZLE, muzzle.global_transform)
+	_spawn_vfx(_FX_MUZZLE, _muzzle_cache.global_transform)
 
 
 ## Called on weapon.vfx_impact — generic impact burst at hit world position (wall/generic).
@@ -90,13 +102,18 @@ func _get_vfx_root() -> Node3D:
 	return _vfx_root
 
 
-func _find_muzzle() -> Marker3D:
-	# Search parent subtree for Muzzle Marker3D. Weapon.gd already caches _muzzle but
-	# it is private — we find it by name to avoid coupling to weapon.gd internals.
-	var parent: Node = get_parent()
-	if parent == null:
-		return null
-	var found: Node = parent.find_child("Muzzle", true, false)
-	if found is Marker3D:
-		return found as Marker3D
-	return null
+## Spawn each effect scene once at a far-off-screen position so Forward+ compiles all
+## shader variants during scene load rather than on the first mid-combat spawn.
+## Each effect self-destructs (VfxOneShot on finished, ShockwaveRing on tween end).
+## Deferred so VfxRoot is resolvable (tree is fully ready when this runs).
+func _warmup_vfx() -> void:
+	var root: Node3D = _get_vfx_root()
+	if root == null:
+		return
+	var warmup_t := Transform3D(Basis.IDENTITY, _WARMUP_POS)
+	for scene: PackedScene in [
+		_FX_MUZZLE, _FX_IMPACT, _FX_HIT_BURST, _FX_DEATH_BURST, _FX_SHOCKWAVE
+	]:
+		var fx: Node3D = scene.instantiate() as Node3D
+		root.add_child(fx)
+		fx.global_transform = warmup_t

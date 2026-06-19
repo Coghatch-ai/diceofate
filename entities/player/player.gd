@@ -185,12 +185,12 @@ func _physics_process(delta: float) -> void:
 	# 7a. Crouch-accuracy: inform active weapon of crouch state every frame.
 	_weapon_controller.set_active_weapon_crouch(_crouch_amount >= 0.5)
 
-	# 7b. Sprint feel: forward sprint state + velocity factor to weapon SprintSway.
-	# velocity_factor computed here; is_sprinting not yet determined (computed at step 8).
-	# We forward a provisional value using last frame's velocity — close enough for sway.
+	# 7b. Sprint/walk feel: forward movement state + velocity factor to weapon SprintSway.
+	# Uses last frame's velocity (provisional) — close enough for sway.
 	var flat_speed_prev: float = Vector3(velocity.x, 0.0, velocity.z).length()
 	var vf: float = clampf(flat_speed_prev / (move_speed * sprint_mult), 0.0, 1.0)
-	_weapon_controller.update_sprint(_was_sprinting, vf, delta)
+	var is_moving_prev: bool = flat_speed_prev > 0.2 and is_on_floor()
+	_weapon_controller.update_sprint(_was_sprinting, is_moving_prev, vf, delta)
 
 	# 8. Knockback stun: decay impulse, override XZ, skip movement input while stunned.
 	if _kb_stun_timer > 0.0:

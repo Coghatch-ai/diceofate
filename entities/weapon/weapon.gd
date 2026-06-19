@@ -277,12 +277,14 @@ func _on_flash_done() -> void:
 	_muzzle_flash.visible = false
 
 
-## Relays sprint state from player to SprintSway child each physics frame.
-func update_sprint(is_sprinting: bool, velocity_factor: float, delta: float) -> void:
+## Relays sprint/walk state from player to SprintSway child each physics frame.
+func update_sprint(
+	is_sprinting: bool, is_moving: bool, velocity_factor: float, delta: float
+) -> void:
 	if _sprint_sway == null:
 		return
 	_sprint_sway.update_sprint(
-		is_sprinting, velocity_factor, _aiming, _firing, _reloading, _swapping, delta
+		is_sprinting, is_moving, velocity_factor, _aiming, _firing, _reloading, _swapping, delta
 	)
 
 

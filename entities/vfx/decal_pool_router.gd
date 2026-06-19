@@ -16,6 +16,10 @@ func _ready() -> void:
 		return
 	_weapon.vfx_impact.connect(_on_impact)
 	_weapon.vfx_kill.connect(_on_kill)
+	# Eagerly resolve pool on _ready (deferred so scene tree is settled) to avoid a
+	# recursive tree walk on every impact/kill signal during combat.
+	if pool == null:
+		_resolve_pool.call_deferred()
 
 
 ## Place a scorch decal at generic impact position (wall, floor hit).
@@ -34,25 +38,16 @@ func _on_kill(pos: Vector3, normal: Vector3) -> void:
 	p.place(pos, normal)
 
 
-func _get_pool() -> ScorchDecalPool:
-	if pool != null:
-		return pool
-	# Fallback: find first ScorchDecalPool by type anywhere in the current scene.
-	# Type-based search is rename-safe; no hard-coded node name required.
+## Resolve pool once (called deferred from _ready) so combat signals find it already cached.
+## Uses find_child on the scene root — rename-safe, runs once at load not per-hit.
+func _resolve_pool() -> void:
 	var scene_root: Node = get_tree().current_scene
 	if scene_root == null:
-		return null
-	var found: ScorchDecalPool = _find_pool_in(scene_root)
-	if found != null:
-		pool = found
+		return
+	var found: Node = scene_root.find_child("ScorchDecalPool", true, false)
+	if found is ScorchDecalPool:
+		pool = found as ScorchDecalPool
+
+
+func _get_pool() -> ScorchDecalPool:
 	return pool
-
-
-func _find_pool_in(node: Node) -> ScorchDecalPool:
-	if node is ScorchDecalPool:
-		return node as ScorchDecalPool
-	for child: Node in node.get_children():
-		var result: ScorchDecalPool = _find_pool_in(child)
-		if result != null:
-			return result
-	return null
