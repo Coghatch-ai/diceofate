@@ -7,6 +7,10 @@ signal hit_confirmed
 signal kill_confirmed
 ## Emitted with world position when a projectile hits any body — consumed by VfxRouter.
 signal vfx_impact(pos: Vector3)
+## Emitted with world position on a confirmed non-fatal enemy hit — consumed by VfxRouter.
+signal vfx_hit_burst(pos: Vector3)
+## Emitted with world position when a kill is confirmed — consumed by VfxRouter.
+signal vfx_kill(pos: Vector3)
 signal ammo_changed(current: int, reserve: int)
 signal out_of_ammo
 signal reload_started(duration: float)
@@ -55,6 +59,8 @@ var _muzzle_flash: OmniLight3D
 var _view_model: Node3D
 var _sprint_sway: SprintSway
 var _firing: bool = false
+# Cached world position of last hit target — used by _on_target_died to emit vfx_kill.
+var _last_hit_pos: Vector3 = Vector3.ZERO
 
 @onready var _cooldown: Timer = $Cooldown
 @onready var _reload_timer: Timer = $Reload
@@ -306,12 +312,19 @@ func _fire() -> void:
 
 
 func _on_projectile_hit(target: Node3D) -> void:
-	vfx_impact.emit(target.global_position)
+	var hit_pos: Vector3 = target.global_position
+	vfx_impact.emit(hit_pos)
 	hit_confirmed.emit()
 	# If the target exposes a `died` signal, subscribe one-shot to detect a kill this frame.
 	# SEAM: duck-typed kill detection — only enemies with `died` trigger kill_confirmed;
 	# world geometry and other bodies are silently ignored (godot-composition rule).
 	if target.has_signal("died"):
+		# Cache position so _on_target_died can emit vfx_kill with the enemy's world pos.
+		_last_hit_pos = hit_pos
+		# Emit hit burst for all enemy-body hits (fatal and non-fatal).
+		# On a killing blow, both vfx_hit_burst and vfx_kill fire — hit_burst is smaller
+		# and fires first, adding to the juice rather than conflicting.
+		vfx_hit_burst.emit(hit_pos)
 		# SEAM: target proven to have `died` signal by has_signal check; Node3D base has connect().
 		# Guard: multi-hit enemies (health>1) survive several bullets; each bullet's projectile.hit
 		# triggers this. CONNECT_ONE_SHOT auto-disconnects after the signal fires (on death), but
@@ -324,3 +337,4 @@ func _on_projectile_hit(target: Node3D) -> void:
 
 func _on_target_died(_enemy: Node) -> void:
 	kill_confirmed.emit()
+	vfx_kill.emit(_last_hit_pos)

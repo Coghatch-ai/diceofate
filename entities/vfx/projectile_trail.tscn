@@ -1,0 +1,36 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="Gradient" id="Gradient_trail"]
+colors = PackedColorArray(1.0, 0.95, 0.6, 1.0, 0.7, 0.35, 0.05, 0.0)
+offsets = PackedFloat32Array(0.0, 1.0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_trail"]
+gradient = SubResource("Gradient_trail")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_trail"]
+lifetime_randomness = 0.1
+emission_shape = 0
+direction = Vector3(0, 0, 1)
+spread = 5.0
+initial_velocity_min = 0.0
+initial_velocity_max = 1.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.02
+scale_max = 0.05
+color_ramp = SubResource("GradientTexture1D_trail")
+
+[sub_resource type="SphereMesh" id="SphereMesh_trail"]
+radius = 0.015
+height = 0.03
+
+[node name="ProjectileTrail" type="GPUParticles3D"]
+amount = 32
+lifetime = 0.15
+one_shot = false
+explosiveness = 0.0
+randomness = 0.0
+local_coords = true
+process_material = SubResource("ParticleProcessMaterial_trail")
+draw_pass_1 = SubResource("SphereMesh_trail")
+cast_shadow = 0
+editor_description = "Continuous warm-yellow trail — local_coords=true so it streams behind projectile."

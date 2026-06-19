@@ -2,12 +2,18 @@
 class_name VfxRouter
 extends Node
 
-## Art-director tuning knobs (Phase-1 defaults; refine per-scene):
+## Art-director tuning knobs (defaults; refine per-scene):
 ## Muzzle spark: white-hot (1.0, 0.95, 0.8) -> orange (0.7, 0.35, 0.05) — muzzle_spark.tscn.
 ## Impact burst: HAZARD_AMBER (0.7, 0.46, 0.12) -> grey (0.55, 0.55, 0.55) — impact_burst.tscn.
+## Hit burst: crimson->amber — hit_burst.tscn.
+## Death burst: crimson->amber->grey — death_burst.tscn.
+## Shockwave: warm orange additive, end_scale=4.0, duration=0.15 — shockwave_ring.tscn.
 
 const _FX_MUZZLE: PackedScene = preload("res://entities/vfx/muzzle_spark.tscn")
 const _FX_IMPACT: PackedScene = preload("res://entities/vfx/impact_burst.tscn")
+const _FX_HIT_BURST: PackedScene = preload("res://entities/vfx/hit_burst.tscn")
+const _FX_DEATH_BURST: PackedScene = preload("res://entities/vfx/death_burst.tscn")
+const _FX_SHOCKWAVE: PackedScene = preload("res://entities/vfx/shockwave_ring.tscn")
 
 ## Path to a surviving VfxRoot Node3D. Optional: if empty, find_child("VfxRoot") is used.
 ## Set explicitly to avoid the tree search cost (e.g. ../../../VfxRoot from weapon context).
@@ -25,23 +31,35 @@ func _ready() -> void:
 		return
 	weapon.fired.connect(_on_fired)
 	weapon.vfx_impact.connect(_on_impact)
+	weapon.vfx_hit_burst.connect(_on_hit_burst)
+	weapon.vfx_kill.connect(_on_kill)
 
 
-## Called by weapon.gd _fire() path after shot fires.
+## Called on weapon.fired — spawn muzzle spark at Muzzle world position.
 func _on_fired() -> void:
-	# Spawn spark at Muzzle world position. Muzzle is a sibling path under the view-model;
-	# weapon.gd owns the typed _muzzle ref but we can't reach it here without coupling.
-	# Instead, search parent for the Muzzle Marker3D by group/name (composition-safe).
 	var muzzle: Marker3D = _find_muzzle()
 	if muzzle == null:
 		return
 	_spawn_vfx(_FX_MUZZLE, muzzle.global_transform)
 
 
-## Called by weapon.gd when a projectile hits (carries world position).
+## Called on weapon.vfx_impact — generic impact burst at hit world position (wall/generic).
 func _on_impact(pos: Vector3) -> void:
 	var t := Transform3D(Basis.IDENTITY, pos)
 	_spawn_vfx(_FX_IMPACT, t)
+
+
+## Called on weapon.vfx_hit_burst — small crimson spark on enemy hit (fatal or non-fatal).
+func _on_hit_burst(pos: Vector3) -> void:
+	var t := Transform3D(Basis.IDENTITY, pos)
+	_spawn_vfx(_FX_HIT_BURST, t)
+
+
+## Called on weapon.vfx_kill — large death burst + shockwave ring at kill position.
+func _on_kill(pos: Vector3) -> void:
+	var t := Transform3D(Basis.IDENTITY, pos)
+	_spawn_vfx(_FX_DEATH_BURST, t)
+	_spawn_vfx(_FX_SHOCKWAVE, t)
 
 
 func _spawn_vfx(scene: PackedScene, at: Transform3D) -> void:
