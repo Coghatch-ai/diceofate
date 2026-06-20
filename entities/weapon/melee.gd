@@ -17,16 +17,21 @@ signal kill_confirmed
 ## Emitted on every confirmed melee connect; carries the hitter's world position so
 ## player.gd can relay knockback direction to the struck body.
 signal hit_with_position(hitter_pos: Vector3)
+## Emitted when the swing animation fully completes (recover phase done).
+## weapon_controller listens to hide the Melee root when a gun slot is active.
+signal swing_finished
 
 # Rest: centred, neutral.
 const _VM_REST_POS := Vector3(0.0, 0.0, 0.0)
 const _VM_REST_ROT := Vector3.ZERO
-# Wind-up: lifted overhead-right — pitch up (neg X), yaw right (+Y), push slightly off +X edge.
+# Wind-up: head pulled back/up — pitch back (pos X rotates +Z head away from camera),
+# yaw right (+Y). Head leads into the arc; handle trails.
 const _VM_WINDUP_POS := Vector3(0.12, 0.10, -0.05)
-const _VM_WINDUP_ROT := Vector3(-65.0, 25.0, 0.0)
-# Strike: smashed down-and-across to lower-left — pitch forward (pos X), yaw left (-Y).
+const _VM_WINDUP_ROT := Vector3(65.0, 25.0, 0.0)
+# Strike: head swings forward-down through target — pitch forward (neg X drops head toward
+# world floor), yaw left (-Y). Head is the contact point at slash pose.
 const _VM_SLASH_POS := Vector3(-0.06, -0.08, -0.10)
-const _VM_SLASH_ROT := Vector3(55.0, -20.0, 0.0)
+const _VM_SLASH_ROT := Vector3(-55.0, -20.0, 0.0)
 
 ## Seconds between swings.
 @export var cooldown: float = 0.75
@@ -53,11 +58,14 @@ func _ready() -> void:
 
 
 ## Called by player.gd on melee input press.
+## Shows root node so the hammer is visible even when not in the melee weapon slot
+## (weapon_controller hides root between swings; try_melee re-shows it for the swing duration).
 func try_melee() -> bool:
 	if _on_cooldown:
 		return false
 	_on_cooldown = true
 	_cooldown_timer.start()
+	visible = true
 	_play_thrust()
 	_open_damage_window()
 	return true
@@ -92,13 +100,10 @@ func _on_hitbox_body_entered(body: Node3D) -> void:
 func _apply_hit(body: Node3D) -> void:
 	if not body.has_method("on_hit"):
 		return
-	# SEAM: duck-typed hit — any body with on_hit() is a valid melee target (godot-composition).
-	@warning_ignore("unsafe_method_access")
-	body.on_hit()
-	hit_confirmed.emit()
-	# Carry hitter position so player.gd can push knockback in the correct direction.
-	hit_with_position.emit(global_position)
-	# Kill-confirm: subscribe one-shot to died if the target has it.
+	# Kill-confirm: subscribe BEFORE on_hit() so the one-shot catches died when it fires
+	# synchronously inside on_hit() on a fatal blow (health → 0 emits died immediately).
+	# Connecting AFTER on_hit() means a one-shot grunt is already dead before the listener
+	# is attached — kill_confirmed never fires.
 	# Guard: is_connected check prevents double-connect on multi-hit enemies (CONNECT_ONE_SHOT
 	# only auto-removes AFTER died fires; a surviving tank stays connected between swings).
 	if body.has_signal("died"):
@@ -106,6 +111,12 @@ func _apply_hit(body: Node3D) -> void:
 		@warning_ignore("unsafe_method_access")
 		if not body.is_connected("died", _on_target_died):
 			body.connect("died", _on_target_died, CONNECT_ONE_SHOT)
+	# SEAM: duck-typed hit — any body with on_hit() is a valid melee target (godot-composition).
+	@warning_ignore("unsafe_method_access")
+	body.on_hit()
+	hit_confirmed.emit()
+	# Carry hitter position so player.gd can push knockback in the correct direction.
+	hit_with_position.emit(global_position)
 
 
 func _on_target_died(_enemy: Node) -> void:
@@ -178,4 +189,4 @@ func _play_thrust() -> void:
 		. set_trans(Tween.TRANS_SINE)
 	)
 
-	_thrust_tween.tween_callback(func() -> void: _view_model.visible = false)
+	_thrust_tween.tween_callback(func() -> void: swing_finished.emit())

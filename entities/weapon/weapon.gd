@@ -308,8 +308,12 @@ func _fire() -> void:
 	if half_angle > 0.0:
 		var rand_yaw: float = randf_range(-half_angle, half_angle)
 		var rand_pitch: float = randf_range(-half_angle, half_angle)
-		spread_basis = spread_basis.rotated(spread_basis.y, rand_yaw)
-		spread_basis = spread_basis.rotated(spread_basis.x, rand_pitch)
+		var yaw_axis: Vector3 = spread_basis.y.normalized()
+		if yaw_axis.length_squared() > 0.0:
+			spread_basis = spread_basis.rotated(yaw_axis, rand_yaw)
+		var pitch_axis: Vector3 = spread_basis.x.normalized()
+		if pitch_axis.length_squared() > 0.0:
+			spread_basis = spread_basis.rotated(pitch_axis, rand_pitch)
 	projectile.global_transform = Transform3D(spread_basis, _muzzle.global_position)
 	# SEAM: forward hit_confirmed up to weapon so hosts can react without coupling to Projectile.
 	projectile.hit.connect(_on_projectile_hit)

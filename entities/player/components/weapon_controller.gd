@@ -17,7 +17,9 @@ signal fired
 
 var _crosshair: Crosshair
 var _ammo_hud: ArenaHud
+# Null when melee slot is active (slot index 2).
 var _active_weapon: Weapon
+var _slot_index: int = 0
 var _swapping: bool = false
 var _aiming: bool = false
 var _hit_stop_active: bool = false
@@ -35,7 +37,12 @@ var _ads_tween: Tween
 
 
 func _ready() -> void:
+	_slot_index = 0
 	_active_weapon = _pistol
+	# Ensure only the active gun slot is visible on spawn.
+	# _melee is intentionally left visible — its HammerViewModel self-hides at rest
+	# (melee.gd _ready sets _view_model.visible = false). Hiding the _melee node here
+	# would block the V-key quick-melee from showing the view-model while a gun is active.
 	_pistol.visible = true
 	_rifle.visible = false
 	_connect_weapon_signals(_pistol)
@@ -43,6 +50,9 @@ func _ready() -> void:
 	_melee.hit_confirmed.connect(_on_hit_confirmed)
 	_melee.kill_confirmed.connect(_on_kill_confirmed)
 	_melee.hit_with_position.connect(_on_melee_hit)
+	# Hide Melee root after each quick-melee swing when a gun slot is active.
+	# In the melee slot (_slot_index == 2) the root stays visible as the held weapon.
+	_melee.swing_finished.connect(_on_melee_swing_finished)
 
 
 ## Called by the level host (main.gd) after load to inject the HUD crosshair.
@@ -98,11 +108,12 @@ func process_input(is_aiming_pressed: bool, ads_released: bool) -> void:
 		_set_aiming(false)
 
 	# Fire on left-click (held); cooldown timer caps cadence, not input.
-	if Input.is_action_pressed("shoot"):
+	# Null when melee slot active — guns only.
+	if _active_weapon != null and Input.is_action_pressed("shoot"):
 		_active_weapon.try_fire()
 
 	# Manual reload (R); weapon guards against full mag / already reloading.
-	if Input.is_action_just_pressed("reload"):
+	if _active_weapon != null and Input.is_action_just_pressed("reload"):
 		_active_weapon.start_reload()
 
 	# Swap weapon (Q) — debounced: ignore while swap in flight.
@@ -155,7 +166,8 @@ func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> b
 
 func _set_aiming(aiming: bool) -> void:
 	_aiming = aiming
-	_active_weapon.set_aiming(aiming)
+	if _active_weapon != null:
+		_active_weapon.set_aiming(aiming)
 
 
 func _swap_weapon() -> void:
@@ -165,19 +177,40 @@ func _swap_weapon() -> void:
 		if _ads_tween:
 			_ads_tween.kill()
 	_swapping = true
-	var outgoing: Weapon = _active_weapon
-	var incoming: Weapon = _rifle if _active_weapon == _pistol else _pistol
-	outgoing.play_holster()
-	# Wait for the holster (0.12 s) then flip visibility and start the draw.
-	get_tree().create_timer(0.12).timeout.connect(
+	# 3-slot cycle: 0=pistol, 1=rifle, 2=melee.
+	var next_index: int = (_slot_index + 1) % 3
+	var outgoing_weapon: Weapon = _active_weapon
+	# Determine incoming weapon (null = melee slot).
+	var incoming_weapon: Weapon
+	if next_index == 0:
+		incoming_weapon = _pistol
+	elif next_index == 1:
+		incoming_weapon = _rifle
+	else:
+		incoming_weapon = null
+	# Holster outgoing gun (skip holster anim for melee slot outgoing — no gun to dip).
+	if outgoing_weapon != null:
+		outgoing_weapon.play_holster()
+	var holster_wait: float = 0.12 if outgoing_weapon != null else 0.0
+	get_tree().create_timer(holster_wait).timeout.connect(
 		func() -> void:
-			outgoing.visible = false
-			incoming.visible = true
-			_active_weapon = incoming
-			if _ammo_hud != null:
-				_wire_ammo_hud(_active_weapon)
-			incoming.play_draw()
-			incoming.swap_draw_finished.connect(_on_swap_draw_finished, CONNECT_ONE_SHOT),
+			# Hide all slots; show only the incoming one.
+			_pistol.visible = false
+			_rifle.visible = false
+			_melee.visible = false
+			_slot_index = next_index
+			_active_weapon = incoming_weapon
+			if incoming_weapon != null:
+				incoming_weapon.visible = true
+				if _ammo_hud != null:
+					_wire_ammo_hud(incoming_weapon)
+				incoming_weapon.play_draw()
+				incoming_weapon.swap_draw_finished.connect(_on_swap_draw_finished, CONNECT_ONE_SHOT)
+			else:
+				# Melee slot: show the Melee node; hammer visibility is owned by melee.gd.
+				_melee.visible = true
+				# No draw animation for melee; swap completes immediately.
+				_on_swap_draw_finished(),
 		CONNECT_ONE_SHOT
 	)
 
@@ -187,7 +220,10 @@ func _on_swap_draw_finished() -> void:
 
 
 ## Wire ammo/reload signals from weapon to HUD. Disconnects previous weapon first.
+## No-op if weapon is null (melee slot has no ammo HUD).
 func _wire_ammo_hud(weapon: Weapon) -> void:
+	if weapon == null:
+		return
 	# Disconnect old weapon signals if connected to avoid duplicate HUD updates.
 	for w: Weapon in [_pistol, _rifle]:
 		if w.ammo_changed.is_connected(_ammo_hud.set_ammo):
@@ -219,6 +255,8 @@ func _connect_weapon_signals(weapon: Weapon) -> void:
 
 
 func _on_weapon_fired() -> void:
+	if _active_weapon == null:
+		return
 	# Impulse goes to spring TARGET (not applied value) — stage 2 lerp does the chasing.
 	_recoil_target_pitch = minf(_recoil_target_pitch + _active_weapon.recoil_pitch, recoil_max)
 	_recoil_target_yaw = clampf(
@@ -273,3 +311,10 @@ func _do_melee_camera_kick() -> void:
 	# Sharper downward punch (positive X = look down) for melee impact feel.
 	tw.tween_property(_head, "rotation:x", base_x + melee_kick_angle, kick_duration * 0.2)
 	tw.tween_property(_head, "rotation:x", base_x, kick_duration * 1.2)
+
+
+## Hides Melee root after a quick-melee swing when a gun slot is active.
+## In melee slot (_slot_index == 2) the root stays visible as the held weapon.
+func _on_melee_swing_finished() -> void:
+	if _slot_index != 2:
+		_melee.visible = false
