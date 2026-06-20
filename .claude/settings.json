@@ -37,5 +37,26 @@
       "mcp__ui__request_asset",
       "mcp__ui__ask"
     ]
+  },
+  "skillOverrides": {
+    "autonomous-main-goal": "on",
+    "claude-api": "on",
+    "code-review": "on",
+    "deep-research": "off",
+    "fewer-permission-prompts": "off",
+    "init": "off",
+    "keybindings-help": "off",
+    "loop": "off",
+    "review": "on",
+    "run": "off",
+    "schedule": "off",
+    "security-review": "off",
+    "simplify": "off",
+    "update-config": "on",
+    "verify": "off",
+    "caveman": "on",
+    "grill-me": "off",
+    "handoff": "off",
+    "write-a-skill": "off"
   }
 }
