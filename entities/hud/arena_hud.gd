@@ -1,14 +1,18 @@
-# entities/hud/arena_hud.gd — ArenaHud: score, enemies, lives, ammo, and end panel.
+# entities/hud/arena_hud.gd — ArenaHud: score, enemies, lives pips, ammo, stamina bar, end panel.
 class_name ArenaHud
 extends Control
 
-var _last_ammo_text: String = ""
+const _MAX_PIPS: int = 3
 
-@onready var _score_label: Label = $ScoreLabel
-@onready var _active_label: Label = $ActiveLabel
-@onready var _lives_label: Label = $LivesLabel
-@onready var _ammo_label: Label = $AmmoLabel
-@onready var _stamina_label: Label = $StaminaLabel
+var _last_ammo_text: String = ""
+var _pulse_tween: Tween
+
+@onready var _score_label: Label = $TopCenter/ScoreLabel
+@onready var _active_label: Label = $TopCenter/ActiveLabel
+@onready var _lives_container: HBoxContainer = $BottomLeft/LivesContainer
+@onready var _stamina_bar: ColorRect = $BottomLeft/StaminaRow/StaminaBar
+@onready var _stamina_fill: ColorRect = $BottomLeft/StaminaRow/StaminaBar/StaminaFill
+@onready var _ammo_label: Label = $BottomRight/AmmoLabel
 @onready var _result_panel: Panel = $ResultPanel
 @onready var _result_label: Label = $ResultPanel/ResultLabel
 @onready var _life_lost_label: Label = $LifeLostLabel
@@ -33,11 +37,19 @@ func set_active(n: int) -> void:
 
 
 func set_lives(n: int) -> void:
-	_lives_label.text = "LIVES  %d" % n
+	var pips: Array[Node] = _lives_container.get_children()
+	for i: int in range(pips.size()):
+		# SEAM: pip nodes are ColorRect children; get_children() returns Array[Node].
+		@warning_ignore("unsafe_property_access")
+		pips[i].visible = i < n
+	if n <= 1:
+		_start_pulse()
+	else:
+		_stop_pulse()
 
 
 func set_ammo(current: int, reserve: int) -> void:
-	_last_ammo_text = "AMMO  %d / %d" % [current, reserve]
+	_last_ammo_text = "%d / %d" % [current, reserve]
 	_ammo_label.text = _last_ammo_text
 
 
@@ -59,8 +71,11 @@ func hide_result() -> void:
 
 
 func set_stamina(current: float, maximum: float) -> void:
-	var pct: int = int(current / maximum * 100.0) if maximum > 0.0 else 0
-	_stamina_label.text = "STAMINA  %d%%" % pct
+	if maximum <= 0.0:
+		_stamina_fill.size.x = 0.0
+		return
+	var ratio: float = clampf(current / maximum, 0.0, 1.0)
+	_stamina_fill.size.x = _stamina_bar.size.x * ratio
 
 
 ## Show a brief centered "LIFE LOST" flash that fades out over ~1 s.
@@ -73,3 +88,18 @@ func flash_life_lost() -> void:
 	var tw: Tween = create_tween()
 	tw.tween_property(_life_lost_label, "modulate", Color(1.0, 1.0, 1.0, 0.0), 1.0)
 	tw.tween_callback(_life_lost_label.hide)
+
+
+func _start_pulse() -> void:
+	if _pulse_tween != null:
+		_pulse_tween.kill()
+	_pulse_tween = create_tween().set_loops()
+	_pulse_tween.tween_property(_lives_container, "modulate", Color(1.0, 0.0, 0.0, 1.0), 0.4)
+	_pulse_tween.tween_property(_lives_container, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.4)
+
+
+func _stop_pulse() -> void:
+	if _pulse_tween != null:
+		_pulse_tween.kill()
+		_pulse_tween = null
+	_lives_container.modulate = Color.WHITE

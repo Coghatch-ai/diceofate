@@ -1,4 +1,4 @@
-# entities/vfx/vfx_router.gd — thin router: Weapon signals -> one-shot VFX scenes. No autoload.
+# entities/vfx/vfx_router.gd — thin router: Gun signals -> one-shot VFX scenes. No autoload.
 class_name VfxRouter
 extends Node
 
@@ -29,10 +29,10 @@ var _muzzle_cache: Marker3D
 
 func _ready() -> void:
 	# vfx_root_path is optional; _get_vfx_root() falls back to find_child("VfxRoot") if empty.
-	# Parent is a Weapon — typed cast is safe (wiring down to known type, godot-composition).
-	var weapon: Weapon = get_parent() as Weapon
+	# Parent is a Gun — typed cast is safe (wiring down to known type, godot-composition).
+	var weapon: Gun = get_parent() as Gun
 	if weapon == null:
-		push_error("VfxRouter: parent is not a Weapon node.")
+		push_error("VfxRouter: parent is not a Gun node.")
 		return
 	weapon.fired.connect(_on_fired)
 	weapon.vfx_impact.connect(_on_impact)

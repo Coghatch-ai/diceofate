@@ -2,8 +2,8 @@
 class_name FiringYard
 extends Node3D
 
-# Fraction of the period that is daylight (sunrise → sunset arc): 300/420.
-const DAYLIGHT_FRACTION: float = 300.0 / 420.0
+# Fraction of the period that is daylight (sunrise → sunset arc): ~5/7 ≈ 0.714.
+const DAYLIGHT_FRACTION: float = 5.0 / 7.0
 
 # --- Sun pitch (X rotation) keyframes (degrees) ---
 # Sunrise: low, angled in from the east (negative pitch = tilted down from zenith)
@@ -67,13 +67,13 @@ const CRUSHER_X_MIN: float = 8.0
 const CRUSHER_X_MAX: float = 20.0
 const CRUSHER_SPEED: float = 4.0  # m/s
 
-# Total period in seconds: ~5 min daylight arc + ~2 min night = ~7 min.
-# Lower for verification runs (e.g. 14.0 = 10x speed).
 ## WaveManager sibling — injected by main.gd after level load.
 ## Used to route fall/hazard life-loss through the shared lose_life() seam.
 @export var wave_manager: WaveManager
 
-@export var period_seconds: float = 420.0
+# Total period in seconds: ~214s daylight arc + ~86s night = 5 min full cycle.
+# Lower for verification runs (e.g. 12.0 = 25x speed).
+@export var period_seconds: float = 300.0
 
 # Normalized day-time in [0, 1). Starts at sunrise (t=0) per design doc.
 var _day_t: float = 0.0

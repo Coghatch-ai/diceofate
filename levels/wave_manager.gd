@@ -299,8 +299,9 @@ func lose_life() -> void:
 		return
 
 	# Lives remain — flash, clear enemies, advance to re-seed.
+	# Do NOT set _run_over here: the run is not over; advance_level triggers a level swap.
+	# Enemies are freed below before the signal fires, so no stale _on_enemy_died calls arrive.
 	life_lost.emit()
-	_run_over = true
 	for e: Enemy in _active_enemies:
 		if is_instance_valid(e):
 			e.queue_free()

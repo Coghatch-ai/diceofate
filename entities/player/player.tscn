@@ -27,7 +27,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="WeaponController/Head" unique_id=1798063931]
 
-[node name="Weapon" parent="WeaponController/Head" unique_id=457896423 instance=ExtResource("2")]
+[node name="Pistol" parent="WeaponController/Head" unique_id=457896423 instance=ExtResource("2")]
 transform = Transform3D(2.6349742, 0, 0, 0, 1.7686827, 0, 0, 0, 1.2803954, 0, -0.013823986, -0.016185582)
 visible = false
 
@@ -36,8 +36,8 @@ editor_description = "Rifle — inactive on start; swapped in by WeaponControlle
 transform = Transform3D(0.9999993, 0, -0.0012042768, 0, 1, 0, 0.0012042768, 0, 0.9999993, 0.050203145, -0.007646203, 0.035382867)
 visible = false
 
-[node name="Melee" parent="WeaponController/Head" unique_id=1497342218 instance=ExtResource("5_melee")]
-editor_description = "Always-present knife; activated by key V independent of active gun weapon"
+[node name="Hammer" parent="WeaponController/Head" unique_id=1497342218 instance=ExtResource("5_melee")]
+editor_description = "Hammer melee slot; shown/hidden by WeaponController on Q swap like guns."
 transform = Transform3D(1.1591445, 0, 0.2673091, 0, 0.59999996, 0, -0.48464298, 0, 0.6393363, 0.16778004, 0, -0.2454479)
 
 [node name="JumpSfx" type="AudioStreamPlayer" parent="." unique_id=740762720]

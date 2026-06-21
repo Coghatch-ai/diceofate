@@ -43,7 +43,7 @@ live in this repo's `.claude/`; everything else comes from the plugin.
   | Vegetation / tiny detail | billboard sprite | `godot-foliage` rig |
 
 - Naming: node names PascalCase; files and folders snake_case; one scene per entity in `entities/<name>/`.
-- Input actions: `move_left, move_right, move_forward, move_back, jump, cycle_level` (Tab).
+- Input actions: `move_left, move_right, move_forward, move_back, jump, sprint, crouch, cycle_level` (Tab), `toggle_controls` (H); combat: `shoot` (LMB), `aim` (RMB), `melee` (V), `reload` (R), `equip_weapon` (Q), `restart` (Enter).
 - Shader contract: `shaders/post/` for screen-space post-process (skill `godot-screen-effects`);
   `shaders/material/` for spatial/vertex material shaders (grass, foliage, toon — NOT post-process).
 - Entry point: `res://main.tscn` + `res://main.gd` at the project root (`run/main_scene`). F5 launches
@@ -60,6 +60,8 @@ live in this repo's `.claude/`; everything else comes from the plugin.
 - godot-fps-game-feel: the L3 periodic polish SWEEP (NOT a per-commit gate) — five measurable categories (input-feedback ≥2 channels per action, VFX-SFX timing, perf headroom ≥60 FPS / no first-spawn hitch, input responsiveness & readability, audio presence), plus weapon-feel specifics (recoil reads, walk-vs-sprint view-model, weapon identity). Researcher diffs the windowed build vs the checklist → godot-dev fixes → re-verify. Audits already-built systems; does not author them.
 - Composition over inheritance (skill `godot-composition`): engine-node base + component children,
   signals up / calls down; modularize ON DEMAND only.
+- Shared helpers: reusable cross-entity logic lives in `tools/lib/` (e.g. enemy_utils, vfx_utils,
+  LevelNodes) — extract on the 2nd duplication; outstanding debt tracked in `design/known-problems.md`.
 - Code rules: strict typed GDScript (skill `godot-code-rules`); gate `tools/validate.sh`, mandatory
   before reporting any `.gd`/`.tscn` change. Never weaken warning levels or lint caps to pass it.
 - Quality stack (beyond validate.sh's L0 load+render): L1 baseline = `design/review_checklist.md`,

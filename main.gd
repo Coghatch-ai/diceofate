@@ -47,17 +47,20 @@ func load_level(path: String) -> void:
 		# free(), not queue_free(): one frame of two live levels conflicts camera/WorldEnvironment
 		current_level.free()
 		current_level = null
-	current_level = (load(path) as PackedScene).instantiate()
+	var packed := load(path) as PackedScene
+	if packed == null:
+		push_error("main: failed to load level scene: %s" % path)
+		return
+	current_level = packed.instantiate()
 	_level_host.add_child(current_level)
 
-	# If the level ships an FPS player, make its eye-camera current in the SubViewport
-	# and inject the persistent HUD crosshair for fire/hit feedback.
-	# The orthographic CameraRig remains in the scene tree but is inert for FPS levels.
+	# Wire the FPS player's eye-camera and attach the outline PostProcessQuad to it.
 	var player := current_level.find_child("Player") as Player
 	if player != null:
 		var camera := player.find_child("Camera3D", true, false) as Camera3D
 		if camera != null:
 			camera.make_current()
+			_attach_post_process_quad(camera)
 		player.set_crosshair(_crosshair)
 		player.set_ammo_hud(_arena_hud)
 
@@ -81,6 +84,26 @@ func load_level(path: String) -> void:
 		# wave_manager export but have no common base class.
 		@warning_ignore("unsafe_property_access")
 		current_level.wave_manager = wave_manager
+
+
+func _attach_post_process_quad(camera: Camera3D) -> void:
+	# Remove any quad left from a previous level (camera node is recreated each swap).
+	var existing := camera.get_node_or_null("PostProcessQuad")
+	if existing != null:
+		existing.queue_free()
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/post/post_process.gdshader") as Shader
+	mat.set_shader_parameter("depth_threshold", 0.5)
+	mat.set_shader_parameter("normal_threshold", 0.4)
+	var mesh := QuadMesh.new()
+	mesh.flip_faces = true
+	mesh.size = Vector2(2.0, 2.0)
+	var quad := MeshInstance3D.new()
+	quad.name = "PostProcessQuad"
+	quad.mesh = mesh
+	quad.material_override = mat
+	quad.extra_cull_margin = 16384.0
+	camera.add_child(quad)
 
 
 func _on_advance_level(score: int, lives: int) -> void:
@@ -116,6 +139,5 @@ func _play_death_sfx() -> void:
 	player.bus = &"SFX"
 	player.process_mode = PROCESS_MODE_ALWAYS
 	add_child(player)
-	if not player.finished.is_connected(player.queue_free):
-		player.finished.connect(player.queue_free)
+	player.finished.connect(player.queue_free)
 	player.play()

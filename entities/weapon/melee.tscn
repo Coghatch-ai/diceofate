@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://melee0001"]
 
-[ext_resource type="Script" uid="uid://d10mumpvnxtg7" path="res://entities/weapon/melee.gd" id="1"]
+[ext_resource type="Script" path="res://entities/weapon/hammer.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://xs42hjo3v6aq" path="res://assets/models/Doublesided_Hammer.glb" id="2_bm8rh"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hitbox"]
 size = Vector3(0.2868927, 0.23037414, 0.488887)
 
-[node name="Melee" type="Node3D" unique_id=1596539683]
+[node name="Hammer" type="Node3D" unique_id=1596539683]
 script = ExtResource("1")
 
 [node name="HammerViewModel" type="Node3D" parent="." unique_id=282851541]
@@ -17,13 +17,13 @@ transform = Transform3D(2.2, 0, 0, 0, 2.2, 0, 0, 0, 2.2, 0.1, -0.14, -0.28)
 editor_description = "Doublesided_Hammer.glb — clean start, no transform override"
 transform = Transform3D(0.0071612927, 0, 0.19987175, 0, 0.2, 0, -0.19987175, 0, 0.0071612927, 0, -0.18468362, -0.038236976)
 
-[node name="MeleeHitbox" type="Area3D" parent="." unique_id=1672561840]
+[node name="HammerHitbox" type="Area3D" parent="." unique_id=1672561840]
 editor_description = "Hitbox 1.6x1.6x2.2 m reach in front of Head; mask=8 targets enemy layer only"
 collision_layer = 0
 collision_mask = 8
 monitorable = false
 
-[node name="HitboxShape" type="CollisionShape3D" parent="MeleeHitbox" unique_id=772954134]
+[node name="HitboxShape" type="CollisionShape3D" parent="HammerHitbox" unique_id=772954134]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.10620031, 0.07557402, -0.38182247)
 shape = SubResource("BoxShape3D_hitbox")
 

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://weapon0001"]
 
-[ext_resource type="Script" uid="uid://djpt3vkfgnd8x" path="res://entities/weapon/weapon.gd" id="1"]
+[ext_resource type="Script" path="res://entities/weapon/gun.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://b11035icliyy" path="res://entities/projectile/projectile.tscn" id="2"]
 [ext_resource type="AudioStream" uid="uid://br88af7rl8n1e" path="res://assets/audio/pistol_shoot.wav" id="4"]
 [ext_resource type="PackedScene" uid="uid://ctxx6c3k2hf4j" path="res://assets/models/scifi_pistol.glb" id="4_ug0dp"]
@@ -10,7 +10,7 @@
 [ext_resource type="Script" uid="uid://c5jnxcakqy4un" path="res://entities/vfx/vfx_router.gd" id="8"]
 [ext_resource type="Script" uid="uid://b7jkqwspi6wkm" path="res://entities/vfx/decal_pool_router.gd" id="9"]
 
-[node name="Weapon" type="Node3D" unique_id=159509955]
+[node name="Pistol" type="Node3D" unique_id=159509955]
 script = ExtResource("1")
 projectile_scene = ExtResource("2")
 

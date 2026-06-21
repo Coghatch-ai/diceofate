@@ -1,6 +1,6 @@
-# entities/weapon/melee.gd — melee hammer: Area3D hitbox swing, always-available on key V.
+# entities/weapon/hammer.gd — hammer melee weapon: Area3D hitbox swing on LMB (hammer slot).
 # Damage 1 per hit (kills grunt/runner/magnet in 1, tank in 3). Range ~2.2 m. Cooldown 0.75 s.
-# Plugs into the same hit_confirmed/kill_confirmed contract as weapon.gd (godot-fps-enemy-combat).
+# Plugs into the same hit_confirmed/kill_confirmed contract as gun.gd (godot-fps-enemy-combat).
 # Hit detection: monitoring is ALWAYS ON (never toggled — toggling clears the physics overlap
 # cache, making get_overlapping_bodies() return empty for bodies already in range).
 # On swing: query get_overlapping_bodies() for stationary/already-in-range enemies first,
@@ -9,7 +9,9 @@
 # Animation: diagonal overhead smash — wind-up lifts hammer up-and-back with a right-side
 # pull (X pitch up, Y yaw right, shift +X off-screen edge), then fast smash down-and-across
 # to lower-left (X pitch forward, Y yaw left). Gives arc depth vs pure-X overhead chop.
-class_name Melee
+# Rest-visibility: HammerViewModel stays VISIBLE at rest when hammer slot is active.
+# weapon_controller shows/hides the Hammer root on slot swap like guns.
+class_name Hammer
 extends Node3D
 
 signal hit_confirmed
@@ -17,9 +19,6 @@ signal kill_confirmed
 ## Emitted on every confirmed melee connect; carries the hitter's world position so
 ## player.gd can relay knockback direction to the struck body.
 signal hit_with_position(hitter_pos: Vector3)
-## Emitted when the swing animation fully completes (recover phase done).
-## weapon_controller listens to hide the Melee root when a gun slot is active.
-signal swing_finished
 
 # Rest: centred, neutral.
 const _VM_REST_POS := Vector3(0.0, 0.0, 0.0)
@@ -40,7 +39,7 @@ var _on_cooldown: bool = false
 var _swing_active: bool = false
 var _thrust_tween: Tween
 
-@onready var _hitbox: Area3D = $MeleeHitbox
+@onready var _hitbox: Area3D = $HammerHitbox
 @onready var _cooldown_timer: Timer = $Cooldown
 @onready var _view_model: Node3D = $HammerViewModel
 
@@ -49,7 +48,9 @@ func _ready() -> void:
 	_cooldown_timer.one_shot = true
 	_cooldown_timer.wait_time = cooldown
 	_cooldown_timer.timeout.connect(_on_cooldown_done)
-	_view_model.visible = false
+	# HammerViewModel stays visible at rest — hammer is held weapon when slot is active.
+	# weapon_controller shows/hides the Hammer root on Q swap like guns.
+	_view_model.visible = true
 	# monitoring stays TRUE permanently — toggling it clears the physics overlap cache,
 	# which breaks get_overlapping_bodies() for enemies already inside the hitbox.
 	# Damage is gated by _swing_active instead.
@@ -57,15 +58,17 @@ func _ready() -> void:
 	_hitbox.body_entered.connect(_on_hitbox_body_entered)
 
 
-## Called by player.gd on melee input press.
-## Shows root node so the hammer is visible even when not in the melee weapon slot
-## (weapon_controller hides root between swings; try_melee re-shows it for the swing duration).
+## Exposes hitbox bodies for weapon_controller to apply knockback.
+func get_hit_bodies() -> Array[Node3D]:
+	return _hitbox.get_overlapping_bodies()
+
+
+## Called by weapon_controller on LMB when hammer slot is active.
 func try_melee() -> bool:
 	if _on_cooldown:
 		return false
 	_on_cooldown = true
 	_cooldown_timer.start()
-	visible = true
 	_play_thrust()
 	_open_damage_window()
 	return true
@@ -188,5 +191,3 @@ func _play_thrust() -> void:
 		. set_ease(Tween.EASE_OUT)
 		. set_trans(Tween.TRANS_SINE)
 	)
-
-	_thrust_tween.tween_callback(func() -> void: swing_finished.emit())

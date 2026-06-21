@@ -83,19 +83,37 @@ func _apply_magnet_tint() -> void:
 
 
 ## Build the bubble material at runtime so energy ramp works on the typed ref _bubble_mat.
+## Depth-write disabled + render_priority 1 so the transparent sphere renders over the
+## opaque enemy mesh that sits inside it (depth-occlusion was the root cause of invisibility).
 func _setup_bubble() -> void:
 	_bubble_mat = StandardMaterial3D.new()
 	_bubble_mat.albedo_color = Color(
 		ART_STYLE.ENEMY_MAGNET_LIGHT.r,
 		ART_STYLE.ENEMY_MAGNET_LIGHT.g,
 		ART_STYLE.ENEMY_MAGNET_LIGHT.b,
-		0.15
+		0.5
 	)
 	_bubble_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_bubble_mat.emission_enabled = true
 	_bubble_mat.emission = ART_STYLE.ENEMY_MAGNET_LIGHT
-	_bubble_mat.emission_energy_multiplier = 0.3
+	_bubble_mat.emission_energy_multiplier = 2.0
 	_bubble_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_bubble_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_bubble_mat.cull_mode = BaseMaterial3D.CULL_BACK
+	# Disable depth writes so the sphere is not occluded by the opaque GLB mesh inside it.
+	_bubble_mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	_bubble_mat.no_depth_test = false
+	# Render after opaques so transparency composites correctly over the enemy model.
+	_bubble_mat.render_priority = 1
 	_bubble.set_surface_override_material(0, _bubble_mat)
+	print(
+		"[MagnetBubble] visible=",
+		_bubble.visible,
+		" mesh=",
+		_bubble.mesh != null,
+		" mat=",
+		_bubble.get_surface_override_material(0) != null,
+		" scale=",
+		_bubble.scale,
+		" radius=",
+		(_bubble.mesh as SphereMesh).radius if _bubble.mesh is SphereMesh else -1.0
+	)

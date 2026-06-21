@@ -14,8 +14,8 @@ const ART_STYLE := preload("res://tools/art_style.gd")
 
 # True while the telegraph tween is running — blocks re-entry into perform_attack().
 var _telegraphing: bool = false
-# Cached mesh material for the telegraph flash (built once in _ready, reused per shot).
-var _tint_mat: StandardMaterial3D
+# One material per mesh surface — all flash together so multi-mesh GLBs telegraph correctly.
+var _tint_mats: Array[StandardMaterial3D] = []
 
 
 func _ready() -> void:
@@ -29,12 +29,13 @@ func _apply_shooter_tint() -> void:
 	for child: Node in mesh_root.find_children("*", "MeshInstance3D", true, false):
 		if child is MeshInstance3D:
 			var mi: MeshInstance3D = child as MeshInstance3D
-			_tint_mat = StandardMaterial3D.new()
-			_tint_mat.albedo_color = ART_STYLE.ENEMY_SHOOTER_MID
-			_tint_mat.emission_enabled = true
-			_tint_mat.emission = ART_STYLE.ENEMY_SHOOTER_DARK
-			_tint_mat.emission_energy_multiplier = 0.3
-			mi.set_surface_override_material(0, _tint_mat)
+			var mat: StandardMaterial3D = StandardMaterial3D.new()
+			mat.albedo_color = ART_STYLE.ENEMY_SHOOTER_MID
+			mat.emission_enabled = true
+			mat.emission = ART_STYLE.ENEMY_SHOOTER_DARK
+			mat.emission_energy_multiplier = 0.3
+			mi.set_surface_override_material(0, mat)
+			_tint_mats.append(mat)
 
 
 ## Called by AttackState on cooldown gate. LOS-gated: won't blind-fire through walls.
@@ -44,11 +45,17 @@ func perform_attack() -> void:
 	if not can_see_target():
 		return
 	_telegraphing = true
-	# Telegraph: ramp emission bright then fire.
+	# Telegraph: ramp emission bright on every mesh surface, then fire.
 	var tw: Tween = create_tween()
-	tw.tween_property(_tint_mat, "emission_energy_multiplier", 4.0, telegraph_time)
+	tw.set_parallel(true)
+	for mat: StandardMaterial3D in _tint_mats:
+		tw.tween_property(mat, "emission_energy_multiplier", 4.0, telegraph_time)
+	tw.set_parallel(false)
 	tw.tween_callback(_fire_at_player)
-	tw.tween_property(_tint_mat, "emission_energy_multiplier", 0.3, 0.1)
+	tw.set_parallel(true)
+	for mat: StandardMaterial3D in _tint_mats:
+		tw.tween_property(mat, "emission_energy_multiplier", 0.3, 0.1)
+	tw.set_parallel(false)
 	tw.tween_callback(func() -> void: _telegraphing = false)
 
 

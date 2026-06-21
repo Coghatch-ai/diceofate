@@ -161,7 +161,6 @@ func apply_knockback(hitter_pos: Vector3) -> void:
 ## NOTE: touched_player can trigger a synchronous level-load that frees this enemy.
 ## Guard create_tween() with is_instance_valid(self) so the tween is skipped if freed mid-emit.
 func perform_attack() -> void:
-	print("Enemy attack telegraph!")
 	_touch_reset_sfx.play()
 	touched_player.emit(self)
 	bumped_player.emit(self)

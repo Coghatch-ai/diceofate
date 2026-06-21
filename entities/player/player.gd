@@ -78,6 +78,8 @@ var _look_pitch: float = 0.0
 var _recoil_pitch: float = 0.0
 var _recoil_yaw: float = 0.0
 var _recoil_yaw_prev: float = 0.0
+# Additive melee-kick offset — fetched from WeaponController each frame, summed here.
+var _melee_kick_offset: float = 0.0
 var _ads_tween: Tween
 # Head-bob state — additive Y/X offsets on _head, never fight look/recoil/crouch.
 var _bob_t: float = 0.0
@@ -98,8 +100,8 @@ var _kb_velocity: Vector3 = Vector3.ZERO
 var _arena_hud: ArenaHud
 
 @onready var _weapon_controller: WeaponController = $WeaponController
-@onready var _head: Node3D = $WeaponController/Head
-@onready var _camera: Camera3D = $WeaponController/Head/Camera3D
+@onready var _head: Node3D = _weapon_controller.get_head()
+@onready var _camera: Camera3D = _weapon_controller.get_camera()
 @onready var _jump_sfx: AudioStreamPlayer = $JumpSfx
 @onready var _land_sfx: AudioStreamPlayer = $LandSfx
 @onready var _collision: CollisionShape3D = $CollisionShape3D
@@ -109,6 +111,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_camera.fov = hip_fov
 	_stamina = stamina_max
+	_weapon_controller.health_pickup_requested.connect(_on_health_pickup_requested)
 
 
 ## Called by the level host (main.gd) after load to inject the HUD crosshair.
@@ -133,7 +136,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Yaw on the body, pitch tracked in _look_pitch (recoil added separately in physics).
 		rotate_y(-motion.relative.x * sens)
 		_look_pitch = clampf(_look_pitch - motion.relative.y * sens, -PI / 2.0, PI / 2.0)
-		_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
+		_head.rotation.x = clampf(
+			_look_pitch + _recoil_pitch + _melee_kick_offset, -PI / 2.0, PI / 2.0
+		)
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
@@ -173,9 +178,11 @@ func _physics_process(delta: float) -> void:
 	_recoil_pitch = _weapon_controller.get_recoil_pitch()
 	_recoil_yaw = _weapon_controller.get_recoil_yaw()
 	_recoil_yaw_prev = _weapon_controller.get_recoil_yaw_prev()
+	_melee_kick_offset = _weapon_controller.get_melee_kick_offset()
 
-	# 6. Apply accumulated recoil as additive offset on top of mouse-look.
-	_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
+	# 6. Single owner of _head.rotation.x: look + recoil + melee-kick summed here.
+	# WeaponController tweens _melee_kick_offset 0→kick→0; never writes _head.rotation.x directly.
+	_head.rotation.x = clampf(_look_pitch + _recoil_pitch + _melee_kick_offset, -PI / 2.0, PI / 2.0)
 	rotation.y += _recoil_yaw - _recoil_yaw_prev
 	_weapon_controller.set_recoil_yaw_prev(_recoil_yaw)
 
@@ -388,3 +395,13 @@ func apply_knockback(hitter_pos: Vector3) -> void:
 		dir = global_transform.basis.z
 	_kb_velocity = dir.normalized() * knockback_speed
 	_kb_stun_timer = knockback_stun_duration
+
+
+## Handles health pickup signal from WeaponController. Routes to WaveManager (level domain).
+func _on_health_pickup_requested() -> void:
+	var wm: Node = get_tree().root.find_child("WaveManager", false, false)
+	if wm == null or not wm.has_method("add_life"):
+		return
+	# SEAM: duck-typed call to WaveManager.add_life() — any node with that method works.
+	@warning_ignore("unsafe_method_access")
+	wm.add_life()

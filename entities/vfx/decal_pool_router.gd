@@ -1,18 +1,18 @@
 # entities/vfx/decal_pool_router.gd — routes weapon impact/kill signals to the ScorchDecalPool.
-# Component child of a Weapon node. Inject `pool` via the scene inspector or from the level.
+# Component child of a Gun node. Inject `pool` via the scene inspector or from the level.
 class_name DecalPoolRouter
 extends Node
 
 ## The shared scorch decal pool. Must be set before _ready() or wired by the level root.
 @export var pool: ScorchDecalPool
 
-var _weapon: Weapon
+var _weapon: Gun
 
 
 func _ready() -> void:
-	_weapon = get_parent() as Weapon
+	_weapon = get_parent() as Gun
 	if _weapon == null:
-		push_error("DecalPoolRouter: parent must be a Weapon node.")
+		push_error("DecalPoolRouter: parent must be a Gun node.")
 		return
 	_weapon.vfx_impact.connect(_on_impact)
 	_weapon.vfx_kill.connect(_on_kill)

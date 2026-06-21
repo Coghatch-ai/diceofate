@@ -1,10 +1,15 @@
 # entities/player/components/weapon_controller.gd — weapon firing, reload, swap,
-# melee, ammo pickup, recoil spring.
+# hammer melee, ammo pickup, recoil spring.
 class_name WeaponController
 extends Node3D
 ## Owns weapon/combat input + recoil spring + HUD wiring. Signals: fired, hit, kill (relayed).
+## Slot 0=Pistol (Gun), 1=Rifle (Gun), 2=Hammer.
+## LMB fires active slot: guns call try_fire(), hammer calls try_melee().
+## RMB aims guns only; no-op when hammer slot active.
+## Q cycles all 3 slots; hammer view-model stays visible at rest like guns.
 
 signal fired
+signal health_pickup_requested
 
 @export var recoil_settle: float = 8.0
 @export var recoil_snap: float = 18.0
@@ -17,8 +22,8 @@ signal fired
 
 var _crosshair: Crosshair
 var _ammo_hud: ArenaHud
-# Null when melee slot is active (slot index 2).
-var _active_weapon: Weapon
+# Active weapon slot node — Gun (slots 0/1) or Hammer (slot 2). Duck-typed as Node3D.
+var _active_slot: Node3D
 var _slot_index: int = 0
 var _swapping: bool = false
 var _aiming: bool = false
@@ -28,31 +33,29 @@ var _recoil_yaw: float = 0.0
 var _recoil_yaw_prev: float = 0.0
 var _recoil_target_pitch: float = 0.0
 var _recoil_target_yaw: float = 0.0
-var _ads_tween: Tween
+# Additive melee-kick offset on Head.rotation.x — tweened 0→kick→0, read by player
+# and summed with recoil+look in one write. Never written directly to _head.rotation.x.
+var _melee_kick_offset: float = 0.0
 
 @onready var _head: Node3D = $Head
-@onready var _pistol: Weapon = $Head/Weapon
-@onready var _rifle: Weapon = $Head/Rifle
-@onready var _melee: Melee = $Head/Melee
+@onready var _camera: Camera3D = $Head/Camera3D
+@onready var _pistol: Gun = $Head/Pistol
+@onready var _rifle: Gun = $Head/Rifle
+@onready var _hammer: Hammer = $Head/Hammer
 
 
 func _ready() -> void:
 	_slot_index = 0
-	_active_weapon = _pistol
-	# Ensure only the active gun slot is visible on spawn.
-	# _melee is intentionally left visible — its HammerViewModel self-hides at rest
-	# (melee.gd _ready sets _view_model.visible = false). Hiding the _melee node here
-	# would block the V-key quick-melee from showing the view-model while a gun is active.
+	_active_slot = _pistol
+	# Slot 0 starts visible; rifle and hammer hidden.
 	_pistol.visible = true
 	_rifle.visible = false
-	_connect_weapon_signals(_pistol)
-	_connect_weapon_signals(_rifle)
-	_melee.hit_confirmed.connect(_on_hit_confirmed)
-	_melee.kill_confirmed.connect(_on_kill_confirmed)
-	_melee.hit_with_position.connect(_on_melee_hit)
-	# Hide Melee root after each quick-melee swing when a gun slot is active.
-	# In the melee slot (_slot_index == 2) the root stays visible as the held weapon.
-	_melee.swing_finished.connect(_on_melee_swing_finished)
+	_hammer.visible = false
+	_connect_gun_signals(_pistol)
+	_connect_gun_signals(_rifle)
+	_hammer.hit_confirmed.connect(_on_hit_confirmed)
+	_hammer.kill_confirmed.connect(_on_kill_confirmed)
+	_hammer.hit_with_position.connect(_on_melee_hit)
 
 
 ## Called by the level host (main.gd) after load to inject the HUD crosshair.
@@ -63,7 +66,7 @@ func set_crosshair(crosshair: Crosshair) -> void:
 ## Called by main.gd after load to wire weapon ammo/reload signals to the HUD.
 func set_ammo_hud(hud: ArenaHud) -> void:
 	_ammo_hud = hud
-	_wire_ammo_hud(_active_weapon)
+	_wire_ammo_hud(_active_slot)
 
 
 ## Exposes recoil state to player for head rotation application.
@@ -86,6 +89,21 @@ func set_recoil_yaw_prev(value: float) -> void:
 	_recoil_yaw_prev = value
 
 
+## Additive melee-kick pitch offset — summed into head rotation by player (single write owner).
+func get_melee_kick_offset() -> float:
+	return _melee_kick_offset
+
+
+## Exposes Head node (contains Camera3D and weapons).
+func get_head() -> Node3D:
+	return _head
+
+
+## Exposes Camera3D for FOV control.
+func get_camera() -> Camera3D:
+	return _camera
+
+
 ## Returns aiming state (used by player for FOV/movement).
 func is_aiming() -> bool:
 	return _aiming
@@ -101,115 +119,113 @@ func update_recoil(delta: float) -> void:
 
 ## Processes weapon input each physics frame.
 func process_input(is_aiming_pressed: bool, ads_released: bool) -> void:
-	# ADS
-	if is_aiming_pressed:
-		_set_aiming(true)
-	elif ads_released:
-		_set_aiming(false)
+	# ADS — guns only; no-op when hammer slot active.
+	if _slot_index != 2:
+		if is_aiming_pressed:
+			_set_aiming(true)
+		elif ads_released:
+			_set_aiming(false)
 
-	# Fire on left-click (held); cooldown timer caps cadence, not input.
-	# Null when melee slot active — guns only.
-	if _active_weapon != null and Input.is_action_pressed("shoot"):
-		_active_weapon.try_fire()
+	# LMB: route to active slot.
+	# Gun slots (0/1): call try_fire(). Hammer slot (2): call try_melee().
+	if Input.is_action_pressed("shoot"):
+		if _slot_index == 2:
+			_hammer.try_melee()
+		else:
+			var gun := _active_slot as Gun
+			if gun != null:
+				gun.try_fire()
 
-	# Manual reload (R); weapon guards against full mag / already reloading.
-	if _active_weapon != null and Input.is_action_just_pressed("reload"):
-		_active_weapon.start_reload()
+	# Manual reload (R) — guns only.
+	if Input.is_action_just_pressed("reload") and _slot_index != 2:
+		var gun := _active_slot as Gun
+		if gun != null:
+			gun.start_reload()
 
 	# Swap weapon (Q) — debounced: ignore while swap in flight.
 	if Input.is_action_just_pressed("equip_weapon") and not _swapping:
 		_swap_weapon()
 
-	# Melee swing (V) — always available, independent of active gun.
-	if Input.is_action_just_pressed("melee"):
-		_melee.try_melee()
 
-
-## Notifies weapon of crouch state each frame.
+## Notifies active gun of crouch state each frame. No-op for hammer slot.
 func set_active_weapon_crouch(crouched: bool) -> void:
-	if _active_weapon != null:
-		_active_weapon.set_crouched(crouched)
+	var gun := _active_slot as Gun
+	if gun != null:
+		gun.set_crouched(crouched)
 
 
-## Relays sprint/walk state to active weapon's SprintSway component each physics frame.
+## Relays sprint/walk state to active gun's SprintSway component each physics frame.
 func update_sprint(
 	is_sprinting: bool, is_moving: bool, velocity_factor: float, delta: float
 ) -> void:
-	if _active_weapon != null:
-		_active_weapon.update_sprint(is_sprinting, is_moving, velocity_factor, delta)
+	var gun := _active_slot as Gun
+	if gun != null:
+		gun.update_sprint(is_sprinting, is_moving, velocity_factor, delta)
 
 
-## Collects a pickup by kind. AMMO → refills all weapons matching ammo_caliber; HEALTH → add life.
+## Collects a pickup by kind. AMMO → refills all guns matching ammo_caliber; HEALTH → add life.
 ## Returns true if something changed (pickup consumed), false if no-op (already full).
 func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> bool:
 	match kind:
 		Pickup.Kind.AMMO:
 			var took: bool = false
-			for w: Weapon in [_pistol, _rifle]:
+			for w: Gun in [_pistol, _rifle]:
 				if w.caliber == ammo_caliber:
 					took = w.refill_ammo() or took
 			return took
 		Pickup.Kind.HEALTH:
-			# SEAM: WaveManager is a sibling in the loaded level — found by name, duck-typed.
-			var parent: Node = get_parent()
-			if parent == null:
-				return false
-			var wm: Node = parent.find_child("WaveManager", false, false)
-			if wm == null:
-				return false
-			if not wm.has_method("add_life"):
-				return false
-			@warning_ignore("unsafe_method_access")
-			return wm.add_life()
+			# SEAM: signal upward to player; player routes to WaveManager (godot-composition rule).
+			health_pickup_requested.emit()
+			return true
 	return false
 
 
 func _set_aiming(aiming: bool) -> void:
 	_aiming = aiming
-	if _active_weapon != null:
-		_active_weapon.set_aiming(aiming)
+	var gun := _active_slot as Gun
+	if gun != null:
+		gun.set_aiming(aiming)
+	if _crosshair != null:
+		_crosshair.set_aiming_state(aiming)
 
 
 func _swap_weapon() -> void:
 	# Cancel ADS before swapping.
 	if _aiming:
-		_aiming = false
-		if _ads_tween:
-			_ads_tween.kill()
+		_set_aiming(false)
 	_swapping = true
-	# 3-slot cycle: 0=pistol, 1=rifle, 2=melee.
+	# 3-slot cycle: 0=pistol, 1=rifle, 2=hammer.
 	var next_index: int = (_slot_index + 1) % 3
-	var outgoing_weapon: Weapon = _active_weapon
-	# Determine incoming weapon (null = melee slot).
-	var incoming_weapon: Weapon
+	var outgoing_gun: Gun = _active_slot as Gun
+	# Determine incoming slot node.
+	var incoming_slot: Node3D
 	if next_index == 0:
-		incoming_weapon = _pistol
+		incoming_slot = _pistol
 	elif next_index == 1:
-		incoming_weapon = _rifle
+		incoming_slot = _rifle
 	else:
-		incoming_weapon = null
-	# Holster outgoing gun (skip holster anim for melee slot outgoing — no gun to dip).
-	if outgoing_weapon != null:
-		outgoing_weapon.play_holster()
-	var holster_wait: float = 0.12 if outgoing_weapon != null else 0.0
+		incoming_slot = _hammer
+	# Holster outgoing gun (skip holster anim for hammer slot outgoing — no gun to dip).
+	if outgoing_gun != null:
+		outgoing_gun.play_holster()
+	var holster_wait: float = 0.12 if outgoing_gun != null else 0.0
 	get_tree().create_timer(holster_wait).timeout.connect(
 		func() -> void:
 			# Hide all slots; show only the incoming one.
 			_pistol.visible = false
 			_rifle.visible = false
-			_melee.visible = false
+			_hammer.visible = false
 			_slot_index = next_index
-			_active_weapon = incoming_weapon
-			if incoming_weapon != null:
-				incoming_weapon.visible = true
-				if _ammo_hud != null:
-					_wire_ammo_hud(incoming_weapon)
-				incoming_weapon.play_draw()
-				incoming_weapon.swap_draw_finished.connect(_on_swap_draw_finished, CONNECT_ONE_SHOT)
+			_active_slot = incoming_slot
+			incoming_slot.visible = true
+			var incoming_gun: Gun = incoming_slot as Gun
+			if incoming_gun != null:
+				_wire_ammo_hud(incoming_slot)
+				incoming_gun.play_draw()
+				incoming_gun.swap_draw_finished.connect(_on_swap_draw_finished, CONNECT_ONE_SHOT)
 			else:
-				# Melee slot: show the Melee node; hammer visibility is owned by melee.gd.
-				_melee.visible = true
-				# No draw animation for melee; swap completes immediately.
+				# Hammer slot: HammerViewModel already visible at rest (hammer.gd _ready).
+				# No draw animation; swap completes immediately.
 				_on_swap_draw_finished(),
 		CONNECT_ONE_SHOT
 	)
@@ -219,23 +235,25 @@ func _on_swap_draw_finished() -> void:
 	_swapping = false
 
 
-## Wire ammo/reload signals from weapon to HUD. Disconnects previous weapon first.
-## No-op if weapon is null (melee slot has no ammo HUD).
-func _wire_ammo_hud(weapon: Weapon) -> void:
-	if weapon == null:
+## Wire ammo/reload signals from active gun to HUD. No-op for hammer slot (no ammo).
+func _wire_ammo_hud(slot: Node3D) -> void:
+	var gun := slot as Gun
+	if gun == null:
 		return
-	# Disconnect old weapon signals if connected to avoid duplicate HUD updates.
-	for w: Weapon in [_pistol, _rifle]:
+	if _ammo_hud == null:
+		return
+	# Disconnect old gun signals to avoid duplicate HUD updates.
+	for w: Gun in [_pistol, _rifle]:
 		if w.ammo_changed.is_connected(_ammo_hud.set_ammo):
 			w.ammo_changed.disconnect(_ammo_hud.set_ammo)
 		if w.reload_started.is_connected(_on_reload_started_hud):
 			w.reload_started.disconnect(_on_reload_started_hud)
 		if w.reload_finished.is_connected(_on_reload_finished_hud):
 			w.reload_finished.disconnect(_on_reload_finished_hud)
-	weapon.ammo_changed.connect(_ammo_hud.set_ammo)
-	weapon.reload_started.connect(_on_reload_started_hud)
-	weapon.reload_finished.connect(_on_reload_finished_hud)
-	weapon.emit_ammo()
+	gun.ammo_changed.connect(_ammo_hud.set_ammo)
+	gun.reload_started.connect(_on_reload_started_hud)
+	gun.reload_finished.connect(_on_reload_finished_hud)
+	gun.emit_ammo()
 
 
 func _on_reload_started_hud(_duration: float) -> void:
@@ -248,21 +266,19 @@ func _on_reload_finished_hud() -> void:
 		_ammo_hud.set_reloading(false)
 
 
-func _connect_weapon_signals(weapon: Weapon) -> void:
-	weapon.fired.connect(_on_weapon_fired)
-	weapon.hit_confirmed.connect(_on_hit_confirmed)
-	weapon.kill_confirmed.connect(_on_kill_confirmed)
+func _connect_gun_signals(gun: Gun) -> void:
+	gun.fired.connect(_on_gun_fired.bind(gun))
+	gun.hit_confirmed.connect(_on_hit_confirmed)
+	gun.kill_confirmed.connect(_on_kill_confirmed)
 
 
-func _on_weapon_fired() -> void:
-	if _active_weapon == null:
+func _on_gun_fired(gun: Gun) -> void:
+	if _active_slot != gun:
 		return
 	# Impulse goes to spring TARGET (not applied value) — stage 2 lerp does the chasing.
-	_recoil_target_pitch = minf(_recoil_target_pitch + _active_weapon.recoil_pitch, recoil_max)
+	_recoil_target_pitch = minf(_recoil_target_pitch + gun.recoil_pitch, recoil_max)
 	_recoil_target_yaw = clampf(
-		_recoil_target_yaw + randf_range(-_active_weapon.recoil_yaw, _active_weapon.recoil_yaw),
-		-recoil_max,
-		recoil_max
+		_recoil_target_yaw + randf_range(-gun.recoil_yaw, gun.recoil_yaw), -recoil_max, recoil_max
 	)
 	if _crosshair != null:
 		_crosshair.fire_pop()
@@ -284,7 +300,7 @@ func _on_melee_hit(hitter_pos: Vector3) -> void:
 	_do_hit_stop()
 	_do_melee_camera_kick()
 	# Relay knockback to every overlapping body that supports it (duck-typed, godot-composition).
-	for body: Node3D in _melee._hitbox.get_overlapping_bodies():
+	for body: Node3D in _hammer.get_hit_bodies():
 		if body.has_method("apply_knockback"):
 			# SEAM: duck-typed knockback — any body with apply_knockback(Vector3) is valid.
 			@warning_ignore("unsafe_method_access")
@@ -306,15 +322,9 @@ func _do_hit_stop() -> void:
 
 
 func _do_melee_camera_kick() -> void:
-	var base_x: float = _head.rotation.x
+	# Tween the OFFSET var only — player.gd is sole writer of _head.rotation.x.
+	# Composited as: _head.rotation.x = clamp(_look_pitch + _recoil_pitch + _melee_kick_offset).
 	var tw := create_tween()
 	# Sharper downward punch (positive X = look down) for melee impact feel.
-	tw.tween_property(_head, "rotation:x", base_x + melee_kick_angle, kick_duration * 0.2)
-	tw.tween_property(_head, "rotation:x", base_x, kick_duration * 1.2)
-
-
-## Hides Melee root after a quick-melee swing when a gun slot is active.
-## In melee slot (_slot_index == 2) the root stays visible as the held weapon.
-func _on_melee_swing_finished() -> void:
-	if _slot_index != 2:
-		_melee.visible = false
+	tw.tween_property(self, "_melee_kick_offset", melee_kick_angle, kick_duration * 0.2)
+	tw.tween_property(self, "_melee_kick_offset", 0.0, kick_duration * 1.2)

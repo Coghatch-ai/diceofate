@@ -1,5 +1,5 @@
-# entities/weapon/weapon.gd — firing component: spawns projectiles from a Muzzle, timer-gated.
-class_name Weapon
+# entities/weapon/gun.gd — firing component: spawns projectiles from a Muzzle, timer-gated.
+class_name Gun
 extends Node3D
 
 signal fired
@@ -75,7 +75,7 @@ func _ready() -> void:
 	# Resolve view-model via export so derived scenes can override with a different mesh node.
 	_view_model = get_node(view_model_path) as Node3D
 	if _view_model == null:
-		push_error("Weapon: view_model_path '%s' not found or not Node3D" % view_model_path)
+		push_error("Gun: view_model_path '%s' not found or not Node3D" % view_model_path)
 		return
 	# Hide every sibling *ViewModel node that is NOT the active one.
 	# Inherited scenes (e.g. rifle.tscn) carry the base PistolViewModel; hiding it
@@ -89,11 +89,11 @@ func _ready() -> void:
 	var muzzle_root: Node3D = _sprint_sway if _sprint_sway != null else _view_model
 	_muzzle = muzzle_root.get_node_or_null(^"Muzzle") as Marker3D
 	if _muzzle == null:
-		push_error("Weapon: Muzzle not found under view-model '%s'" % view_model_path)
+		push_error("Gun: Muzzle not found under view-model '%s'" % view_model_path)
 		return
 	_muzzle_flash = _muzzle.get_node_or_null(^"MuzzleFlash") as OmniLight3D
 	if _muzzle_flash == null:
-		push_error("Weapon: MuzzleFlash not found under Muzzle")
+		push_error("Gun: MuzzleFlash not found under Muzzle")
 		return
 	# Flash must never cast shadows — perf + correctness (skill: godot-oneshot-vfx).
 	_muzzle_flash.shadow_enabled = false

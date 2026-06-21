@@ -63,7 +63,7 @@ Either path, the rubric and the output contract are identical.
 | **Resource leaks** | Every spawned node `queue_free`d; one-shots free on `finished`; pooled slots recycle; Tweens `kill`ed before reuse; signals disconnected if the lifetime demands it. |
 | **Breaking changes** | A changed public method/signal/scene contract that silently breaks a caller elsewhere (other entities, levels, tools). |
 | **Error handling** | Failures surface (`push_error`/guard + early return), not silent `null` propagation; no `push_warning` at scene-load. |
-| **Convention conflicts** | Strict typed GDScript (godot-code-rules); composition over autoloads/inheritance (godot-composition); no `change_scene_to_file` (godot-main-scene); Transform3D-ban / nested-Node3D / tscn-comment rules; project folders + naming + input actions per CLAUDE.md. |
+| **Convention conflicts** | Strict typed GDScript (godot-code-rules); composition over autoloads/inheritance (godot-composition); no `change_scene_to_file` (godot-main-scene); Transform3D-ban / nested-Node3D / tscn-comment rules; project folders + naming + input actions per CLAUDE.md. Entity state (health, ammo, stamina) is modeled as a signal-driven COMPONENT on the entity, NOT centralized in an autoload — flag any "move state to an autoload / single source of truth" recommendation that isn't grounded in the existing entity/signal/composition design. |
 
 Flag what the rubric catches; do not invent style nits outside it.
 
