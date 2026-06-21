@@ -6,6 +6,9 @@ extends CharacterBody3D
 signal died(enemy: Enemy)
 ## Emitted when the enemy reaches attack_range of the player (C2).
 signal touched_player(enemy: Enemy)
+## Emitted alongside touched_player on each attack — carries self so the receiver
+## knows the hit source for directional knockback.
+signal bumped_player(enemy: Enemy)
 
 const _STUN_DURATION: float = 0.15
 const _KNOCKBACK_SPEED: float = 6.0
@@ -104,7 +107,12 @@ func move_along_path(speed: float, delta: float) -> void:
 		var next: Vector3 = _nav.get_next_path_position()
 		desired = (next - global_position)
 		desired.y = 0.0
-		desired = desired.normalized() * speed
+		if desired.length_squared() > 0.0001:
+			desired = desired.normalized() * speed
+			# Rotate body to face movement direction.
+			var look_target: Vector3 = global_position + desired
+			look_target.y = global_position.y
+			look_at(look_target, Vector3.UP)
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	desired.y = velocity.y
@@ -153,9 +161,9 @@ func apply_knockback(hitter_pos: Vector3) -> void:
 ## NOTE: touched_player can trigger a synchronous level-load that frees this enemy.
 ## Guard create_tween() with is_instance_valid(self) so the tween is skipped if freed mid-emit.
 func perform_attack() -> void:
-	print("Enemy attack telegraph!")
 	_touch_reset_sfx.play()
 	touched_player.emit(self)
+	bumped_player.emit(self)
 	# Guard: signal handler may have freed this enemy (level advance/life-loss path).
 	if not is_instance_valid(self):
 		return

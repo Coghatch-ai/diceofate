@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://entities/vfx/rescue_halo.gd" id="1"]
+
+[sub_resource type="Gradient" id="Gradient_halo"]
+colors = PackedColorArray(0.18, 0.72, 0.28, 1.0, 0.22, 0.58, 0.26, 0.6, 0.18, 0.40, 0.20, 0.0)
+offsets = PackedFloat32Array(0.0, 0.5, 1.0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_halo"]
+gradient = SubResource("Gradient_halo")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_halo"]
+lifetime_randomness = 0.3
+emission_shape = 1
+emission_sphere_radius = 0.4
+direction = Vector3(0, 1, 0)
+spread = 30.0
+initial_velocity_min = 1.0
+initial_velocity_max = 3.0
+gravity = Vector3(0, -0.5, 0)
+scale_min = 0.05
+scale_max = 0.12
+color_ramp = SubResource("GradientTexture1D_halo")
+
+[sub_resource type="SphereMesh" id="SphereMesh_halo"]
+radius = 0.03
+height = 0.06
+
+[node name="RescueHalo" type="Node3D"]
+script = ExtResource("1")
+editor_description = "Celebratory saved-NPC halo: soft green OmniLight pulse + rising particles."
+
+[node name="Particles" type="GPUParticles3D" parent="."]
+amount = 64
+lifetime = 0.7
+one_shot = true
+explosiveness = 0.9
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_halo")
+draw_pass_1 = SubResource("SphereMesh_halo")
+
+[node name="HaloLight" type="OmniLight3D" parent="."]
+light_color = Color(0.18, 0.72, 0.28, 1)
+light_energy = 0.0
+shadow_enabled = false
+omni_range = 4.0
+editor_description = "Shadowless green pulse light. Driven by RescueHalo._pulse_light()."

@@ -1,10 +1,16 @@
-# entities/weapon/weapon.gd — firing component: spawns projectiles from a Muzzle, timer-gated.
-class_name Weapon
+# entities/weapon/gun.gd — firing component: spawns projectiles from a Muzzle, timer-gated.
+class_name Gun
 extends Node3D
 
 signal fired
 signal hit_confirmed
 signal kill_confirmed
+## Emitted with world position + surface normal on any projectile hit — consumed by VfxRouter.
+signal vfx_impact(pos: Vector3, normal: Vector3)
+## Emitted with world position on a confirmed non-fatal enemy hit — consumed by VfxRouter.
+signal vfx_hit_burst(pos: Vector3)
+## Emitted with world position when a kill is confirmed — consumed by VfxRouter.
+signal vfx_kill(pos: Vector3, normal: Vector3)
 signal ammo_changed(current: int, reserve: int)
 signal out_of_ammo
 signal reload_started(duration: float)
@@ -17,6 +23,9 @@ const _VM_DIP_POS := Vector3(0.12, -0.32, -0.20)
 const _VM_DIP_ROT := Vector3(25.0, 0.0, 0.0)
 
 @export var projectile_scene: PackedScene
+## NodePath to the view-model Node3D holding the mesh, Muzzle and MuzzleFlash.
+## Override in derived weapon scenes to swap in a different view-model mesh.
+@export var view_model_path: NodePath = ^"PistolViewModel"
 @export var fire_rate: float = 0.2
 @export var ammo_max: int = 12
 @export var reload_time: float = 1.2
@@ -45,19 +54,52 @@ var _reload_tween: Tween
 var _swap_tween: Tween
 var _flash_tween: Tween
 
-@onready var _muzzle: Marker3D = $PistolViewModel/Muzzle
-@onready var _muzzle_flash: OmniLight3D = $PistolViewModel/Muzzle/MuzzleFlash
+var _muzzle: Marker3D
+var _muzzle_flash: OmniLight3D
+var _view_model: Node3D
+var _sprint_sway: SprintSway
+var _firing: bool = false
+# Cached world position of last hit target — used by _on_target_died to emit vfx_kill.
+var _last_hit_pos: Vector3 = Vector3.ZERO
+# Cached surface normal of last hit — forwarded to vfx_kill on confirmed kill.
+var _last_hit_normal: Vector3 = Vector3.UP
+
 @onready var _cooldown: Timer = $Cooldown
 @onready var _reload_timer: Timer = $Reload
 @onready var _fire_sfx: AudioStreamPlayer = $FireSfx
 @onready var _empty_sfx: AudioStreamPlayer = $EmptySfx
 @onready var _reload_sfx: AudioStreamPlayer = $ReloadSfx
-@onready var _view_model: Node3D = $PistolViewModel
 
 
 func _ready() -> void:
+	# Resolve view-model via export so derived scenes can override with a different mesh node.
+	_view_model = get_node(view_model_path) as Node3D
+	if _view_model == null:
+		push_error("Gun: view_model_path '%s' not found or not Node3D" % view_model_path)
+		return
+	# Hide every sibling *ViewModel node that is NOT the active one.
+	# Inherited scenes (e.g. rifle.tscn) carry the base PistolViewModel; hiding it
+	# here is authoritative regardless of scene-property-override quirks.
+	for child: Node in get_children():
+		if child is Node3D and child.name.ends_with("ViewModel") and child != _view_model:
+			(child as Node3D).visible = false
+	# SprintSway sits between view-model and mesh/muzzle children.
+	_sprint_sway = _view_model.get_node_or_null(^"SprintSway") as SprintSway
+	# Muzzle/MuzzleFlash live under SprintSway when present, else directly under view-model.
+	var muzzle_root: Node3D = _sprint_sway if _sprint_sway != null else _view_model
+	_muzzle = muzzle_root.get_node_or_null(^"Muzzle") as Marker3D
+	if _muzzle == null:
+		push_error("Gun: Muzzle not found under view-model '%s'" % view_model_path)
+		return
+	_muzzle_flash = _muzzle.get_node_or_null(^"MuzzleFlash") as OmniLight3D
+	if _muzzle_flash == null:
+		push_error("Gun: MuzzleFlash not found under Muzzle")
+		return
+	# Flash must never cast shadows — perf + correctness (skill: godot-oneshot-vfx).
+	_muzzle_flash.shadow_enabled = false
 	_cooldown.one_shot = true
 	_cooldown.wait_time = fire_rate
+	_cooldown.timeout.connect(_on_cooldown_done)
 	_reload_timer.one_shot = true
 	_reload_timer.wait_time = reload_time
 	_reload_timer.timeout.connect(_on_reload_done)
@@ -235,7 +277,23 @@ func _on_flash_done() -> void:
 	_muzzle_flash.visible = false
 
 
+## Relays sprint/walk state from player to SprintSway child each physics frame.
+func update_sprint(
+	is_sprinting: bool, is_moving: bool, velocity_factor: float, delta: float
+) -> void:
+	if _sprint_sway == null:
+		return
+	_sprint_sway.update_sprint(
+		is_sprinting, is_moving, velocity_factor, _aiming, _firing, _reloading, _swapping, delta
+	)
+
+
+func _on_cooldown_done() -> void:
+	_firing = false
+
+
 func _fire() -> void:
+	_firing = true
 	if projectile_scene == null:
 		return
 	var projectile := projectile_scene.instantiate() as Projectile
@@ -250,19 +308,31 @@ func _fire() -> void:
 	if half_angle > 0.0:
 		var rand_yaw: float = randf_range(-half_angle, half_angle)
 		var rand_pitch: float = randf_range(-half_angle, half_angle)
-		spread_basis = spread_basis.rotated(spread_basis.y, rand_yaw)
-		spread_basis = spread_basis.rotated(spread_basis.x, rand_pitch)
+		var yaw_axis: Vector3 = spread_basis.y.normalized()
+		if yaw_axis.length_squared() > 0.0:
+			spread_basis = spread_basis.rotated(yaw_axis, rand_yaw)
+		var pitch_axis: Vector3 = spread_basis.x.normalized()
+		if pitch_axis.length_squared() > 0.0:
+			spread_basis = spread_basis.rotated(pitch_axis, rand_pitch)
 	projectile.global_transform = Transform3D(spread_basis, _muzzle.global_position)
 	# SEAM: forward hit_confirmed up to weapon so hosts can react without coupling to Projectile.
 	projectile.hit.connect(_on_projectile_hit)
 
 
-func _on_projectile_hit(target: Node3D) -> void:
+func _on_projectile_hit(target: Node3D, normal: Vector3, hit_pos: Vector3) -> void:
+	vfx_impact.emit(hit_pos, normal)
 	hit_confirmed.emit()
 	# If the target exposes a `died` signal, subscribe one-shot to detect a kill this frame.
 	# SEAM: duck-typed kill detection — only enemies with `died` trigger kill_confirmed;
 	# world geometry and other bodies are silently ignored (godot-composition rule).
 	if target.has_signal("died"):
+		# Cache position + normal so _on_target_died can emit vfx_kill with the correct data.
+		_last_hit_pos = hit_pos
+		_last_hit_normal = normal
+		# Emit hit burst for all enemy-body hits (fatal and non-fatal).
+		# On a killing blow, both vfx_hit_burst and vfx_kill fire — hit_burst is smaller
+		# and fires first, adding to the juice rather than conflicting.
+		vfx_hit_burst.emit(hit_pos)
 		# SEAM: target proven to have `died` signal by has_signal check; Node3D base has connect().
 		# Guard: multi-hit enemies (health>1) survive several bullets; each bullet's projectile.hit
 		# triggers this. CONNECT_ONE_SHOT auto-disconnects after the signal fires (on death), but
@@ -275,3 +345,4 @@ func _on_projectile_hit(target: Node3D) -> void:
 
 func _on_target_died(_enemy: Node) -> void:
 	kill_confirmed.emit()
+	vfx_kill.emit(_last_hit_pos, _last_hit_normal)

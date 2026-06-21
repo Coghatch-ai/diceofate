@@ -217,12 +217,6 @@ func _add_player(scene_root: Node3D) -> void:
 	# bakes them as level-owned overrides, which breaks find_child(owned=true) from main.gd.
 
 
-func _set_owner_recursive(node: Node, owner: Node) -> void:
-	for child: Node in node.get_children():
-		child.owner = owner
-		_set_owner_recursive(child, owner)
-
-
 func _add_barriers(scene_root: Node3D, grid: Dictionary) -> void:
 	# Collect all id=2 cells, group into contiguous runs by same row.
 	var cells: Array[GridJsonIter.GridCell] = GridJsonIter.iter_items_by_id(grid, 2, CELL_X, CELL_Z)
@@ -310,8 +304,8 @@ func _add_ammo_pickups(scene_root: Node3D, grid: Dictionary) -> void:
 		pickup.position = Vector3(cell.wx, 0.0, cell.wz)
 		pickup.rotation_degrees.y = yaw_deg
 		scene_root.add_child(pickup)
+		# Instance root only — do NOT recurse into packed-scene children.
 		pickup.owner = scene_root
-		_set_owner_recursive(pickup, scene_root)
 
 
 func _add_raised_platform(scene_root: Node3D) -> void:

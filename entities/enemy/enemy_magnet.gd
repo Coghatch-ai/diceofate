@@ -1,23 +1,22 @@
-# entities/enemy/enemy_magnet.gd — Magnet enemy: tint, pull-field group, 3-second touch grace.
-# Overrides perform_attack() so touched_player only emits after continuous contact >= TOUCH_GRACE.
-# If the player breaks contact (distance > attack_range) the accumulator resets — no life lost.
-# Grunt / runner / tank are unaffected (they use the base perform_attack which emits immediately).
-# Adds a translucent cyan radius bubble (RadiusBubble MeshInstance3D) matching pull_radius = 4.0 m
-# in projectile.gd. If pull_radius changes, update the bubble scale in enemy_magnetic.tscn (2×4=8).
+# entities/enemy/enemy_magnet.gd — Magnet enemy: tint, pull-field group, visual charging bubble.
+# Costs ONE life after 3 discrete hit events (player enters attack range after having left it).
+# Each entry = one hit; counter resets after firing. Bubble ramps with hit count (visual tell).
+# NOTE: "3 hits → lose ONE life" matches the lives system. To switch to instant game-over after
+# 3 magnet hits regardless of remaining lives, replace the touched_player emit with a direct
+# wave_manager.lose_life() call repeated until _lives==0, or expose a new signal — one-line swap.
 extends Enemy
 
 const ART_STYLE := preload("res://tools/art_style.gd")
 
-## Seconds of continuous contact required before touched_player fires (H14).
-## Reset any time the player leaves attack_range.
-const TOUCH_GRACE: float = 3.0
+## Number of discrete player-enters-range events required before a life is lost.
+const HITS_TO_DAMAGE: int = 3
 
-# Accumulated contact time (seconds). Reset when player leaves attack_range.
-var _contact_time: float = 0.0
-# True once touched_player has been emitted for the current grab — prevents repeated fires
-# until the player breaks contact and re-enters.
-var _grace_fired: bool = false
-# Bubble material kept as a typed ref so emission_energy_multiplier can be set without unsafe cast.
+# Count of discrete contact events since last life-loss (or start).
+var _hit_count: int = 0
+# True while player is currently inside attack_range — prevents counting continuous overlap
+# as multiple hits; a new hit only registers on re-entry after the player has left.
+var _player_in_range: bool = false
+# Bubble material kept as typed ref so emission_energy_multiplier can be set without unsafe cast.
 var _bubble_mat: StandardMaterial3D
 
 @onready var _bubble: MeshInstance3D = $RadiusBubble
@@ -32,32 +31,38 @@ func _ready() -> void:
 	_setup_bubble()
 
 
-func _physics_process(delta: float) -> void:
-	_update_contact(delta)
+func _physics_process(_delta: float) -> void:
+	_update_contact()
 
 
-## Track contact time each physics frame.
-## Accumulates while player is within attack_range; resets on exit; emits once at threshold.
-func _update_contact(delta: float) -> void:
+## Track discrete player-entry events each physics frame.
+## A new hit is registered only when the player transitions from outside → inside attack_range.
+func _update_contact() -> void:
 	var dist: float = distance_to_target()
-	if dist <= attack_range:
-		if _grace_fired:
-			return
-		_contact_time += delta
-		# Charging tell: ramp bubble emission energy 0→1.5 as timer fills.
-		_bubble_mat.emission_energy_multiplier = (_contact_time / TOUCH_GRACE) * 1.5
-		if _contact_time >= TOUCH_GRACE:
-			_grace_fired = true
+	var in_range: bool = dist <= attack_range
+
+	if in_range and not _player_in_range:
+		# Player just entered range — count as one hit.
+		_hit_count += 1
+		print("EnemyMagnet: hit %d/%d" % [_hit_count, HITS_TO_DAMAGE])
+		if _hit_count >= HITS_TO_DAMAGE:
+			_hit_count = 0
 			touched_player.emit(self)
+			bumped_player.emit(self)
+
+	_player_in_range = in_range
+
+	# Bubble ramp: fraction of hits accumulated (0→1 over HITS_TO_DAMAGE entries).
+	var ramp: float = float(_hit_count) / float(HITS_TO_DAMAGE)
+	if in_range:
+		# Inside range: ramp emission toward 1.5 based on hit progress.
+		_bubble_mat.emission_energy_multiplier = lerpf(0.5, 1.5, ramp)
 	else:
-		# Player left range — reset accumulator and tell.
-		_contact_time = 0.0
-		_grace_fired = false
-		_bubble_mat.emission_energy_multiplier = 0.3
+		# Outside range: dim tell, still shows hit progress faintly.
+		_bubble_mat.emission_energy_multiplier = lerpf(0.3, 0.8, ramp)
 
 
-## Override base perform_attack: play lunge telegraph but do NOT emit touched_player.
-## Emission happens only via _update_contact after TOUCH_GRACE seconds (H14).
+## Override base perform_attack: play lunge telegraph only; life-loss handled by _update_contact.
 func perform_attack() -> void:
 	var tw: Tween = create_tween()
 	tw.tween_property(_mesh_instance, "scale", _base_scale * Vector3(1.3, 0.7, 1.3), 0.1)
@@ -78,19 +83,37 @@ func _apply_magnet_tint() -> void:
 
 
 ## Build the bubble material at runtime so energy ramp works on the typed ref _bubble_mat.
+## Depth-write disabled + render_priority 1 so the transparent sphere renders over the
+## opaque enemy mesh that sits inside it (depth-occlusion was the root cause of invisibility).
 func _setup_bubble() -> void:
 	_bubble_mat = StandardMaterial3D.new()
 	_bubble_mat.albedo_color = Color(
 		ART_STYLE.ENEMY_MAGNET_LIGHT.r,
 		ART_STYLE.ENEMY_MAGNET_LIGHT.g,
 		ART_STYLE.ENEMY_MAGNET_LIGHT.b,
-		0.15
+		0.5
 	)
 	_bubble_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_bubble_mat.emission_enabled = true
 	_bubble_mat.emission = ART_STYLE.ENEMY_MAGNET_LIGHT
-	_bubble_mat.emission_energy_multiplier = 0.3
+	_bubble_mat.emission_energy_multiplier = 2.0
 	_bubble_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_bubble_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_bubble_mat.cull_mode = BaseMaterial3D.CULL_BACK
+	# Disable depth writes so the sphere is not occluded by the opaque GLB mesh inside it.
+	_bubble_mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	_bubble_mat.no_depth_test = false
+	# Render after opaques so transparency composites correctly over the enemy model.
+	_bubble_mat.render_priority = 1
 	_bubble.set_surface_override_material(0, _bubble_mat)
+	print(
+		"[MagnetBubble] visible=",
+		_bubble.visible,
+		" mesh=",
+		_bubble.mesh != null,
+		" mat=",
+		_bubble.get_surface_override_material(0) != null,
+		" scale=",
+		_bubble.scale,
+		" radius=",
+		(_bubble.mesh as SphereMesh).radius if _bubble.mesh is SphereMesh else -1.0
+	)

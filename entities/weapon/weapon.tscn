@@ -1,51 +1,70 @@
-[gd_scene load_steps=7 format=3 uid="uid://weapon0001"]
+[gd_scene format=3 uid="uid://weapon0001"]
 
-[ext_resource type="Script" path="res://entities/weapon/weapon.gd" id="1"]
-[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="2"]
-[ext_resource type="PackedScene" uid="uid://b8md52wt2l0xj" path="res://assets/models/pistol.glb" id="3"]
-[ext_resource type="AudioStream" path="res://assets/audio/pistol_shoot.wav" id="4"]
-[ext_resource type="AudioStream" path="res://assets/audio/weapon_empty.wav" id="5"]
-[ext_resource type="AudioStream" path="res://assets/audio/weapon_reload.wav" id="6"]
+[ext_resource type="Script" path="res://entities/weapon/gun.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://b11035icliyy" path="res://entities/projectile/projectile.tscn" id="2"]
+[ext_resource type="AudioStream" uid="uid://br88af7rl8n1e" path="res://assets/audio/pistol_shoot.wav" id="4"]
+[ext_resource type="PackedScene" uid="uid://ctxx6c3k2hf4j" path="res://assets/models/scifi_pistol.glb" id="4_ug0dp"]
+[ext_resource type="AudioStream" uid="uid://ytyk27xak1g" path="res://assets/audio/weapon_empty.wav" id="5"]
+[ext_resource type="AudioStream" uid="uid://ixtovverkcvg" path="res://assets/audio/weapon_reload.wav" id="6"]
+[ext_resource type="Script" uid="uid://bfuid10judeot" path="res://entities/weapon/sprint_sway.gd" id="7"]
+[ext_resource type="Script" uid="uid://c5jnxcakqy4un" path="res://entities/vfx/vfx_router.gd" id="8"]
+[ext_resource type="Script" uid="uid://b7jkqwspi6wkm" path="res://entities/vfx/decal_pool_router.gd" id="9"]
 
-[node name="Weapon" type="Node3D"]
+[node name="Pistol" type="Node3D" unique_id=159509955]
 script = ExtResource("1")
 projectile_scene = ExtResource("2")
 
-[node name="Cooldown" type="Timer" parent="."]
+[node name="Cooldown" type="Timer" parent="." unique_id=1642398070]
 wait_time = 0.2
 one_shot = true
-autostart = false
 
-[node name="Reload" type="Timer" parent="."]
+[node name="Reload" type="Timer" parent="." unique_id=211639568]
 wait_time = 1.2
 one_shot = true
-autostart = false
 
-[node name="PistolViewModel" type="Node3D" parent="."]
-position = Vector3(0.12, -0.12, -0.25)
+[node name="PistolViewModel" type="Node3D" parent="." unique_id=1816964481]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, -0.12, -0.25)
 
-[node name="Pistol" parent="PistolViewModel" instance=ExtResource("3")]
+[node name="SprintSway" type="Node3D" parent="PistolViewModel" unique_id=724281585]
+editor_description = "Sprint pose + sine sway layer — children inherit this offset; tweens write PistolViewModel above"
+script = ExtResource("7")
+sprint_pose_pos = Vector3(0.08, -0.06, 0.02)
+sprint_pose_rot = Vector3(-5, 3, -8)
+sway_roll_deg = 4.0
+sway_lateral_deg = 1.2
+sway_vert_deg = 1.8
 
-[node name="Muzzle" type="Marker3D" parent="PistolViewModel"]
-position = Vector3(0.0, 0.0, -0.3)
+[node name="SciPistol" parent="PistolViewModel/SprintSway" unique_id=306263595 instance=ExtResource("4_ug0dp")]
+transform = Transform3D(-0.0006737068, 0, 0.19999887, 0, 0.2, 0, -0.19999887, 0, -0.0006737068, 0, -0.040578924, 0)
 
-[node name="MuzzleFlash" type="OmniLight3D" parent="PistolViewModel/Muzzle"]
-light_color = Color(1.0, 0.7, 0.3, 1.0)
+[node name="Muzzle" type="Marker3D" parent="PistolViewModel/SprintSway" unique_id=1849593988]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.3)
+
+[node name="MuzzleFlash" type="OmniLight3D" parent="PistolViewModel/SprintSway/Muzzle" unique_id=2079139950]
+editor_description = "Muzzle flash pulse — driven by weapon.gd _flash_pulse(); off by default"
+visible = false
+light_color = Color(1, 0.7, 0.3, 1)
 light_energy = 4.0
 omni_range = 1.2
-visible = false
-editor_description = "Muzzle flash pulse — driven by weapon.gd _flash_pulse(); off by default"
 
-[node name="FireSfx" type="AudioStreamPlayer" parent="."]
+[node name="FireSfx" type="AudioStreamPlayer" parent="." unique_id=928182860]
 stream = ExtResource("4")
 bus = &"SFX"
 
-[node name="EmptySfx" type="AudioStreamPlayer" parent="."]
+[node name="EmptySfx" type="AudioStreamPlayer" parent="." unique_id=666334955]
+editor_description = "Dry-click on empty trigger — played by weapon.gd on out_of_ammo"
 stream = ExtResource("5")
 bus = &"SFX"
-editor_description = "Dry-click on empty trigger — played by weapon.gd on out_of_ammo"
 
-[node name="ReloadSfx" type="AudioStreamPlayer" parent="."]
+[node name="ReloadSfx" type="AudioStreamPlayer" parent="." unique_id=109583519]
+editor_description = "Mechanical clack at reload start — played by weapon.gd on start_reload"
 stream = ExtResource("6")
 bus = &"SFX"
-editor_description = "Mechanical clack at reload start — played by weapon.gd on start_reload"
+
+[node name="VfxRouter" type="Node" parent="." unique_id=2022073074]
+editor_description = "Thin router: weapon fired/vfx_impact signals -> one-shot VFX scenes."
+script = ExtResource("8")
+
+[node name="DecalPoolRouter" type="Node" parent="." unique_id=2012659050]
+editor_description = "Routes vfx_impact/vfx_kill -> ScorchDecalPool. Pool found by name fallback."
+script = ExtResource("9")

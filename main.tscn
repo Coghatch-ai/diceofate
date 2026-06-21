@@ -1,33 +1,31 @@
 [gd_scene format=3 uid="uid://xpu2uu5iytmj"]
 
 [ext_resource type="Script" uid="uid://bh5pypvfo12ut" path="res://main.gd" id="1"]
-[ext_resource type="PackedScene" uid="uid://c5pqr2xk8yvl4" path="res://entities/camera_rig/camera_rig.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://entities/vfx/scorch_pool.tscn" id="6"]
 [ext_resource type="Script" path="res://entities/hud/crosshair.gd" id="3"]
 [ext_resource type="Script" path="res://entities/hud/arena_hud.gd" id="4"]
 [ext_resource type="Script" path="res://entities/hud/controls_hud.gd" id="5"]
+[ext_resource type="Shader" path="res://shaders/post/post_process.gdshader" id="7"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_post"]
+shader = ExtResource("7")
+shader_parameter/depth_threshold = 0.5
+shader_parameter/normal_threshold = 0.4
+
+[sub_resource type="QuadMesh" id="QuadMesh_post"]
+flip_faces = true
+size = Vector2(2, 2)
 
 [node name="Main" type="Node" unique_id=1756503177]
 script = ExtResource("1")
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=2056143120]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-stretch = true
-stretch_shrink = 3
+[node name="VfxRoot" type="Node3D" parent="."]
+editor_description = "Surviving parent for one-shot VFX nodes — outlives LevelHost level swaps."
 
-[node name="SubViewport" type="SubViewport" parent="SubViewportContainer" unique_id=679173689]
-handle_input_locally = false
-size = Vector2i(640, 360)
-render_target_update_mode = 4
+[node name="ScorchPool" parent="VfxRoot" instance=ExtResource("6")]
+editor_description = "Round-robin pool of 8 Decal nodes for impact/death scorches."
 
-[node name="CameraRig" parent="SubViewportContainer/SubViewport" unique_id=1828638565 instance=ExtResource("2")]
-unique_name_in_owner = true
-transform = Transform3D(0.70710677, -0.35355338, 0.6123724, 0, 0.8660254, 0.5, -0.70710677, -0.35355338, 0.6123724, 0, 0, 0)
-
-[node name="LevelHost" type="Node" parent="SubViewportContainer/SubViewport" unique_id=96008215]
+[node name="LevelHost" type="Node" parent="." unique_id=96008215]
 unique_name_in_owner = true
 
 [node name="HUD" type="CanvasLayer" parent="."]
@@ -45,64 +43,122 @@ script = ExtResource("3")
 
 [node name="ArenaHud" type="Control" parent="HUD"]
 unique_name_in_owner = true
-anchors_preset = 0
+anchors_preset = 15
 anchor_left = 0.0
 anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_right = 200.0
-offset_bottom = 80.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
 mouse_filter = 2
 script = ExtResource("4")
 
-[node name="ScoreLabel" type="Label" parent="HUD/ArenaHud"]
-offset_left = 8.0
+[node name="TopCenter" type="VBoxContainer" parent="HUD/ArenaHud"]
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 1
+offset_left = -120.0
 offset_top = 8.0
-offset_right = 192.0
-offset_bottom = 28.0
+offset_right = 120.0
+offset_bottom = 56.0
+alignment = 0
+editor_description = "Top-center: score + enemy count."
+
+[node name="ScoreLabel" type="Label" parent="HUD/ArenaHud/TopCenter"]
 text = "SCORE  0"
+horizontal_alignment = 1
 
-[node name="ActiveLabel" type="Label" parent="HUD/ArenaHud"]
-offset_left = 8.0
-offset_top = 32.0
-offset_right = 192.0
-offset_bottom = 52.0
+[node name="ActiveLabel" type="Label" parent="HUD/ArenaHud/TopCenter"]
 text = "ENEMIES  0"
+horizontal_alignment = 1
 
-[node name="LivesLabel" type="Label" parent="HUD/ArenaHud"]
+[node name="BottomLeft" type="VBoxContainer" parent="HUD/ArenaHud"]
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+grow_horizontal = 1
+grow_vertical = 0
 offset_left = 8.0
-offset_top = 56.0
-offset_right = 192.0
-offset_bottom = 76.0
-text = "LIVES  3"
+offset_top = -72.0
+offset_right = 200.0
+offset_bottom = -8.0
+alignment = 2
+editor_description = "Bottom-left: heart pips + stamina bar."
 
-[node name="AmmoLabel" type="Label" parent="HUD/ArenaHud"]
+[node name="LivesContainer" type="HBoxContainer" parent="HUD/ArenaHud/BottomLeft"]
+custom_minimum_size = Vector2(0, 24)
+editor_description = "Row of pip ColorRects; script toggles visibility for lives count."
+
+[node name="Pip0" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/LivesContainer"]
+custom_minimum_size = Vector2(20, 20)
+size_flags_vertical = 4
+color = Color(0.9, 0.15, 0.15, 1.0)
+editor_description = "Heart pip 1 (rightmost = last life)."
+
+[node name="Pip1" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/LivesContainer"]
+custom_minimum_size = Vector2(20, 20)
+size_flags_vertical = 4
+color = Color(0.9, 0.15, 0.15, 1.0)
+editor_description = "Heart pip 2."
+
+[node name="Pip2" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/LivesContainer"]
+custom_minimum_size = Vector2(20, 20)
+size_flags_vertical = 4
+color = Color(0.9, 0.15, 0.15, 1.0)
+editor_description = "Heart pip 3."
+
+[node name="StaminaRow" type="HBoxContainer" parent="HUD/ArenaHud/BottomLeft"]
+custom_minimum_size = Vector2(0, 14)
+editor_description = "Label + bar track for stamina."
+
+[node name="StaminaLabel" type="Label" parent="HUD/ArenaHud/BottomLeft/StaminaRow"]
+text = "STA"
+vertical_alignment = 1
+
+[node name="StaminaBar" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/StaminaRow"]
+custom_minimum_size = Vector2(120, 10)
+size_flags_horizontal = 3
+size_flags_vertical = 4
+color = Color(0.2, 0.2, 0.2, 0.8)
+editor_description = "Dark track; StaminaFill child covers the filled portion."
+
+[node name="StaminaFill" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/StaminaRow/StaminaBar"]
+offset_right = 120.0
+offset_bottom = 10.0
+color = Color(0.2, 0.85, 0.3, 1.0)
+editor_description = "Green fill; width driven by set_stamina()."
+
+[node name="BottomRight" type="Control" parent="HUD/ArenaHud"]
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 0
 grow_vertical = 0
-offset_left = -192.0
-offset_top = -32.0
+offset_left = -200.0
+offset_top = -64.0
 offset_right = -8.0
 offset_bottom = -8.0
-horizontal_alignment = 2
-text = "AMMO  0 / 0"
+editor_description = "Bottom-right: big ammo number / RELOADING label."
 
-[node name="StaminaLabel" type="Label" parent="HUD/ArenaHud"]
-anchor_left = 1.0
-anchor_top = 1.0
+[node name="AmmoLabel" type="Label" parent="HUD/ArenaHud/BottomRight"]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 0
-grow_vertical = 0
-offset_left = -192.0
-offset_top = -56.0
-offset_right = -8.0
-offset_bottom = -32.0
+grow_horizontal = 2
+grow_vertical = 2
 horizontal_alignment = 2
-text = "STAMINA  100%"
+vertical_alignment = 2
+theme_override_font_sizes/font_size = 36
+text = "0 / 0"
 
 [node name="ResultPanel" type="Panel" parent="HUD/ArenaHud"]
 anchors_preset = 15
@@ -132,6 +188,25 @@ offset_bottom = 80.0
 horizontal_alignment = 1
 vertical_alignment = 1
 text = ""
+
+[node name="LifeLostLabel" type="Label" parent="HUD/ArenaHud"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = -300.0
+offset_top = -60.0
+offset_right = 300.0
+offset_bottom = 60.0
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 64
+text = "LIFE LOST"
+visible = false
+editor_description = "Transient centered flash shown on each non-final life-loss; fades via tween in script."
 
 [node name="ControlsHud" type="Control" parent="HUD"]
 unique_name_in_owner = true
@@ -175,11 +250,10 @@ Space       Jump
 Shift       Sprint
 Ctrl        Crouch
 
-LMB         Shoot
-RMB         Aim
+LMB         Shoot / Swing
+RMB         Aim (guns only)
 R           Reload
 Q           Swap weapon
-V           Melee
 
 Tab         Cycle level
 Enter       Restart
@@ -187,14 +261,14 @@ H           Controls"
 
 [node name="Hint" type="Label" parent="HUD/ControlsHud"]
 anchor_left = 1.0
-anchor_top = 1.0
+anchor_top = 0.0
 anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_bottom = 0.0
 grow_horizontal = 0
-grow_vertical = 0
+grow_vertical = 1
 offset_left = -120.0
-offset_top = -28.0
+offset_top = 8.0
 offset_right = -8.0
-offset_bottom = -8.0
+offset_bottom = 32.0
 horizontal_alignment = 2
 text = "[H] Controls"

@@ -6,6 +6,10 @@ extends Node3D
 const SPAWN_POS: Vector3 = Vector3(12.0, 1.0, 2.0)
 const SPAWN_ROT_Y: float = PI
 
+## WaveManager sibling — injected by main.gd after level load.
+## Used to route fall life-loss through the shared lose_life() seam.
+@export var wave_manager: WaveManager
+
 @onready var _fall_zone: Area3D = $FallZone
 
 
@@ -13,7 +17,7 @@ func _ready() -> void:
 	_fall_zone.body_entered.connect(_on_FallZone_body_entered)
 
 
-# Teleport player body back to spawn — no life cost (design: snap only).
+# Teleport player body back to spawn and cost a life via wave_manager.lose_life().
 func _reset_player(body: Node3D) -> void:
 	if not body.is_in_group("player"):
 		return
@@ -22,6 +26,8 @@ func _reset_player(body: Node3D) -> void:
 	# SEAM: duck-typed reset — velocity is on CharacterBody3D, not Node3D base.
 	@warning_ignore("unsafe_property_access")
 	body.velocity = Vector3.ZERO
+	if wave_manager != null:
+		wave_manager.lose_life()
 
 
 func _on_FallZone_body_entered(body: Node3D) -> void:

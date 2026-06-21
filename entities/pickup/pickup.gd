@@ -37,7 +37,10 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	_consumed = true
 	_mesh.visible = false
-	_collision.disabled = true
+	# Defer physics-state mutations: cannot set shape disabled or monitoring
+	# synchronously inside a body_entered callback (query flush in progress).
+	_collision.set_deferred(&"disabled", true)
+	set_deferred(&"monitoring", false)
 	_collect_sfx.play()
 	_respawn_timer.start()
 
@@ -46,3 +49,4 @@ func _on_respawn() -> void:
 	_consumed = false
 	_mesh.visible = true
 	_collision.disabled = false
+	monitoring = true

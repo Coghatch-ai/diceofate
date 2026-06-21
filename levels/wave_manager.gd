@@ -5,10 +5,12 @@ extends Node
 signal kills_changed(total: int)
 signal active_changed(count: int)
 signal score_changed(total: int)
-signal run_won(score: int)
 signal run_lost(score: int)
 signal advance_level(score: int, lives: int)
 signal lives_changed(remaining: int)
+## Emitted when the player loses a life but the run continues (remaining > 0).
+## Connect to ArenaHud.flash_life_lost() in main.gd.
+signal life_lost
 
 ## Collision mask bit for the world/wall layer (layer 1 = bit 0).
 const WALL_MASK: int = 1
@@ -71,6 +73,8 @@ var _run_over: bool = false
 # Tracks which markers are occupied by live spawned enemies (cleared when an enemy dies/frees).
 # Used to avoid placing two enemies on the same marker within one spawn batch.
 var _occupied_markers: Array[Marker3D] = []
+# Last marker chosen by _pick_far_marker_pos; tagged onto the spawned enemy for death cleanup.
+var _last_spawn_marker: Marker3D = null
 
 # Reusable PhysicsRayQueryParameters3D allocated once, reused per LOS check.
 var _ray_query: PhysicsRayQueryParameters3D
@@ -211,6 +215,10 @@ func _spawn_one(
 	get_parent().add_child(enemy)
 	# global_position requires the node to be in the tree; set after add_child.
 	enemy.global_position = pos + Vector3(0.0, 0.1, 0.0)
+	# Tag the marker used so _on_enemy_died can release it from _occupied_markers.
+	if _last_spawn_marker != null:
+		enemy.set_meta("spawn_marker", _last_spawn_marker)
+	_last_spawn_marker = null
 
 	_connect_enemy(enemy)
 	_active_enemies.append(enemy)
@@ -220,12 +228,19 @@ func _spawn_one(
 func _connect_enemy(enemy: Enemy) -> void:
 	enemy.died.connect(_on_enemy_died)
 	enemy.touched_player.connect(_on_enemy_touched_player)
+	enemy.bumped_player.connect(_on_enemy_bumped_player)
 
 
 # ── Event handlers ────────────────────────────────────────────────────────────
 
 
 func _on_enemy_died(enemy: Enemy) -> void:
+	# Release any marker this enemy occupied so future spawns can reuse it.
+	if enemy.has_meta("spawn_marker"):
+		# SEAM: meta value is Marker3D by construction (set in _spawn_one).
+		@warning_ignore("unsafe_cast")
+		var m: Marker3D = enemy.get_meta("spawn_marker") as Marker3D
+		_occupied_markers.erase(m)
 	if _run_over:
 		_active_enemies.erase(enemy)
 		active_changed.emit(_active_enemies.size())
@@ -262,17 +277,18 @@ func _on_enemy_died(enemy: Enemy) -> void:
 	print("WaveManager: active after respawn %d" % _active_enemies.size())
 
 
-func _on_enemy_touched_player(_enemy: Enemy) -> void:
+## Shared life-loss entry point — decrement, emit signals, re-seed or end run.
+## Call from enemy touches AND fall/hazard resets so all life-loss routes are unified.
+func lose_life() -> void:
 	if _run_over:
 		return
 
-	print("WaveManager: touched — losing life")
+	print("WaveManager: lose_life — lives before: %d" % _lives)
 	_lives -= 1
 	lives_changed.emit(_lives)
 
 	if _lives <= 0:
 		_run_over = true
-		# Free all live enemies before emitting run_lost.
 		for e: Enemy in _active_enemies:
 			if is_instance_valid(e):
 				e.queue_free()
@@ -282,8 +298,10 @@ func _on_enemy_touched_player(_enemy: Enemy) -> void:
 		run_lost.emit(_score)
 		return
 
-	# Lives remain — advance to the next level carrying the decremented lives + current score.
-	_run_over = true
+	# Lives remain — flash, clear enemies, advance to re-seed.
+	# Do NOT set _run_over here: the run is not over; advance_level triggers a level swap.
+	# Enemies are freed below before the signal fires, so no stale _on_enemy_died calls arrive.
+	life_lost.emit()
 	for e: Enemy in _active_enemies:
 		if is_instance_valid(e):
 			e.queue_free()
@@ -291,6 +309,21 @@ func _on_enemy_touched_player(_enemy: Enemy) -> void:
 	_occupied_markers.clear()
 	active_changed.emit(_active_enemies.size())
 	advance_level.emit(_score, _lives)
+
+
+func _on_enemy_touched_player(_enemy: Enemy) -> void:
+	lose_life()
+
+
+func _on_enemy_bumped_player(enemy: Enemy) -> void:
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+	if player == null:
+		return
+	if not player.has_method("apply_knockback"):
+		return
+	# SEAM: duck-typed apply_knockback seam — any node with apply_knockback(Vector3) accepted.
+	@warning_ignore("unsafe_method_access")
+	player.apply_knockback(enemy.global_position)
 
 
 # ── Spawn point selection ─────────────────────────────────────────────────────
@@ -356,6 +389,7 @@ func _pick_far_marker_pos() -> Vector3:
 		chosen = farthest
 
 	_occupied_markers.append(chosen)
+	_last_spawn_marker = chosen
 	print(
 		(
 			"WaveManager: FAR spawn pick — %d hidden_free / %d vis_free / %d occupied → %s"

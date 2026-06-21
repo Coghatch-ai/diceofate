@@ -6,7 +6,14 @@ extends CharacterBody3D
 @export var move_speed: float = 4.0
 @export var move_accel: float = 6.0
 @export var move_decel: float = 7.0
-@export var jump_velocity: float = 5.0
+@export var jump_velocity: float = 9.0
+## Overall gravity scale applied on top of the project-settings gravity (9.8 m/s²).
+## Raise to make the whole arc faster without changing peak height formula:
+## peak_height = jump_velocity² / (2 × gravity × gravity_scale).
+@export var gravity_scale: float = 2.25
+## Gravity multiplier applied while falling (velocity.y < 0). Values > 1 make the
+## descent faster than the rise — snappier, less floaty feel. Tune alongside jump_velocity.
+@export var fall_gravity_mult: float = 1.5
 @export var mouse_sensitivity: float = 0.0016
 ## FOV while hip-firing (default).
 @export var hip_fov: float = 75.0
@@ -35,9 +42,11 @@ extends CharacterBody3D
 ## Head-bob cycle frequency (Hz) at walk speed.
 @export var bob_freq: float = 1.8
 ## Multipliers applied to bob amplitude and frequency while sprinting.
-@export var sprint_bob_mult: float = 1.3
+## Dialled back from 1.3 — view-model SprintSway carries the arm-swing; avoid doubling.
+@export var sprint_bob_mult: float = 1.05
 ## Sprint-bob frequency multiplier (separate from amplitude).
-@export var sprint_bob_freq_mult: float = 1.4
+## Dialled back from 1.4 — footfall cadence only; sway handles the swing feel.
+@export var sprint_bob_freq_mult: float = 1.1
 ## Slide duration in seconds before settling into crouch or stand.
 @export var slide_duration: float = 0.55
 ## Friction (decel rate) applied to horizontal velocity during a slide.
@@ -54,6 +63,10 @@ extends CharacterBody3D
 @export var stamina_regen_delay: float = 0.6
 ## Minimum stamina required to START a new sprint.
 @export var stamina_min_to_sprint: float = 10.0
+## Impulse speed (m/s) applied when an enemy bumps the player. Mirrors enemy _KNOCKBACK_SPEED.
+@export var knockback_speed: float = 6.0
+## Duration (s) input is suppressed and knockback decays after a bump. Mirrors enemy _STUN_DURATION.
+@export var knockback_stun_duration: float = 0.15
 
 # SEAM: ProjectSettings.get_setting() returns Variant; the physics gravity setting is always float.
 @warning_ignore("unsafe_cast")
@@ -65,6 +78,8 @@ var _look_pitch: float = 0.0
 var _recoil_pitch: float = 0.0
 var _recoil_yaw: float = 0.0
 var _recoil_yaw_prev: float = 0.0
+# Additive melee-kick offset — fetched from WeaponController each frame, summed here.
+var _melee_kick_offset: float = 0.0
 var _ads_tween: Tween
 # Head-bob state — additive Y/X offsets on _head, never fight look/recoil/crouch.
 var _bob_t: float = 0.0
@@ -78,12 +93,15 @@ var _slide_vel: Vector3 = Vector3.ZERO
 var _stamina: float = 100.0
 var _stamina_regen_timer: float = 0.0
 var _was_sprinting: bool = false
+# Knockback stun state — movement input skipped while _kb_stun_timer > 0.
+var _kb_stun_timer: float = 0.0
+var _kb_velocity: Vector3 = Vector3.ZERO
 # HUD ref for stamina forwarding (player owns this; ammo goes via WeaponController).
 var _arena_hud: ArenaHud
 
 @onready var _weapon_controller: WeaponController = $WeaponController
-@onready var _head: Node3D = $WeaponController/Head
-@onready var _camera: Camera3D = $WeaponController/Head/Camera3D
+@onready var _head: Node3D = _weapon_controller.get_head()
+@onready var _camera: Camera3D = _weapon_controller.get_camera()
 @onready var _jump_sfx: AudioStreamPlayer = $JumpSfx
 @onready var _land_sfx: AudioStreamPlayer = $LandSfx
 @onready var _collision: CollisionShape3D = $CollisionShape3D
@@ -93,6 +111,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_camera.fov = hip_fov
 	_stamina = stamina_max
+	_weapon_controller.health_pickup_requested.connect(_on_health_pickup_requested)
 
 
 ## Called by the level host (main.gd) after load to inject the HUD crosshair.
@@ -117,7 +136,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Yaw on the body, pitch tracked in _look_pitch (recoil added separately in physics).
 		rotate_y(-motion.relative.x * sens)
 		_look_pitch = clampf(_look_pitch - motion.relative.y * sens, -PI / 2.0, PI / 2.0)
-		_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
+		_head.rotation.x = clampf(
+			_look_pitch + _recoil_pitch + _melee_kick_offset, -PI / 2.0, PI / 2.0
+		)
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
@@ -125,9 +146,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	var on_floor_now: bool = is_on_floor()
 
-	# 1. Gravity while airborne.
+	# 1. Gravity while airborne. fall_gravity_mult applied when descending for snappier landing.
 	if not on_floor_now:
-		velocity.y -= _gravity * delta
+		var grav_mult: float = fall_gravity_mult if velocity.y < 0.0 else 1.0
+		velocity.y -= _gravity * gravity_scale * grav_mult * delta
 
 	# 2. Jump only when grounded.
 	if Input.is_action_just_pressed("jump") and on_floor_now:
@@ -156,9 +178,11 @@ func _physics_process(delta: float) -> void:
 	_recoil_pitch = _weapon_controller.get_recoil_pitch()
 	_recoil_yaw = _weapon_controller.get_recoil_yaw()
 	_recoil_yaw_prev = _weapon_controller.get_recoil_yaw_prev()
+	_melee_kick_offset = _weapon_controller.get_melee_kick_offset()
 
-	# 6. Apply accumulated recoil as additive offset on top of mouse-look.
-	_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
+	# 6. Single owner of _head.rotation.x: look + recoil + melee-kick summed here.
+	# WeaponController tweens _melee_kick_offset 0→kick→0; never writes _head.rotation.x directly.
+	_head.rotation.x = clampf(_look_pitch + _recoil_pitch + _melee_kick_offset, -PI / 2.0, PI / 2.0)
 	rotation.y += _recoil_yaw - _recoil_yaw_prev
 	_weapon_controller.set_recoil_yaw_prev(_recoil_yaw)
 
@@ -168,7 +192,24 @@ func _physics_process(delta: float) -> void:
 	# 7a. Crouch-accuracy: inform active weapon of crouch state every frame.
 	_weapon_controller.set_active_weapon_crouch(_crouch_amount >= 0.5)
 
-	# 8. Movement — whole-vector lerp so direction changes carry momentum.
+	# 7b. Sprint/walk feel: forward movement state + velocity factor to weapon SprintSway.
+	# Uses last frame's velocity (provisional) — close enough for sway.
+	var flat_speed_prev: float = Vector3(velocity.x, 0.0, velocity.z).length()
+	var vf: float = clampf(flat_speed_prev / (move_speed * sprint_mult), 0.0, 1.0)
+	var is_moving_prev: bool = flat_speed_prev > 0.2 and is_on_floor()
+	_weapon_controller.update_sprint(_was_sprinting, is_moving_prev, vf, delta)
+
+	# 8. Knockback stun: decay impulse, override XZ, skip movement input while stunned.
+	if _kb_stun_timer > 0.0:
+		_kb_stun_timer -= delta
+		_kb_velocity = _kb_velocity.move_toward(Vector3.ZERO, knockback_speed * delta)
+		velocity.x = _kb_velocity.x
+		velocity.z = _kb_velocity.z
+		move_and_slide()
+		_update_bob(delta, false, on_floor_now)
+		return
+
+	# 9. Movement — whole-vector lerp so direction changes carry momentum.
 	# Per-axis lerp snapped each axis independently; reversing X while Z moves felt robotic.
 	# Lerping the XZ vector as a unit means reversing bleeds through existing momentum.
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
@@ -228,10 +269,10 @@ func _physics_process(delta: float) -> void:
 		velocity.x = flat_vel.x
 		velocity.z = flat_vel.z
 
-	# 9. Engine resolves collisions and updates position.
+	# 10. Engine resolves collisions and updates position.
 	move_and_slide()
 
-	# 14. Head-bob — runs AFTER move_and_slide() and AFTER _update_crouch() has set
+	# 11. Head-bob — runs AFTER move_and_slide() and AFTER _update_crouch() has set
 	# _head.position.y to the crouch eye height. _update_bob adds _bob_offset_y on top
 	# (additive += confirmed in _update_bob body). Recoil writes _head.rotation.x, not
 	# position, so no conflict.
@@ -343,3 +384,24 @@ func _update_ads_fov() -> void:
 ## Forwarding method: delegates to weapon controller. Called by pickups (duck-typed).
 func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> bool:
 	return _weapon_controller.collect_pickup(kind, ammo_caliber)
+
+
+## Shove the player away from hitter_pos. Input locked for knockback_stun_duration seconds.
+## Duck-typed seam — same signature as Enemy.apply_knockback (godot-composition rule).
+func apply_knockback(hitter_pos: Vector3) -> void:
+	var dir: Vector3 = global_position - hitter_pos
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		dir = global_transform.basis.z
+	_kb_velocity = dir.normalized() * knockback_speed
+	_kb_stun_timer = knockback_stun_duration
+
+
+## Handles health pickup signal from WeaponController. Routes to WaveManager (level domain).
+func _on_health_pickup_requested() -> void:
+	var wm: Node = get_tree().root.find_child("WaveManager", false, false)
+	if wm == null or not wm.has_method("add_life"):
+		return
+	# SEAM: duck-typed call to WaveManager.add_life() — any node with that method works.
+	@warning_ignore("unsafe_method_access")
+	wm.add_life()

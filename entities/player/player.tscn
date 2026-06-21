@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://bwxk8v5y3p2r1"]
 
-[ext_resource type="Script" path="res://entities/player/player.gd" id="1"]
+[ext_resource type="Script" uid="uid://ebbh6xowcejd" path="res://entities/player/player.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://weapon0001" path="res://entities/weapon/weapon.tscn" id="2"]
-[ext_resource type="PackedScene" uid="uid://weapon_rifle01" path="res://entities/weapon/rifle.tscn" id="3_rifle"]
-[ext_resource type="AudioStream" path="res://assets/audio/player_jump.wav" id="3_jump"]
-[ext_resource type="AudioStream" path="res://assets/audio/player_land.wav" id="4_land"]
+[ext_resource type="AudioStream" uid="uid://blkf0ian5o32c" path="res://assets/audio/player_jump.wav" id="3_jump"]
+[ext_resource type="PackedScene" uid="uid://8ce876l06gxc" path="res://entities/weapon/rifle.tscn" id="3_rifle"]
+[ext_resource type="AudioStream" uid="uid://cih5vynsi1u2b" path="res://assets/audio/player_land.wav" id="4_land"]
 [ext_resource type="PackedScene" uid="uid://melee0001" path="res://entities/weapon/melee.tscn" id="5_melee"]
 [ext_resource type="PackedScene" uid="uid://d3lfh3vj7qs5q" path="res://entities/player/components/weapon_controller.tscn" id="6_weapon_controller"]
 
@@ -12,35 +12,38 @@
 radius = 0.4
 height = 1.8
 
-[node name="Player" type="CharacterBody3D" groups=["player"]]
+[node name="Player" type="CharacterBody3D" unique_id=1043620130 groups=["player"]]
 collision_layer = 2
-collision_mask = 1
 script = ExtResource("1")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.9, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2080019338]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_player")
 
-[node name="WeaponController" parent="." instance=ExtResource("6_weapon_controller")]
+[node name="WeaponController" parent="." unique_id=1573378921 instance=ExtResource("6_weapon_controller")]
 
-[node name="Head" type="Node3D" parent="WeaponController"]
-position = Vector3(0, 1.6, 0)
+[node name="Head" type="Node3D" parent="WeaponController" unique_id=455136174]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
-[node name="Camera3D" type="Camera3D" parent="WeaponController/Head"]
+[node name="Camera3D" type="Camera3D" parent="WeaponController/Head" unique_id=1798063931]
 
-[node name="Weapon" parent="WeaponController/Head" instance=ExtResource("2")]
-
-[node name="Rifle" parent="WeaponController/Head" instance=ExtResource("3_rifle")]
+[node name="Pistol" parent="WeaponController/Head" unique_id=457896423 instance=ExtResource("2")]
+transform = Transform3D(2.6349742, 0, 0, 0, 1.7686827, 0, 0, 0, 1.2803954, 0, -0.013823986, -0.016185582)
 visible = false
+
+[node name="Rifle" parent="WeaponController/Head" unique_id=1952421181 instance=ExtResource("3_rifle")]
 editor_description = "Rifle — inactive on start; swapped in by WeaponController on equip_weapon"
+transform = Transform3D(0.9999993, 0, -0.0012042768, 0, 1, 0, 0.0012042768, 0, 0.9999993, 0.050203145, -0.007646203, 0.035382867)
+visible = false
 
-[node name="Melee" parent="WeaponController/Head" instance=ExtResource("5_melee")]
-editor_description = "Always-present knife; activated by key V independent of active gun weapon"
+[node name="Hammer" parent="WeaponController/Head" unique_id=1497342218 instance=ExtResource("5_melee")]
+editor_description = "Hammer melee slot; shown/hidden by WeaponController on Q swap like guns."
+transform = Transform3D(1.1591445, 0, 0.2673091, 0, 0.59999996, 0, -0.48464298, 0, 0.6393363, 0.16778004, 0, -0.2454479)
 
-[node name="JumpSfx" type="AudioStreamPlayer" parent="."]
+[node name="JumpSfx" type="AudioStreamPlayer" parent="." unique_id=740762720]
 stream = ExtResource("3_jump")
 bus = &"SFX"
 
-[node name="LandSfx" type="AudioStreamPlayer" parent="."]
+[node name="LandSfx" type="AudioStreamPlayer" parent="." unique_id=998998730]
 stream = ExtResource("4_land")
 bus = &"SFX"

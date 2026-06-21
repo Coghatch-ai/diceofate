@@ -14,7 +14,7 @@ script = ExtResource("2_script")
 move_speed = 2.5
 patrol_speed = 1.25
 detect_range = 14.0
-health = 2
+health = 1
 
 [node name="RadiusBubble" type="MeshInstance3D" parent="."]
 mesh = SubResource("SphereMesh_bubble")

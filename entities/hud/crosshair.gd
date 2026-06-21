@@ -14,17 +14,22 @@ extends Control
 @export var kill_color: Color = Color(0.2, 1.0, 0.8, 1.0)
 @export var kill_pop_scale: float = 1.8
 @export var kill_pop_duration: float = 0.22
+@export var aim_expand_scale: float = 3.5
+@export var aim_tween_duration: float = 0.12
 
 var _pop_scale: float = 1.0
+var _aim_scale: float = 1.0
 var _pop_alpha: float = 0.9
 var _pop_color: Color = Color(1.0, 1.0, 1.0, 0.9)
+var _aim_tween: Tween
 
 
 func _draw() -> void:
 	var cx: float = get_rect().size.x * 0.5
 	var cy: float = get_rect().size.y * 0.5
-	var half: float = float(arm_length) * _pop_scale
-	var g: float = float(center_gap) * _pop_scale
+	var combined: float = _pop_scale * _aim_scale
+	var half: float = float(arm_length) * combined
+	var g: float = float(center_gap) * combined
 	var t: float = float(line_thickness)
 	var col := Color(_pop_color.r, _pop_color.g, _pop_color.b, _pop_alpha)
 	# Horizontal bar (left arm + right arm).
@@ -62,6 +67,20 @@ func kill_pop() -> void:
 	tw.tween_method(_set_pop_scale, kill_pop_scale, 1.0, kill_pop_duration)
 	tw.parallel().tween_method(_set_pop_alpha, 1.0, line_color.a, kill_pop_duration)
 	tw.tween_callback(_reset_color)
+
+
+## Expand crosshair while aiming to telegraph projectile spread (intentionally inverted ADS).
+func set_aiming_state(aiming: bool) -> void:
+	if _aim_tween != null:
+		_aim_tween.kill()
+	_aim_tween = create_tween()
+	var target: float = aim_expand_scale if aiming else 1.0
+	_aim_tween.tween_method(_set_aim_scale, _aim_scale, target, aim_tween_duration)
+
+
+func _set_aim_scale(v: float) -> void:
+	_aim_scale = v
+	queue_redraw()
 
 
 func _set_pop_scale(v: float) -> void:

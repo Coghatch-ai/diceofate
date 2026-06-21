@@ -9,7 +9,10 @@
 [ext_resource type="Script" path="res://levels/wave_manager.gd" id="7_fqhaa"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="8_t1gec"]
 [ext_resource type="PackedScene" path="res://entities/npc/npc.tscn" id="9_s0383"]
-[ext_resource type="Script" path="res://entities/npc/npc.gd" id="10_4skpc"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_runner.tscn" id="10_abcde"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_tank.tscn" id="11_fghij"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_magnetic.tscn" id="12_klmno"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_shooter.tscn" id="13_pqrst"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m6nd0"]
 albedo_color = Color(0.251, 0.251, 0.314, 1)
@@ -734,38 +737,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 10)
 [node name="WaveManager" type="Node" parent="." unique_id=1614246293]
 script = ExtResource("7_fqhaa")
 enemy_scene = ExtResource("8_t1gec")
+enemy_scene_b = ExtResource("10_abcde")
+enemy_scene_c = ExtResource("11_fghij")
+enemy_scene_d = ExtResource("12_klmno")
+enemy_scene_e = ExtResource("13_pqrst")
 spawn_marker_paths = Array[NodePath]([NodePath("../SpawnMarker0"), NodePath("../SpawnMarker1"), NodePath("../SpawnMarker2"), NodePath("../SpawnMarker3"), NodePath("../SpawnMarker4"), NodePath("../SpawnMarker5"), NodePath("../SpawnMarker6"), NodePath("../SpawnMarker7"), NodePath("../SpawnMarker8"), NodePath("../SpawnMarker9"), NodePath("../SpawnMarker10"), NodePath("../SpawnMarker11")])
 patrol_waypoint_paths = Array[NodePath]([NodePath("../EnemyWP0"), NodePath("../EnemyWP1"), NodePath("../EnemyWP2")])
 
 [node name="Npc0" type="StaticBody3D" parent="." unique_id=1844057137 instance=ExtResource("9_s0383")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.9, 14)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
 
 [node name="Npc1" type="StaticBody3D" parent="." unique_id=1350015156 instance=ExtResource("9_s0383")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0.9, 18)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
 
-[node name="Npc2" type="StaticBody3D" parent="." unique_id=1143760989 instance=ExtResource("9_s0383")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.9, 22)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
-
-[node name="Npc3" type="StaticBody3D" parent="." unique_id=1358388135 instance=ExtResource("9_s0383")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.9, 16)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
-
-[node name="Npc4" type="StaticBody3D" parent="." unique_id=1912850124 instance=ExtResource("9_s0383")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.9, 20)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("10_4skpc")
 
 [node name="HazardFloorMesh" type="MeshInstance3D" parent="." unique_id=1816642741]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.25, 4)
