@@ -11,8 +11,37 @@ assets/
 
 # Xenodot Forge task board (the orchestrator's working store)
 .xenodot/
-# Framework Godot tools — generated from the xenodot plugin (single source), not repo content
-/tools/
+# Framework Godot tools — plugin-materialized files stay ignored; game-authored files tracked.
+# Strategy: do NOT ignore the tools/ dir wholesale. List only plugin-framework files to ignore.
+# Game-authored files (smoke tests, lib/, art_style, diag, gen variants) are tracked by default.
+
+# Plugin-framework files (pristine copies from xenodot plugin — ignore these)
+/tools/validate.sh
+/tools/gen_textures.gd
+/tools/gen_textures.gd.uid
+/tools/gen_models.gd
+/tools/gen_models.gd.uid
+/tools/verify_render.gd
+/tools/verify_render.gd.uid
+/tools/verify_render_action.gd
+/tools/verify_render_action.gd.uid
+/tools/verify_scene.gd
+/tools/verify_scene.gd.uid
+/tools/smoke_scene_errors.sh
+/tools/CAPABILITIES.md
+/tools/capture_screenshot.gd
+/tools/capture_screenshot.gd.uid
+/tools/install_gdstyle.sh
+/tools/forge-facts
+# Plugin-provided lib/ files (exist verbatim in plugin's tools/lib/)
+/tools/lib/audio_one_shot.gd
+/tools/lib/audio_one_shot.gd.uid
+/tools/lib/mesh_flasher.gd
+/tools/lib/mesh_flasher.gd.uid
+/tools/lib/node_builder.gd
+/tools/lib/node_builder.gd.uid
+/tools/lib/players.gd
+/tools/lib/players.gd.uid
 # Framework knowledge base — a symlink to the xenodot plugin's library/, not repo content
 # (no trailing slash: a trailing-slash pattern won't match a symlink)
 /library
