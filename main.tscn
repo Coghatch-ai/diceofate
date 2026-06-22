@@ -142,22 +142,20 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 0
 grow_vertical = 0
-offset_left = -200.0
-offset_top = -64.0
+offset_left = -290.0
+offset_top = -80.0
 offset_right = -8.0
 offset_bottom = -8.0
-editor_description = "Bottom-right: big ammo number / RELOADING label."
+editor_description = "Bottom-right: 5-slot bullet hotbar (built at runtime by ArenaHud._build_hotbar_slots)."
 
-[node name="AmmoLabel" type="Label" parent="HUD/ArenaHud/BottomRight"]
+[node name="BulletHotbar" type="HBoxContainer" parent="HUD/ArenaHud/BottomRight"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-horizontal_alignment = 2
-vertical_alignment = 2
-theme_override_font_sizes/font_size = 36
-text = "0 / 0"
+alignment = 2
+theme_override_constants/separation = 4
 
 [node name="ResultPanel" type="Panel" parent="HUD/ArenaHud"]
 anchors_preset = 15

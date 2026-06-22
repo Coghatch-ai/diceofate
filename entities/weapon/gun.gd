@@ -1,10 +1,13 @@
 # entities/weapon/gun.gd — firing component: spawns projectiles from a Muzzle, timer-gated.
+# Per-bullet-type ammo gated via BulletAmmoTracker child node.
 class_name Gun
 extends Node3D
 
 signal fired
 signal hit_confirmed
 signal kill_confirmed
+## Emitted when the active bullet type changes (slice-2 select-then-LMB).
+signal active_bullet_changed(index: int)
 ## Emitted with world position + surface normal on any projectile hit — consumed by VfxRouter.
 signal vfx_impact(pos: Vector3, normal: Vector3)
 ## Emitted with world position on a confirmed non-fatal enemy hit — consumed by VfxRouter.
@@ -13,11 +16,7 @@ signal vfx_hit_burst(pos: Vector3)
 signal vfx_kill(pos: Vector3, normal: Vector3)
 ## Emitted at blast impact when cast uses a RadiusTargetResolver — consumed by VfxRouter.
 signal vfx_blast(pos: Vector3)
-signal ammo_changed(current: int, reserve: int)
 signal out_of_ammo
-signal reload_started(duration: float)
-signal reload_finished
-signal swap_draw_finished
 
 const _VM_REST_POS := Vector3(0.12, -0.12, -0.25)
 const _VM_REST_ROT := Vector3.ZERO
@@ -26,11 +25,8 @@ const _VM_DIP_ROT := Vector3(25.0, 0.0, 0.0)
 
 @export var projectile_scene: PackedScene
 ## NodePath to the view-model Node3D holding the mesh, Muzzle and MuzzleFlash.
-## Override in derived weapon scenes to swap in a different view-model mesh.
 @export var view_model_path: NodePath = ^"PistolViewModel"
 @export var fire_rate: float = 0.2
-@export var ammo_max: int = 12
-@export var reload_time: float = 1.2
 ## Cone half-angle (degrees) for hip-fire spread.
 @export var spread_hip: float = 2.5
 ## Cone half-angle (degrees) for ADS spread.
@@ -41,21 +37,16 @@ const _VM_DIP_ROT := Vector3(25.0, 0.0, 0.0)
 @export var recoil_pitch: float = 0.08
 ## Max yaw jitter (radians) per shot — read by player via export.
 @export var recoil_yaw: float = 0.03
-## Maximum rounds in the reserve pool (pistol default 48 = 4 spare mags).
-@export var reserve_max: int = 48
-## Ammo type this weapon consumes. Matched against Pickup.ammo_caliber on collect.
-@export var caliber: StringName = &"light"
 ## Optional cast payload stamped onto each spawned projectile at fire time.
-## Null = fall back to projectile's bare on_hit() path (no regression for non-cast guns).
 @export var cast_data: CastData
+## Ordered list of bullet cast types (Q=0, E=1, R=2, T=3, Y=4).
+@export var bullet_casts: Array[CastData] = []
 
 var _aiming: bool = false
+## Index of the currently active bullet in bullet_casts.
+var _active_cast: int = 0
 var _crouched: bool = false
-var _ammo: int = 0
-var _reserve: int = 0
-var _reloading: bool = false
 var _swapping: bool = false
-var _reload_tween: Tween
 var _swap_tween: Tween
 var _flash_tween: Tween
 
@@ -64,33 +55,25 @@ var _muzzle_flash: OmniLight3D
 var _view_model: Node3D
 var _sprint_sway: SprintSway
 var _firing: bool = false
-# Cached world position of last hit target — used by _on_target_died to emit vfx_kill.
 var _last_hit_pos: Vector3 = Vector3.ZERO
-# Cached surface normal of last hit — forwarded to vfx_kill on confirmed kill.
 var _last_hit_normal: Vector3 = Vector3.UP
 
 @onready var _cooldown: Timer = $Cooldown
-@onready var _reload_timer: Timer = $Reload
 @onready var _fire_sfx: AudioStreamPlayer = $FireSfx
 @onready var _empty_sfx: AudioStreamPlayer = $EmptySfx
-@onready var _reload_sfx: AudioStreamPlayer = $ReloadSfx
+## Per-bullet-type ammo tracker — must be added as child named BulletAmmoTracker.
+@onready var _tracker: BulletAmmoTracker = $BulletAmmoTracker
 
 
 func _ready() -> void:
-	# Resolve view-model via export so derived scenes can override with a different mesh node.
 	_view_model = get_node(view_model_path) as Node3D
 	if _view_model == null:
 		push_error("Gun: view_model_path '%s' not found or not Node3D" % view_model_path)
 		return
-	# Hide every sibling *ViewModel node that is NOT the active one.
-	# Inherited scenes (e.g. rifle.tscn) carry the base PistolViewModel; hiding it
-	# here is authoritative regardless of scene-property-override quirks.
 	for child: Node in get_children():
 		if child is Node3D and child.name.ends_with("ViewModel") and child != _view_model:
 			(child as Node3D).visible = false
-	# SprintSway sits between view-model and mesh/muzzle children.
 	_sprint_sway = _view_model.get_node_or_null(^"SprintSway") as SprintSway
-	# Muzzle/MuzzleFlash live under SprintSway when present, else directly under view-model.
 	var muzzle_root: Node3D = _sprint_sway if _sprint_sway != null else _view_model
 	_muzzle = muzzle_root.get_node_or_null(^"Muzzle") as Marker3D
 	if _muzzle == null:
@@ -100,59 +83,41 @@ func _ready() -> void:
 	if _muzzle_flash == null:
 		push_error("Gun: MuzzleFlash not found under Muzzle")
 		return
-	# Flash must never cast shadows — perf + correctness (skill: godot-oneshot-vfx).
 	_muzzle_flash.shadow_enabled = false
 	_cooldown.one_shot = true
 	_cooldown.wait_time = fire_rate
 	_cooldown.timeout.connect(_on_cooldown_done)
-	_reload_timer.one_shot = true
-	_reload_timer.wait_time = reload_time
-	_reload_timer.timeout.connect(_on_reload_done)
-	_ammo = ammo_max
-	_reserve = reserve_max
-	ammo_changed.emit(_ammo, _reserve)
+	# Init tracker pools from bullet_casts.
+	if not bullet_casts.is_empty():
+		_tracker.casts = bullet_casts
+		_tracker.init_pools()
+		# Emit initial ammo state for all slots.
+		for i: int in range(bullet_casts.size()):
+			_tracker.ammo_changed.emit(i, _tracker.get_ammo(i), _tracker.get_max(i))
 
 
 ## Called by the host on the shoot input. Returns true if a shot was fired.
 func try_fire() -> bool:
-	if _reloading or _swapping:
-		return false
-	if _ammo <= 0:
-		out_of_ammo.emit()
-		_empty_sfx.play()
-		if _reserve > 0:
-			start_reload()
+	if _swapping:
 		return false
 	if not _cooldown.is_stopped():
 		return false
+	# Gate: check per-bullet-type ammo.
+	if not bullet_casts.is_empty():
+		if not _tracker.can_fire(_active_cast):
+			out_of_ammo.emit()
+			_empty_sfx.play()
+			return false
 	_fire()
-	# Guard: rapid fire (e.g. rifle at 0.08 s) can retrigger play() before the previous
-	# shot sound finishes, restarting from the beginning and causing audible clipping/cutoff.
-	# Only play if the player is not already mid-shot, letting overlapping bursts finish.
 	if not _fire_sfx.playing:
 		_fire_sfx.play()
 	_flash_pulse()
 	_cooldown.start()
 	fired.emit()
-	_ammo -= 1
-	ammo_changed.emit(_ammo, _reserve)
+	# Consume ammo after confirmed fire.
+	if not bullet_casts.is_empty():
+		_tracker.consume(_active_cast)
 	return true
-
-
-## Adds one magazine worth of rounds to the reserve (capped at reserve_max).
-## Returns false (no-op) if reserve already full.
-## Active-weapon-only seam for AMMO pickups — signature unchanged.
-func refill_ammo() -> bool:
-	if _reserve >= reserve_max:
-		return false
-	_reserve = mini(_reserve + ammo_max, reserve_max)
-	ammo_changed.emit(_ammo, _reserve)
-	return true
-
-
-## Re-emits ammo_changed so late-connecting HUDs can seed their display.
-func emit_ammo() -> void:
-	ammo_changed.emit(_ammo, _reserve)
 
 
 ## Called by the player on aim press/release to switch hip/ADS spread.
@@ -161,20 +126,8 @@ func set_aiming(aiming: bool) -> void:
 
 
 ## Called by the player each frame when crouch_amount crosses 0.5 threshold.
-## Crouched spread stacks multiplicatively with ADS (crouch+ADS = tightest cone).
 func set_crouched(crouched: bool) -> void:
 	_crouched = crouched
-
-
-## Starts a reload. No-ops if already reloading, magazine is full, or reserve empty.
-func start_reload() -> void:
-	if _reloading or _ammo >= ammo_max or _reserve <= 0:
-		return
-	_reloading = true
-	_reload_timer.start()
-	reload_started.emit(reload_time)
-	_reload_sfx.play()
-	_play_reload_dip()
 
 
 ## Lower the view-model out of sight (~0.12 s). Called by player before flip.
@@ -220,56 +173,58 @@ func play_draw() -> void:
 
 func _on_draw_done() -> void:
 	_swapping = false
-	swap_draw_finished.emit()
 
 
-func _on_reload_done() -> void:
-	var need: int = ammo_max - _ammo
-	var pulled: int = mini(need, _reserve)
-	_ammo += pulled
-	_reserve -= pulled
-	_reloading = false
-	reload_finished.emit()
-	ammo_changed.emit(_ammo, _reserve)
-	_restore_view_model()
-
-
-func _play_reload_dip() -> void:
-	if _reload_tween:
-		_reload_tween.kill()
-	_reload_tween = create_tween().set_parallel(true)
-	var half: float = reload_time * 0.5
-	(
-		_reload_tween
-		. tween_property(_view_model, "position", _VM_DIP_POS, half)
-		. set_ease(Tween.EASE_IN)
-		. set_trans(Tween.TRANS_SINE)
-	)
-	(
-		_reload_tween
-		. tween_property(_view_model, "rotation_degrees", _VM_DIP_ROT, half)
-		. set_ease(Tween.EASE_IN)
-		. set_trans(Tween.TRANS_SINE)
+## Relays sprint/walk state from player to SprintSway child each physics frame.
+func update_sprint(
+	is_sprinting: bool, is_moving: bool, velocity_factor: float, delta: float
+) -> void:
+	if _sprint_sway == null:
+		return
+	_sprint_sway.update_sprint(
+		is_sprinting, is_moving, velocity_factor, _aiming, _firing, false, _swapping, delta
 	)
 
 
-func _restore_view_model() -> void:
-	if _reload_tween:
-		_reload_tween.kill()
-	_reload_tween = create_tween().set_parallel(true)
-	var half: float = reload_time * 0.5
-	(
-		_reload_tween
-		. tween_property(_view_model, "position", _VM_REST_POS, half)
-		. set_ease(Tween.EASE_OUT)
-		. set_trans(Tween.TRANS_SINE)
-	)
-	(
-		_reload_tween
-		. tween_property(_view_model, "rotation_degrees", _VM_REST_ROT, half)
-		. set_ease(Tween.EASE_OUT)
-		. set_trans(Tween.TRANS_SINE)
-	)
+## Selects the active bullet type by index into bullet_casts.
+func set_active_bullet(index: int) -> void:
+	if bullet_casts.is_empty() or index < 0 or index >= bullet_casts.size():
+		return
+	_active_cast = index
+	cast_data = bullet_casts[index]
+	active_bullet_changed.emit(index)
+
+
+func _on_cooldown_done() -> void:
+	_firing = false
+
+
+func _fire() -> void:
+	_firing = true
+	if projectile_scene == null:
+		return
+	var scene_root: Node = get_tree().current_scene
+	if scene_root == null:
+		return
+	var projectile := projectile_scene.instantiate() as Projectile
+	scene_root.add_child(projectile)
+	projectile.top_level = true
+	var base_spread: float = spread_ads if _aiming else spread_hip
+	var half_angle: float = deg_to_rad(base_spread * (crouch_spread_mult if _crouched else 1.0))
+	var spread_basis: Basis = _muzzle.global_transform.basis
+	if half_angle > 0.0:
+		var rand_yaw: float = randf_range(-half_angle, half_angle)
+		var rand_pitch: float = randf_range(-half_angle, half_angle)
+		var yaw_axis: Vector3 = spread_basis.y.normalized()
+		if yaw_axis.length_squared() > 0.0:
+			spread_basis = spread_basis.rotated(yaw_axis, rand_yaw)
+		var pitch_axis: Vector3 = spread_basis.x.normalized()
+		if pitch_axis.length_squared() > 0.0:
+			spread_basis = spread_basis.rotated(pitch_axis, rand_pitch)
+	projectile.global_transform = Transform3D(spread_basis, _muzzle.global_position)
+	projectile.cast_data = cast_data
+	projectile.instigator_pos = _muzzle.global_position
+	projectile.hit.connect(_on_projectile_hit)
 
 
 func _flash_pulse() -> void:
@@ -286,78 +241,16 @@ func _on_flash_done() -> void:
 	_muzzle_flash.visible = false
 
 
-## Relays sprint/walk state from player to SprintSway child each physics frame.
-func update_sprint(
-	is_sprinting: bool, is_moving: bool, velocity_factor: float, delta: float
-) -> void:
-	if _sprint_sway == null:
-		return
-	_sprint_sway.update_sprint(
-		is_sprinting, is_moving, velocity_factor, _aiming, _firing, _reloading, _swapping, delta
-	)
-
-
-func _on_cooldown_done() -> void:
-	_firing = false
-
-
-func _fire() -> void:
-	_firing = true
-	if projectile_scene == null:
-		return
-	var scene_root: Node = get_tree().current_scene
-	if scene_root == null:
-		return
-	var projectile := projectile_scene.instantiate() as Projectile
-	# Spawn into world space so the projectile travels independently of the firer.
-	scene_root.add_child(projectile)
-	projectile.top_level = true
-	# Apply spread: perturb the muzzle basis by a random cone before launch.
-	# Crouch multiplier stacks with ADS: crouch+ADS = tightest cone.
-	var base_spread: float = spread_ads if _aiming else spread_hip
-	var half_angle: float = deg_to_rad(base_spread * (crouch_spread_mult if _crouched else 1.0))
-	var spread_basis: Basis = _muzzle.global_transform.basis
-	if half_angle > 0.0:
-		var rand_yaw: float = randf_range(-half_angle, half_angle)
-		var rand_pitch: float = randf_range(-half_angle, half_angle)
-		var yaw_axis: Vector3 = spread_basis.y.normalized()
-		if yaw_axis.length_squared() > 0.0:
-			spread_basis = spread_basis.rotated(yaw_axis, rand_yaw)
-		var pitch_axis: Vector3 = spread_basis.x.normalized()
-		if pitch_axis.length_squared() > 0.0:
-			spread_basis = spread_basis.rotated(pitch_axis, rand_pitch)
-	projectile.global_transform = Transform3D(spread_basis, _muzzle.global_position)
-	# Stamp cast payload so the projectile can apply data-authored effects on hit.
-	# Null is valid — projectile falls back to bare on_hit() path when cast_data is null.
-	projectile.cast_data = cast_data
-	# Cache instigator world position for knockback direction in the cast context.
-	projectile.instigator_pos = _muzzle.global_position
-	# SEAM: forward hit_confirmed up to weapon so hosts can react without coupling to Projectile.
-	projectile.hit.connect(_on_projectile_hit)
-
-
 func _on_projectile_hit(target: Node3D, normal: Vector3, hit_pos: Vector3) -> void:
 	vfx_impact.emit(hit_pos, normal)
-	# Blast cast: emit dedicated explosion VFX signal so VfxRouter spawns the AoE burst.
 	if cast_data != null and cast_data.resolver is RadiusTargetResolver:
 		vfx_blast.emit(hit_pos)
 	hit_confirmed.emit()
-	# If the target exposes a `died` signal, subscribe one-shot to detect a kill this frame.
-	# SEAM: duck-typed kill detection — only enemies with `died` trigger kill_confirmed;
-	# world geometry and other bodies are silently ignored (godot-composition rule).
 	if target.has_signal("died"):
-		# Cache position + normal so _on_target_died can emit vfx_kill with the correct data.
 		_last_hit_pos = hit_pos
 		_last_hit_normal = normal
-		# Emit hit burst for all enemy-body hits (fatal and non-fatal).
-		# On a killing blow, both vfx_hit_burst and vfx_kill fire — hit_burst is smaller
-		# and fires first, adding to the juice rather than conflicting.
 		vfx_hit_burst.emit(hit_pos)
-		# SEAM: target proven to have `died` signal by has_signal check; Node3D base has connect().
-		# Guard: multi-hit enemies (health>1) survive several bullets; each bullet's projectile.hit
-		# triggers this. CONNECT_ONE_SHOT auto-disconnects after the signal fires (on death), but
-		# while the enemy is still alive the connection persists — a second bullet would double-connect.
-		# SEAM: target.is_connected() uses Callable; duck-typed via has_signal guard above.
+		# SEAM: target proven to have `died` signal; guard against double-connect on multi-hit enemy.
 		@warning_ignore("unsafe_method_access")
 		if not target.is_connected("died", _on_target_died):
 			target.connect("died", _on_target_died, CONNECT_ONE_SHOT)

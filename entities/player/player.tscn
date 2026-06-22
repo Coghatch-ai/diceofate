@@ -2,12 +2,9 @@
 
 [ext_resource type="Script" uid="uid://ebbh6xowcejd" path="res://entities/player/player.gd" id="1"]
 [ext_resource type="Script" uid="uid://diwfahxo6eej3" path="res://tools/lib/health_component.gd" id="9_health"]
-[ext_resource type="PackedScene" uid="uid://weapon0001" path="res://entities/weapon/weapon.tscn" id="2"]
 [ext_resource type="AudioStream" uid="uid://blkf0ian5o32c" path="res://assets/audio/player_jump.wav" id="3_jump"]
 [ext_resource type="PackedScene" uid="uid://8ce876l06gxc" path="res://entities/weapon/rifle.tscn" id="3_rifle"]
 [ext_resource type="AudioStream" uid="uid://cih5vynsi1u2b" path="res://assets/audio/player_land.wav" id="4_land"]
-[ext_resource type="PackedScene" uid="uid://carbine0001" path="res://entities/weapon/carbine.tscn" id="5_carbine"]
-[ext_resource type="PackedScene" uid="uid://blastlauncher1" path="res://entities/weapon/blast_launcher.tscn" id="7_blast"]
 [ext_resource type="PackedScene" uid="uid://d3lfh3vj7qs5q" path="res://entities/player/components/weapon_controller.tscn" id="6_weapon_controller"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
@@ -29,21 +26,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="WeaponController/Head" unique_id=1798063931]
 
-[node name="Pistol" parent="WeaponController/Head" unique_id=457896423 instance=ExtResource("2")]
-transform = Transform3D(2.6349742, 0, 0, 0, 1.7686827, 0, 0, 0, 1.2803954, 0, -0.013823986, -0.016185582)
-visible = false
-
 [node name="Rifle" parent="WeaponController/Head" unique_id=1952421181 instance=ExtResource("3_rifle")]
-editor_description = "Rifle — inactive on start; swapped in by WeaponController on equip_weapon"
+editor_description = "Rifle — single weapon, always active."
 transform = Transform3D(0.9999993, 0, -0.0012042768, 0, 1, 0, 0.0012042768, 0, 0.9999993, 0.050203145, -0.007646203, 0.035382867)
-visible = false
-
-[node name="Carbine" parent="WeaponController/Head" unique_id=1497342218 instance=ExtResource("5_carbine")]
-editor_description = "Carbine slot 2 — stun_cast (damage=1+knockback, cyan). Replaces Hammer per bullet_types.md."
-
-[node name="BlastLauncher" parent="WeaponController/Head" unique_id=2333333331 instance=ExtResource("7_blast")]
-editor_description = "BlastLauncher slot 3 — blast_cast (damage=2+knockback AoE radius=3, orange). Proves RadiusTargetResolver."
-visible = false
 
 [node name="JumpSfx" type="AudioStreamPlayer" parent="." unique_id=740762720]
 stream = ExtResource("3_jump")

@@ -21,3 +21,6 @@ effects = [SubResource("1"), SubResource("2")]
 resolver = SubResource("3")
 bullet_color = Color(1, 0.2, 0.15, 1)
 pierces_barriers = true
+max_ammo = 8
+ammo_cost = 1
+ammo_regen = 0.5

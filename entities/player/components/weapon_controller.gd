@@ -1,7 +1,6 @@
-# entities/player/components/weapon_controller.gd — weapon firing, reload, swap,
-# ammo pickup, recoil spring.
-# Slot 0=Pistol (Gun), 1=Rifle (Gun), 2=Carbine (Gun), 3=BlastLauncher (Gun).
-# LMB fires active gun slot via try_fire(). RMB aims. Q cycles 4 slots.
+# entities/player/components/weapon_controller.gd — weapon firing, swap,
+# recoil spring, per-bullet-type ammo HUD wiring.
+# Single weapon: Rifle (Gun). LMB fires via try_fire(). RMB aims.
 class_name WeaponController
 extends Node3D
 ## Owns weapon/combat input + recoil spring + HUD wiring. Signals: fired, hit, kill (relayed).
@@ -19,10 +18,6 @@ signal health_pickup_requested
 
 var _crosshair: Crosshair
 var _ammo_hud: ArenaHud
-# Active weapon slot node — Gun (slots 0–3). Duck-typed as Node3D.
-var _active_slot: Node3D
-var _slot_index: int = 0
-var _swapping: bool = false
 var _aiming: bool = false
 var _recoil_pitch: float = 0.0
 var _recoil_yaw: float = 0.0
@@ -32,24 +27,12 @@ var _recoil_target_yaw: float = 0.0
 
 @onready var _head: Node3D = $Head
 @onready var _camera: Camera3D = $Head/Camera3D
-@onready var _pistol: Gun = $Head/Pistol
 @onready var _rifle: Gun = $Head/Rifle
-@onready var _carbine: Gun = $Head/Carbine
-@onready var _blast_launcher: Gun = $Head/BlastLauncher
 
 
 func _ready() -> void:
-	_slot_index = 0
-	_active_slot = _pistol
-	# Slot 0 starts visible; all others hidden.
-	_pistol.visible = true
-	_rifle.visible = false
-	_carbine.visible = false
-	_blast_launcher.visible = false
-	_connect_gun_signals(_pistol)
+	_rifle.visible = true
 	_connect_gun_signals(_rifle)
-	_connect_gun_signals(_carbine)
-	_connect_gun_signals(_blast_launcher)
 
 
 ## Called by the level host (main.gd) after load to inject the HUD crosshair.
@@ -57,10 +40,10 @@ func set_crosshair(crosshair: Crosshair) -> void:
 	_crosshair = crosshair
 
 
-## Called by main.gd after load to wire weapon ammo/reload signals to the HUD.
+## Called by main.gd after load to wire bullet-ammo tracker signals to the HUD hotbar.
 func set_ammo_hud(hud: ArenaHud) -> void:
 	_ammo_hud = hud
-	_wire_ammo_hud(_active_slot)
+	_wire_ammo_hud(_rifle)
 
 
 ## Exposes recoil state to player for head rotation application.
@@ -83,7 +66,7 @@ func set_recoil_yaw_prev(value: float) -> void:
 	_recoil_yaw_prev = value
 
 
-## Exposes Head node (contains Camera3D and weapons).
+## Exposes Head node (contains Camera3D and rifle).
 func get_head() -> Node3D:
 	return _head
 
@@ -114,49 +97,39 @@ func process_input(is_aiming_pressed: bool, ads_released: bool) -> void:
 	elif ads_released:
 		_set_aiming(false)
 
-	# LMB: fire active gun slot.
+	# Q/E/R/T/Y: select active bullet type (select-then-LMB model).
+	if Input.is_action_just_pressed("bullet_1"):
+		_rifle.set_active_bullet(0)
+	elif Input.is_action_just_pressed("bullet_2"):
+		_rifle.set_active_bullet(1)
+	elif Input.is_action_just_pressed("bullet_3"):
+		_rifle.set_active_bullet(2)
+	elif Input.is_action_just_pressed("bullet_4"):
+		_rifle.set_active_bullet(3)
+	elif Input.is_action_just_pressed("bullet_5"):
+		_rifle.set_active_bullet(4)
+
+	# LMB: fire rifle with active bullet.
 	if Input.is_action_pressed("shoot"):
-		var gun := _active_slot as Gun
-		if gun != null:
-			gun.try_fire()
-
-	# Manual reload (R) — gun slots only.
-	if Input.is_action_just_pressed("reload"):
-		var gun := _active_slot as Gun
-		if gun != null:
-			gun.start_reload()
-
-	# Swap weapon (Q) — debounced: ignore while swap in flight.
-	if Input.is_action_just_pressed("equip_weapon") and not _swapping:
-		_swap_weapon()
+		_rifle.try_fire()
 
 
 ## Notifies active gun of crouch state each frame.
 func set_active_weapon_crouch(crouched: bool) -> void:
-	var gun := _active_slot as Gun
-	if gun != null:
-		gun.set_crouched(crouched)
+	_rifle.set_crouched(crouched)
 
 
-## Relays sprint/walk state to active gun's SprintSway component each physics frame.
+## Relays sprint/walk state to rifle's SprintSway component each physics frame.
 func update_sprint(
 	is_sprinting: bool, is_moving: bool, velocity_factor: float, delta: float
 ) -> void:
-	var gun := _active_slot as Gun
-	if gun != null:
-		gun.update_sprint(is_sprinting, is_moving, velocity_factor, delta)
+	_rifle.update_sprint(is_sprinting, is_moving, velocity_factor, delta)
 
 
-## Collects a pickup by kind. AMMO -> refills all guns matching ammo_caliber; HEALTH -> add life.
-## Returns true if something changed (pickup consumed), false if no-op (already full).
-func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> bool:
+## Collects a pickup by kind. HEALTH -> signal up to player.
+## AMMO branch is a no-op (ammo is now per-type regen; pickups not yet implemented).
+func collect_pickup(kind: Pickup.Kind, _ammo_caliber: StringName = &"light") -> bool:
 	match kind:
-		Pickup.Kind.AMMO:
-			var took: bool = false
-			for w: Gun in [_pistol, _rifle, _carbine, _blast_launcher]:
-				if w.caliber == ammo_caliber:
-					took = w.refill_ammo() or took
-			return took
 		Pickup.Kind.HEALTH:
 			# SEAM: signal upward to player; player routes to WaveManager (godot-composition rule).
 			health_pickup_requested.emit()
@@ -166,87 +139,26 @@ func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> b
 
 func _set_aiming(aiming: bool) -> void:
 	_aiming = aiming
-	var gun := _active_slot as Gun
-	if gun != null:
-		gun.set_aiming(aiming)
+	_rifle.set_aiming(aiming)
 	if _crosshair != null:
 		_crosshair.set_aiming_state(aiming)
 
 
-func _swap_weapon() -> void:
-	# Cancel ADS before swapping.
-	if _aiming:
-		_set_aiming(false)
-	_swapping = true
-	# 4-slot cycle: 0=pistol, 1=rifle, 2=carbine, 3=blast_launcher.
-	var next_index: int = (_slot_index + 1) % 4
-	var outgoing_gun: Gun = _active_slot as Gun
-	# Determine incoming slot node.
-	var incoming_slot: Node3D
-	match next_index:
-		0:
-			incoming_slot = _pistol
-		1:
-			incoming_slot = _rifle
-		2:
-			incoming_slot = _carbine
-		_:
-			incoming_slot = _blast_launcher
-	if outgoing_gun != null:
-		outgoing_gun.play_holster()
-	var holster_wait: float = 0.12 if outgoing_gun != null else 0.0
-	get_tree().create_timer(holster_wait).timeout.connect(
-		func() -> void:
-			# Hide all slots; show only the incoming one.
-			_pistol.visible = false
-			_rifle.visible = false
-			_carbine.visible = false
-			_blast_launcher.visible = false
-			_slot_index = next_index
-			_active_slot = incoming_slot
-			incoming_slot.visible = true
-			var incoming_gun: Gun = incoming_slot as Gun
-			if incoming_gun != null:
-				_wire_ammo_hud(incoming_slot)
-				incoming_gun.play_draw()
-				incoming_gun.swap_draw_finished.connect(_on_swap_draw_finished, CONNECT_ONE_SHOT),
-		CONNECT_ONE_SHOT
-	)
-
-
-func _on_swap_draw_finished() -> void:
-	_swapping = false
-
-
-## Wire ammo/reload signals from active gun to HUD.
-func _wire_ammo_hud(slot: Node3D) -> void:
-	var gun := slot as Gun
-	if gun == null:
-		return
+## Wire tracker ammo_changed + gun active_bullet_changed to HUD hotbar.
+func _wire_ammo_hud(gun: Gun) -> void:
 	if _ammo_hud == null:
 		return
-	# Disconnect old gun signals to avoid duplicate HUD updates.
-	for w: Gun in [_pistol, _rifle, _carbine, _blast_launcher]:
-		if w.ammo_changed.is_connected(_ammo_hud.set_ammo):
-			w.ammo_changed.disconnect(_ammo_hud.set_ammo)
-		if w.reload_started.is_connected(_on_reload_started_hud):
-			w.reload_started.disconnect(_on_reload_started_hud)
-		if w.reload_finished.is_connected(_on_reload_finished_hud):
-			w.reload_finished.disconnect(_on_reload_finished_hud)
-	gun.ammo_changed.connect(_ammo_hud.set_ammo)
-	gun.reload_started.connect(_on_reload_started_hud)
-	gun.reload_finished.connect(_on_reload_finished_hud)
-	gun.emit_ammo()
-
-
-func _on_reload_started_hud(_duration: float) -> void:
-	if _ammo_hud != null:
-		_ammo_hud.set_reloading(true)
-
-
-func _on_reload_finished_hud() -> void:
-	if _ammo_hud != null:
-		_ammo_hud.set_reloading(false)
+	var tracker: BulletAmmoTracker = gun.get_node_or_null(^"BulletAmmoTracker") as BulletAmmoTracker
+	if tracker != null:
+		if not tracker.ammo_changed.is_connected(_ammo_hud.set_bullet_ammo):
+			tracker.ammo_changed.connect(_ammo_hud.set_bullet_ammo)
+	if not gun.active_bullet_changed.is_connected(_ammo_hud.set_active_bullet):
+		gun.active_bullet_changed.connect(_ammo_hud.set_active_bullet)
+	# Seed HUD with initial values for all slots.
+	if tracker != null:
+		for i: int in range(gun.bullet_casts.size()):
+			_ammo_hud.set_bullet_ammo(i, tracker.get_ammo(i), tracker.get_max(i))
+	_ammo_hud.set_active_bullet(0)
 
 
 func _connect_gun_signals(gun: Gun) -> void:
@@ -256,9 +168,8 @@ func _connect_gun_signals(gun: Gun) -> void:
 
 
 func _on_gun_fired(gun: Gun) -> void:
-	if _active_slot != gun:
+	if _rifle != gun:
 		return
-	# Impulse goes to spring TARGET (not applied value) — stage 2 lerp does the chasing.
 	_recoil_target_pitch = minf(_recoil_target_pitch + gun.recoil_pitch, recoil_max)
 	_recoil_target_yaw = clampf(
 		_recoil_target_yaw + randf_range(-gun.recoil_yaw, gun.recoil_yaw), -recoil_max, recoil_max

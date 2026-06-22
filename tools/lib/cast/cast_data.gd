@@ -14,3 +14,11 @@ extends Resource
 ## Allows the bullet to travel straight through a magnet enemy's repulsion bubble.
 ## Default false = all existing casts stay deflected as before.
 @export var pierces_barriers: bool = false
+
+@export_group("Ammo")
+## Maximum ammo pool for this bullet type. 0 = unlimited (legacy / non-cast paths).
+@export_range(0, 200, 1) var max_ammo: int = 30
+## Ammo consumed per shot.
+@export_range(1, 10, 1) var ammo_cost: int = 1
+## Passive regen rate in ammo units per second.
+@export_range(0.0, 20.0, 0.1) var ammo_regen: float = 3.0

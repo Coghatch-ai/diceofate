@@ -124,9 +124,10 @@ func _test_shooter_listener_arity() -> void:
 		shooter.queue_free()
 
 
-## 4. Weapon try_fire() returns true and ammo decrements — fire path executed.
+## 4. Weapon try_fire() returns true — fire path executed (no bullet_casts = no ammo gate).
+## Per-bullet-type ammo consume/block/regen coverage lives in smoke_bullet_ammo.gd (S3-03..07).
 func _test_weapon_try_fire_executes() -> void:
-	print("\n[TEST] weapon.try_fire() executes fire path (returns true, ammo -1)")
+	print("\n[TEST] weapon.try_fire() executes fire path (returns true)")
 	var packed := load(WEAPON_SCENE) as PackedScene
 	if packed == null:
 		_fail("weapon.tscn failed to load")
@@ -137,32 +138,16 @@ func _test_weapon_try_fire_executes() -> void:
 		_fail("weapon missing try_fire()")
 		inst.queue_free()
 		return
-	# Null projectile_scene so _fire() returns early and doesn't try to spawn into current_scene
-	# (which is null headless). Ammo decrement + return value still exercise the fire path.
+	# Null projectile_scene so _fire() returns early without spawning into current_scene
+	# (which is null headless). bullet_casts empty -> ammo gate skipped; cooldown gates cadence.
 	inst.set("projectile_scene", null)
-	# Read ammo before — SEAM: _ammo private, read via get().
-	@warning_ignore("unsafe_cast")
-	var ammo_before := inst.get("_ammo") as int
-	# SEAM: duck-typed call; try_fire() is public on Weapon but inst is untyped Node here.
+	# SEAM: duck-typed call; try_fire() is public on Gun but inst is untyped Node here.
 	@warning_ignore("unsafe_method_access")
 	var fired_result: bool = inst.try_fire()
-	@warning_ignore("unsafe_cast")
-	var ammo_after := inst.get("_ammo") as int
 	if fired_result:
-		_pass("weapon.try_fire() returned true (shot fired)")
+		_pass("weapon.try_fire() returned true (fire path executed)")
 	else:
 		_fail("weapon.try_fire() returned false — fire path blocked (cooldown? missing muzzle?)")
-	if ammo_after == ammo_before - 1:
-		_pass(
-			(
-				"weapon ammo decremented by 1 after try_fire (ammo_before=%d ammo_after=%d)"
-				% [ammo_before, ammo_after]
-			)
-		)
-	else:
-		_fail(
-			"weapon ammo not decremented (ammo_before=%d ammo_after=%d)" % [ammo_before, ammo_after]
-		)
 	inst.queue_free()
 
 
