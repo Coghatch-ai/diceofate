@@ -41,10 +41,16 @@ func on_hit() -> void:
 
 
 ## Apply damage. Delegates to HealthComponent; death handled in _on_health_comp_died.
-func apply_damage(amount: int) -> void:
+## Accepts optional type (slice 3); defaults to PHYSICAL for backward-compat.
+func apply_damage(amount: int, type: DamageType.Kind = DamageType.Kind.PHYSICAL) -> void:
 	if _dead:
 		return
-	_health_comp.apply_damage(amount)
+	var shield: ShieldComponent = get_node_or_null("ShieldComponent") as ShieldComponent
+	var overflow: int = amount
+	if shield != null:
+		overflow = shield.absorb(amount)
+	if overflow > 0:
+		_health_comp.apply_damage(overflow, type)
 
 
 func _on_health_comp_died() -> void:

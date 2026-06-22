@@ -403,8 +403,15 @@ func apply_knockback(hitter_pos: Vector3) -> void:
 
 
 ## Delegate damage to HealthComponent. Duck-typed seam for DamageEffect / on_hit paths.
-func apply_damage(amount: int) -> void:
-	_health_comp.apply_damage(amount)
+## Accepts optional damage type (slice 3); defaults to PHYSICAL for backward-compat.
+## ShieldComponent sibling absorbs first if present; overflow forwarded to health.
+func apply_damage(amount: int, type: DamageType.Kind = DamageType.Kind.PHYSICAL) -> void:
+	var shield: ShieldComponent = get_node_or_null("ShieldComponent") as ShieldComponent
+	var overflow: int = amount
+	if shield != null:
+		overflow = shield.absorb(amount)
+	if overflow > 0:
+		_health_comp.apply_damage(overflow, type)
 
 
 ## Expose HealthComponent so WaveManager can wire health_changed → HUD without find_child.

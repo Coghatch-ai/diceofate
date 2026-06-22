@@ -40,7 +40,10 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_prev_position = global_position
-	_apply_magnet_steering()
+	# Skip magnet steering when the cast data marks this bullet as barrier-piercing.
+	# A piercing bullet travels straight through the magnetic pull field / bubble zone.
+	if cast_data == null or not cast_data.pierces_barriers:
+		_apply_magnet_steering()
 	# Travel along local -Z (forward). top_level is set at spawn so this is world-space motion,
 	# independent of whatever fired the projectile.
 	var step: float = speed * delta

@@ -241,12 +241,15 @@ func perform_attack() -> void:
 	# Reparent touch SFX to scene root before emitting touched_player: the signal handler
 	# may trigger lose_life() -> queue_free() on this enemy, cutting the sound mid-play.
 	# Same fire-and-free pattern as _play_death_sfx (godot-fps-enemy-combat contract).
-	var scene_root: Node = get_tree().current_scene
-	if scene_root != null and _touch_reset_sfx.get_parent() == self:
-		_touch_reset_sfx.reparent(scene_root)
-		if not _touch_reset_sfx.finished.is_connected(_touch_reset_sfx.queue_free):
-			_touch_reset_sfx.finished.connect(_touch_reset_sfx.queue_free)
-	_touch_reset_sfx.play()
+	# Guard: _touch_reset_sfx may already be freed (reparented + finished.queue_free fired
+	# on a previous attack cycle — enemy lives longer than the SFX node).
+	if is_instance_valid(_touch_reset_sfx):
+		var scene_root: Node = get_tree().current_scene
+		if scene_root != null and _touch_reset_sfx.get_parent() == self:
+			_touch_reset_sfx.reparent(scene_root)
+			if not _touch_reset_sfx.finished.is_connected(_touch_reset_sfx.queue_free):
+				_touch_reset_sfx.finished.connect(_touch_reset_sfx.queue_free)
+		_touch_reset_sfx.play()
 	touched_player.emit(self)
 	bumped_player.emit(self)
 	# Guard: signal handler may have freed this enemy (level advance/life-loss path).
@@ -264,10 +267,17 @@ func on_hit() -> void:
 	apply_damage(1)
 
 
-## Apply amount points of damage. Delegates to HealthComponent.
-## Called directly by DamageEffect (cast path) or via on_hit() (bare projectile path).
-func apply_damage(amount: int) -> void:
-	_health_comp.apply_damage(amount)
+## Apply amount points of damage. Delegates to HealthComponent (slice 1+3).
+## Accepts optional damage type for resistance scaling; defaults to PHYSICAL so
+## on_hit() and any untyped caller are unchanged (slice 1/2 backward-compat).
+## If a ShieldComponent sibling is present it absorbs damage first; overflow goes to health.
+func apply_damage(amount: int, type: DamageType.Kind = DamageType.Kind.PHYSICAL) -> void:
+	var shield: ShieldComponent = get_node_or_null("ShieldComponent") as ShieldComponent
+	var overflow: int = amount
+	if shield != null:
+		overflow = shield.absorb(amount)
+	if overflow > 0:
+		_health_comp.apply_damage(overflow, type)
 
 
 ## HealthComponent.health_changed → non-fatal hit flash (current > 0 still guaranteed

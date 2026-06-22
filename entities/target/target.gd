@@ -17,5 +17,6 @@ func on_hit() -> void:
 
 
 ## Apply damage. Any non-zero amount destroys the target (one-shot via HealthComponent).
-func apply_damage(amount: int) -> void:
-	_health_comp.apply_damage(amount)
+## Accepts optional type (slice 3) — target has no resistance, type is forwarded as-is.
+func apply_damage(amount: int, type: DamageType.Kind = DamageType.Kind.PHYSICAL) -> void:
+	_health_comp.apply_damage(amount, type)
