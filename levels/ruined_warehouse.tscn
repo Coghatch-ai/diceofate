@@ -226,6 +226,20 @@ background_mode = 2
 sky = SubResource("Sky_atbj8")
 ambient_light_source = 3
 tonemap_mode = 2
+glow_enabled = true
+glow_levels/1 = 0.0
+glow_levels/2 = 0.0
+glow_levels/3 = 1.0
+glow_levels/4 = 1.0
+glow_levels/5 = 0.8
+glow_levels/6 = 0.0
+glow_levels/7 = 0.0
+glow_intensity = 0.6
+glow_strength = 1.0
+glow_bloom = 0.1
+glow_blend_mode = 2
+glow_hdr_threshold = 1.0
+glow_hdr_scale = 2.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ne2qn"]
 albedo_color = Color(0.35, 0.3, 0.25, 1)

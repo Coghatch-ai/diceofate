@@ -3,24 +3,32 @@
 [ext_resource type="Script" path="res://tools/lib/cast/cast_data.gd" id="1"]
 [ext_resource type="Script" path="res://tools/lib/cast/damage_effect.gd" id="2"]
 [ext_resource type="Script" path="res://tools/lib/cast/knockback_effect.gd" id="3"]
-[ext_resource type="Script" path="res://tools/lib/cast/radius_target_resolver.gd" id="4"]
+[ext_resource type="Script" path="res://tools/lib/cast/burn_effect.gd" id="4"]
+[ext_resource type="Script" path="res://tools/lib/cast/radius_target_resolver.gd" id="5"]
 
 [sub_resource type="Resource" id="1"]
 script = ExtResource("2")
 amount = 2
+damage_type = 4
 
 [sub_resource type="Resource" id="2"]
 script = ExtResource("3")
 
 [sub_resource type="Resource" id="3"]
 script = ExtResource("4")
+dps = 1
+duration = 5.0
+damage_type = 4
+
+[sub_resource type="Resource" id="4"]
+script = ExtResource("5")
 radius = 3.0
 
 [resource]
 script = ExtResource("1")
-effects = [SubResource("1"), SubResource("2")]
-resolver = SubResource("3")
-bullet_color = Color(1, 0.5, 0, 1)
+effects = [SubResource("1"), SubResource("2"), SubResource("3")]
+resolver = SubResource("4")
+bullet_color = Color(0.4, 0.9, 0.2, 1)
 max_ammo = 5
 ammo_cost = 1
 ammo_regen = 0.4

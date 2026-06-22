@@ -1,7 +1,8 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" uid="uid://declxbohq3voj" path="res://entities/enemy/enemy.gd" id="1_enemy"]
 [ext_resource type="Script" path="res://tools/lib/health_component.gd" id="10_hc"]
+[ext_resource type="Script" path="res://tools/lib/status_receiver.gd" id="11_sr"]
 [ext_resource type="AudioStream" path="res://assets/audio/enemy_death.wav" id="6_death"]
 [ext_resource type="AudioStream" path="res://assets/audio/enemy_touch_reset.wav" id="7_touch"]
 [ext_resource type="AudioStream" uid="uid://kpo5qb0efxo" path="res://assets/audio/enemy_ambient.wav" id="8_ambient"]
@@ -77,3 +78,6 @@ max_health = 2
 
 [node name="Abilities" type="Node" parent="."]
 editor_description = "Behaviour-component children instanced here at spawn by enemy.gd from archetype.behaviours"
+
+[node name="StatusReceiver" type="Node" parent="."]
+script = ExtResource("11_sr")

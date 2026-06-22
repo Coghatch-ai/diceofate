@@ -15,6 +15,14 @@ const _FX_HIT_BURST: PackedScene = preload("res://entities/vfx/hit_burst.tscn")
 const _FX_DEATH_BURST: PackedScene = preload("res://entities/vfx/death_burst.tscn")
 const _FX_SHOCKWAVE: PackedScene = preload("res://entities/vfx/shockwave_ring.tscn")
 const _FX_BLAST: PackedScene = preload("res://entities/vfx/blast_explosion.tscn")
+## Per-element impact scenes indexed by cast slot (0=electric,1=fire,2=ice,3=poison,4=kinetic).
+const _FX_ELEMENT: Array[PackedScene] = [
+	preload("res://entities/vfx/impact_electric.tscn"),
+	preload("res://entities/vfx/impact_fire.tscn"),
+	preload("res://entities/vfx/impact_ice.tscn"),
+	preload("res://entities/vfx/impact_poison.tscn"),
+	preload("res://entities/vfx/impact_kinetic.tscn"),
+]
 
 ## Warmup position: far off-screen so compiled-shader warmup instances are invisible.
 const _WARMUP_POS := Vector3(0.0, -9999.0, 0.0)
@@ -40,6 +48,7 @@ func _ready() -> void:
 	weapon.vfx_hit_burst.connect(_on_hit_burst)
 	weapon.vfx_kill.connect(_on_kill)
 	weapon.vfx_blast.connect(_on_blast)
+	weapon.vfx_element_impact.connect(_on_element_impact)
 	# Cache the Muzzle marker once — avoids find_child() tree walk on every fired signal.
 	var found: Node = weapon.find_child("Muzzle", true, false)
 	if found is Marker3D:
@@ -83,6 +92,15 @@ func _on_blast(pos: Vector3) -> void:
 	_spawn_vfx(_FX_BLAST, t)
 
 
+## Called on weapon.vfx_element_impact — per-element tinted burst at hit point.
+## cast_index: 0=electric,1=fire,2=ice,3=poison,4=kinetic (matches bullet_casts order).
+func _on_element_impact(pos: Vector3, _normal: Vector3, cast_index: int) -> void:
+	if cast_index < 0 or cast_index >= _FX_ELEMENT.size():
+		return
+	var t := Transform3D(Basis.IDENTITY, pos)
+	_spawn_vfx(_FX_ELEMENT[cast_index], t)
+
+
 func _spawn_vfx(scene: PackedScene, at: Transform3D) -> void:
 	var root: Node3D = _get_vfx_root()
 	if root == null:
@@ -120,7 +138,17 @@ func _warmup_vfx() -> void:
 		return
 	var warmup_t := Transform3D(Basis.IDENTITY, _WARMUP_POS)
 	for scene: PackedScene in [
-		_FX_MUZZLE, _FX_IMPACT, _FX_HIT_BURST, _FX_DEATH_BURST, _FX_SHOCKWAVE, _FX_BLAST
+		_FX_MUZZLE,
+		_FX_IMPACT,
+		_FX_HIT_BURST,
+		_FX_DEATH_BURST,
+		_FX_SHOCKWAVE,
+		_FX_BLAST,
+		_FX_ELEMENT[0],
+		_FX_ELEMENT[1],
+		_FX_ELEMENT[2],
+		_FX_ELEMENT[3],
+		_FX_ELEMENT[4],
 	]:
 		var fx: Node3D = scene.instantiate() as Node3D
 		root.add_child(fx, true)

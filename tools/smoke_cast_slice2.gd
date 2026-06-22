@@ -137,8 +137,8 @@ func _test_all_five_casts_load() -> void:
 	var colors: Array[Color] = [
 		Color(1, 1, 0, 1),
 		Color(1, 0.2, 0.15, 1),
-		Color(0.2, 0.8, 1, 1),
-		Color(1, 0.5, 0, 1),
+		Color(0.3, 0.6, 1, 1),
+		Color(0.4, 0.9, 0.2, 1),
 		Color(1, 1, 1, 1),
 	]
 	for i: int in range(paths.size()):

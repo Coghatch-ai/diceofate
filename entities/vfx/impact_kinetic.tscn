@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://entities/vfx/vfx_base.tscn" id="1"]
+
+[sub_resource type="Gradient" id="Gradient_kinetic"]
+colors = PackedColorArray(2.5, 2.5, 2.5, 1.0, 0.5, 0.5, 0.5, 0.0)
+offsets = PackedFloat32Array(0.0, 1.0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_kinetic"]
+gradient = SubResource("Gradient_kinetic")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_kinetic"]
+lifetime_randomness = 0.3
+emission_shape = 0
+direction = Vector3(0, 1, 0)
+spread = 75.0
+initial_velocity_min = 4.0
+initial_velocity_max = 12.0
+gravity = Vector3(0, -6, 0)
+scale_min = 0.04
+scale_max = 0.10
+color_ramp = SubResource("GradientTexture1D_kinetic")
+
+[node name="VfxOneShot" instance=ExtResource("1")]
+editor_description = "KINETIC impact — white-grey spark burst."
+
+[node name="Particles" parent="." index="0"]
+amount = 45
+lifetime = 0.3
+process_material = SubResource("ParticleProcessMaterial_kinetic")

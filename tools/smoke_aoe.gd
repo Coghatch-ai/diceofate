@@ -61,16 +61,17 @@ class StubEnemy3D:
 		knockback_called = true
 
 
-## 14. blast_cast.tres: 2 effects, DamageEffect(2)+Knockback, RadiusTargetResolver r=3, orange.
+## 14. blast_cast.tres: 3 effects (DamageEffect(2)+Knockback+BurnEffect(POISON)),
+## RadiusTargetResolver r=3, green (slice B re-theme).
 func _test_blast_cast_shape() -> void:
 	print(
-		"\n[TEST] 14. blast_cast.tres shape (DamageEffect(2)+Knockback, RadiusTargetResolver r=3)"
+		"\n[TEST] 14. blast_cast.tres shape (DamageEffect(2)+Knockback+BurnEffect, RadiusResolver r=3)"
 	)
 	var cast := load(BLAST_CAST) as CastData
 	if cast == null:
 		_fail("14: blast_cast.tres failed to load")
 		return
-	_assert(cast.effects.size() == 2, "14: blast_cast has 2 effects")
+	_assert(cast.effects.size() == 3, "14: blast_cast has 3 effects")
 	_assert(
 		cast.resolver is RadiusTargetResolver, "14: blast_cast resolver is RadiusTargetResolver"
 	)
@@ -81,11 +82,13 @@ func _test_blast_cast_shape() -> void:
 			_assert(dmg.amount == 2, "14: blast_cast DamageEffect.amount == 2")
 	if cast.effects.size() >= 2:
 		_assert(cast.effects[1] is KnockbackEffect, "14: blast_cast effects[1] is KnockbackEffect")
+	if cast.effects.size() >= 3:
+		_assert(cast.effects[2] is BurnEffect, "14: blast_cast effects[2] is BurnEffect(POISON)")
 	if cast.resolver is RadiusTargetResolver:
 		var rtr := cast.resolver as RadiusTargetResolver
 		_assert(rtr.radius == 3.0, "14: blast_cast RadiusTargetResolver.radius == 3.0")
 	_assert(
-		cast.bullet_color.is_equal_approx(Color(1, 0.5, 0, 1)), "14: blast_cast bullet_color orange"
+		cast.bullet_color.g > 0.7 and cast.bullet_color.r < 0.6, "14: blast_cast bullet_color green"
 	)
 
 

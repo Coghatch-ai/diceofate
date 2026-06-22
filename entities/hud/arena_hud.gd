@@ -8,12 +8,16 @@ const _LOW_HP_THRESHOLD: float = 0.25
 const SLOT_COUNT: int = 5
 ## Key labels shown above each slot.
 const SLOT_KEYS: Array[String] = ["Q", "E", "R", "T", "Y"]
+## Short element names shown under the key label.
+const SLOT_NAMES: Array[String] = ["ELEC", "FIRE", "ICE", "POIS", "KIN"]
 
 var _pulse_tween: Tween
 ## Slot containers: each holds a ColorRect swatch + Label count.
 var _slots: Array[Control] = []
 var _slot_swatches: Array[ColorRect] = []
 var _slot_labels: Array[Label] = []
+## StyleBoxFlat borders applied to each slot panel for active highlight.
+var _slot_styleboxes: Array[StyleBoxFlat] = []
 var _active_slot: int = 0
 
 @onready var _score_label: Label = $TopCenter/ScoreLabel
@@ -73,12 +77,17 @@ func set_active_bullet(index: int) -> void:
 	for i: int in range(SLOT_COUNT):
 		var slot: Control = _slots[i]
 		var swatch: ColorRect = _slot_swatches[i]
+		var sb: StyleBoxFlat = _slot_styleboxes[i]
 		if i == index:
 			slot.modulate = Color(1.0, 1.0, 1.0, 1.0)
 			swatch.color = Color(swatch.color.r, swatch.color.g, swatch.color.b, 1.0)
+			sb.border_color = Color(1.0, 1.0, 1.0, 1.0)
+			sb.set_border_width_all(2)
 		else:
-			slot.modulate = Color(0.55, 0.55, 0.55, 1.0)
+			slot.modulate = Color(0.45, 0.45, 0.45, 1.0)
 			swatch.color = Color(swatch.color.r, swatch.color.g, swatch.color.b, 0.6)
+			sb.border_color = Color(0.0, 0.0, 0.0, 0.0)
+			sb.set_border_width_all(0)
 
 
 func show_result(won: bool, score: int) -> void:
@@ -100,36 +109,51 @@ func set_stamina(current: float, maximum: float) -> void:
 
 
 func _build_hotbar_slots() -> void:
-	# Bullet colors: pistol=yellow, heavy=red, stun=cyan, blast=orange, rapid=white.
+	# Element colors: ELECTRIC=yellow, FIRE=red, ICE=blue, POISON=green, KINETIC=white.
 	var colors: Array[Color] = [
 		Color(1.0, 1.0, 0.0),
 		Color(1.0, 0.2, 0.15),
-		Color(0.2, 0.8, 1.0),
-		Color(1.0, 0.5, 0.0),
+		Color(0.3, 0.6, 1.0),
+		Color(0.4, 0.9, 0.2),
 		Color(1.0, 1.0, 1.0),
 	]
+	_hotbar.add_theme_constant_override("separation", 10)
 	for i: int in range(SLOT_COUNT):
+		var panel := PanelContainer.new()
+		var sb := StyleBoxFlat.new()
+		sb.set_border_width_all(0)
+		sb.bg_color = Color(0.08, 0.08, 0.08, 0.85)
+		panel.add_theme_stylebox_override("panel", sb)
+		_slot_styleboxes.append(sb)
+		_hotbar.add_child(panel)
+		_slots.append(panel)
+
 		var slot := VBoxContainer.new()
-		slot.custom_minimum_size = Vector2(52.0, 56.0)
-		_hotbar.add_child(slot)
-		_slots.append(slot)
+		slot.custom_minimum_size = Vector2(96.0, 104.0)
+		panel.add_child(slot)
 
 		var key_lbl := Label.new()
 		key_lbl.text = SLOT_KEYS[i]
 		key_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		key_lbl.add_theme_font_size_override("font_size", 11)
+		key_lbl.add_theme_font_size_override("font_size", 20)
 		slot.add_child(key_lbl)
 
 		var swatch := ColorRect.new()
-		swatch.custom_minimum_size = Vector2(52.0, 10.0)
+		swatch.custom_minimum_size = Vector2(96.0, 22.0)
 		swatch.color = colors[i]
 		slot.add_child(swatch)
 		_slot_swatches.append(swatch)
 
+		var name_lbl := Label.new()
+		name_lbl.text = SLOT_NAMES[i]
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_lbl.add_theme_font_size_override("font_size", 14)
+		slot.add_child(name_lbl)
+
 		var ammo_lbl := Label.new()
 		ammo_lbl.text = "0/0"
 		ammo_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		ammo_lbl.add_theme_font_size_override("font_size", 13)
+		ammo_lbl.add_theme_font_size_override("font_size", 22)
 		slot.add_child(ammo_lbl)
 		_slot_labels.append(ammo_lbl)
 

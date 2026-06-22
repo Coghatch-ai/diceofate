@@ -6,7 +6,8 @@ extends Effect
 @export_range(1, 999, 1) var amount: int = 1
 ## Damage type for resistance scaling (slice 3). Defaults to PHYSICAL so existing .tres
 ## files without this field authored still behave identically (backward-compatible).
-@export_enum("PHYSICAL", "FIRE") var damage_type: int = DamageType.Kind.PHYSICAL
+@export_enum("PHYSICAL", "FIRE", "ICE", "ELECTRIC", "POISON")
+var damage_type: int = DamageType.Kind.PHYSICAL
 
 
 func apply(target: Node, _ctx: GameContext) -> void:

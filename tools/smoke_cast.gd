@@ -206,7 +206,7 @@ func _test_pistol_cast_tres_loads() -> void:
 	if cast == null:
 		_fail("pistol_cast.tres failed to load or is not CastData")
 		return
-	_assert(cast.effects.size() == 2, "pistol_cast.tres has 2 effects")
+	_assert(cast.effects.size() == 3, "pistol_cast.tres has 3 effects")
 	_assert(cast.resolver is HitTargetResolver, "pistol_cast.tres resolver is HitTargetResolver")
 	if cast.effects.size() >= 1 and cast.effects[0] is DamageEffect:
 		var dmg := cast.effects[0] as DamageEffect
@@ -215,16 +215,16 @@ func _test_pistol_cast_tres_loads() -> void:
 		_fail("pistol_cast.tres effects[0] is not DamageEffect")
 
 
-## 8. heavy_cast.tres: CastData, 2 effects, DamageEffect amount=3, HitTargetResolver.
+## 8. heavy_cast.tres: CastData, 3 effects, DamageEffect amount=3, HitTargetResolver.
 func _test_heavy_cast_tres_loads() -> void:
 	print(
-		"\n[TEST] heavy_cast.tres loads as CastData (2 effects, DamageEffect amount=3, HitTargetResolver)"
+		"\n[TEST] heavy_cast.tres loads as CastData (3 effects, DamageEffect amount=3, HitTargetResolver)"
 	)
 	var cast := load(HEAVY_CAST) as CastData
 	if cast == null:
 		_fail("heavy_cast.tres failed to load or is not CastData")
 		return
-	_assert(cast.effects.size() == 2, "heavy_cast.tres has 2 effects")
+	_assert(cast.effects.size() == 3, "heavy_cast.tres has 3 effects")
 	_assert(cast.resolver is HitTargetResolver, "heavy_cast.tres resolver is HitTargetResolver")
 	if cast.effects.size() >= 1 and cast.effects[0] is DamageEffect:
 		var dmg := cast.effects[0] as DamageEffect
@@ -277,7 +277,7 @@ func _test_bullet_color_loads() -> void:
 			pistol.bullet_color.is_equal_approx(Color(1, 1, 0, 1)),
 			"9: pistol_cast bullet_color is yellow"
 		)
-		_assert(pistol.effects.size() == 2, "9: pistol_cast has 2 effects")
+		_assert(pistol.effects.size() == 3, "9: pistol_cast has 3 effects")
 	if heavy == null:
 		_fail("9: heavy_cast.tres failed to load")
 	else:
@@ -285,25 +285,27 @@ func _test_bullet_color_loads() -> void:
 			heavy.bullet_color.is_equal_approx(Color(1, 0.2, 0.15, 1)),
 			"9: heavy_cast bullet_color is red"
 		)
-		_assert(heavy.effects.size() == 2, "9: heavy_cast has 2 effects")
+		_assert(heavy.effects.size() == 3, "9: heavy_cast has 3 effects")
 	if stun == null:
 		_fail("9: stun_cast.tres failed to load")
 	else:
 		_assert(
-			stun.bullet_color.is_equal_approx(Color(0.2, 0.8, 1, 1)),
-			"9: stun_cast bullet_color is cyan"
+			stun.bullet_color.is_equal_approx(Color(0.3, 0.6, 1, 1)),
+			"9: stun_cast bullet_color is blue"
 		)
-		_assert(stun.effects.size() == 2, "9: stun_cast has 2 effects")
+		_assert(stun.effects.size() == 3, "9: stun_cast has 3 effects")
 
 
-## 10. stun_cast: 2 effects, DamageEffect(1)+KnockbackEffect, HitTargetResolver.
+## 10. stun_cast: 3 effects, DamageEffect(1)+KnockbackEffect+SlowEffect, HitTargetResolver.
 func _test_stun_cast_shape() -> void:
-	print("\n[TEST] 10. stun_cast shape (2 effects, DamageEffect(1)+Knockback, HitTargetResolver)")
+	print(
+		"\n[TEST] 10. stun_cast shape (3 effects, DamageEffect(1)+Knockback+Slow, HitTargetResolver)"
+	)
 	var cast := load(STUN_CAST) as CastData
 	if cast == null:
 		_fail("10: stun_cast.tres failed to load")
 		return
-	_assert(cast.effects.size() == 2, "10: stun_cast has 2 effects")
+	_assert(cast.effects.size() == 3, "10: stun_cast has 3 effects")
 	_assert(cast.resolver is HitTargetResolver, "10: stun_cast resolver is HitTargetResolver")
 	if cast.effects.size() >= 1:
 		_assert(cast.effects[0] is DamageEffect, "10: stun_cast effects[0] is DamageEffect")

@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" path="res://entities/vfx/vfx_base.tscn" id="1"]
 
 [sub_resource type="Gradient" id="Gradient_impact"]
-colors = PackedColorArray(0.7, 0.46, 0.12, 1.0, 0.55, 0.55, 0.55, 0.0)
+colors = PackedColorArray(2.5, 1.6, 0.3, 1.0, 0.55, 0.55, 0.55, 0.0)
 offsets = PackedFloat32Array(0.0, 1.0)
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_impact"]
@@ -17,14 +17,14 @@ spread = 90.0
 initial_velocity_min = 2.0
 initial_velocity_max = 8.0
 gravity = Vector3(0, -6, 0)
-scale_min = 0.03
-scale_max = 0.07
+scale_min = 0.09
+scale_max = 0.20
 color_ramp = SubResource("GradientTexture1D_impact")
 
 [node name="VfxOneShot" instance=ExtResource("1")]
 editor_description = "Generic impact burst — HAZARD_AMBER sparks fade to light-grey puff."
 
 [node name="Particles" parent="." index="0"]
-amount = 120
-lifetime = 0.3
+amount = 140
+lifetime = 0.45
 process_material = SubResource("ParticleProcessMaterial_impact")

@@ -7,6 +7,7 @@ var current_level: Node = null
 var _levels: Array[String] = [
 	"res://levels/firing_yard.tscn",
 	"res://levels/ruined_warehouse.tscn",
+	"res://levels/blast_court.tscn",
 ]
 var _level_index: int = 0
 var _result_showing: bool = false

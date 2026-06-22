@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" path="res://entities/vfx/vfx_base.tscn" id="1"]
 
 [sub_resource type="Gradient" id="Gradient_hit"]
-colors = PackedColorArray(0.74, 0.16, 0.18, 1.0, 0.70, 0.46, 0.12, 0.0)
+colors = PackedColorArray(2.8, 0.3, 0.3, 1.0, 1.8, 1.0, 0.2, 0.0)
 offsets = PackedFloat32Array(0.0, 1.0)
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_hit"]
@@ -17,14 +17,14 @@ spread = 80.0
 initial_velocity_min = 1.5
 initial_velocity_max = 5.0
 gravity = Vector3(0, -5, 0)
-scale_min = 0.025
-scale_max = 0.055
+scale_min = 0.08
+scale_max = 0.18
 color_ramp = SubResource("GradientTexture1D_hit")
 
 [node name="VfxOneShot" instance=ExtResource("1")]
 editor_description = "Non-fatal enemy hit burst — crimson spark puff, smaller than impact_burst."
 
 [node name="Particles" parent="." index="0"]
-amount = 60
-lifetime = 0.25
+amount = 80
+lifetime = 0.35
 process_material = SubResource("ParticleProcessMaterial_hit")

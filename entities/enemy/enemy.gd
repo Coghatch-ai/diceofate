@@ -12,6 +12,7 @@ signal bumped_player(enemy: Enemy)
 
 const _STUN_DURATION: float = 0.4
 const _KNOCKBACK_SPEED: float = 14.0
+const _BURN_AURA_SCENE: PackedScene = preload("res://entities/vfx/burn_aura_vfx.tscn")
 
 @export var move_speed: float = 3.5
 @export var patrol_speed: float = 1.75
@@ -38,12 +39,16 @@ var _saved_overrides: Dictionary = {}
 # Knockback stun state — nav-velocity drive is skipped while _stun_timer > 0.
 var _stun_timer: float = 0.0
 var _knockback_velocity: Vector3 = Vector3.ZERO
+# Base move_speed captured in _ready() so slow/restore never accumulates drift.
+var _base_move_speed: float = 0.0
 
 # SEAM: ProjectSettings.get_setting() returns Variant; physics gravity is always float.
 @warning_ignore("unsafe_call_argument")
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 # Base scale saved on ready for telegraph reset.
 var _base_scale: Vector3 = Vector3.ONE
+# Active burn/poison aura VFX node; null when no burn is active.
+var _burn_aura: BurnAuraVfx
 
 @onready var attack_timer: Timer = $AttackTimer
 @onready var patrol_wait_timer: Timer = $PatrolWaitTimer
@@ -55,6 +60,7 @@ var _base_scale: Vector3 = Vector3.ONE
 @onready var _ambient_sfx: AudioStreamPlayer3D = $EnemyAmbientSfx
 @onready var _health_comp: HealthComponent = $HealthComponent
 @onready var _abilities: Node = $Abilities
+@onready var _status_receiver: StatusReceiver = $StatusReceiver
 
 
 func _ready() -> void:
@@ -86,11 +92,17 @@ func _ready() -> void:
 	_health_comp.died.connect(_on_health_comp_died)
 	_health_comp.health_changed.connect(_on_health_comp_changed)
 	_base_scale = _mesh_instance.scale
+	_base_move_speed = move_speed
 	attack_timer.wait_time = attack_cooldown
 	attack_timer.one_shot = true
 	patrol_wait_timer.wait_time = patrol_wait
 	patrol_wait_timer.one_shot = true
 	_nav.velocity_computed.connect(_on_nav_velocity_computed)
+	_status_receiver.slow_changed.connect(_on_slow_changed)
+	_status_receiver.shock_started.connect(_on_shock_started)
+	_status_receiver.shock_ended.connect(_on_shock_ended)
+	_status_receiver.burn_started.connect(_on_burn_started)
+	_status_receiver.burn_ended.connect(_on_burn_ended)
 	_ambient_sfx.play()
 	# Resolve NodePath exports to typed Marker3D refs (typed Array[Marker3D] can't be
 	# stored as NodePaths in hand-authored .tscn; we resolve here at runtime).
@@ -278,6 +290,54 @@ func apply_damage(amount: int, type: DamageType.Kind = DamageType.Kind.PHYSICAL)
 		overflow = shield.absorb(amount)
 	if overflow > 0:
 		_health_comp.apply_damage(overflow, type)
+
+
+# ── Status effect seams (called by StatusReceiver via duck-typed add_status_X) ────────────
+## Start burn/poison DoT. Delegates to StatusReceiver child.
+func add_status_burn(dps: int, duration: float, type: DamageType.Kind) -> void:
+	_status_receiver.add_status_burn(dps, duration, type)
+
+
+## Start movement slow. Delegates to StatusReceiver child.
+func add_status_slow(factor: float, duration: float) -> void:
+	_status_receiver.add_status_slow(factor, duration)
+
+
+## Start electric stun. Delegates to StatusReceiver child.
+func add_status_shock(stun_duration: float) -> void:
+	_status_receiver.add_status_shock(stun_duration)
+
+
+## StatusReceiver.slow_changed → scale nav speed from base (no drift on refresh/restore).
+func _on_slow_changed(factor: float) -> void:
+	move_speed = _base_move_speed * factor
+
+
+## StatusReceiver.shock_started → reuse existing stun gate.
+func _on_shock_started() -> void:
+	_stun_timer = INF
+
+
+## StatusReceiver.shock_ended → release stun gate.
+func _on_shock_ended() -> void:
+	_stun_timer = 0.0
+	_knockback_velocity = Vector3.ZERO
+
+
+## StatusReceiver.burn_started → attach looping burn/poison aura VFX.
+func _on_burn_started(is_poison: bool) -> void:
+	if is_instance_valid(_burn_aura):
+		_burn_aura.extinguish()
+	_burn_aura = _BURN_AURA_SCENE.instantiate() as BurnAuraVfx
+	_burn_aura.is_poison = is_poison
+	add_child(_burn_aura)
+
+
+## StatusReceiver.burn_ended → extinguish and clear aura.
+func _on_burn_ended() -> void:
+	if is_instance_valid(_burn_aura):
+		_burn_aura.extinguish()
+	_burn_aura = null
 
 
 ## HealthComponent.health_changed → non-fatal hit flash (current > 0 still guaranteed

@@ -3,9 +3,9 @@ class_name ShockwaveRing
 extends Node3D
 
 ## Scale the ring reaches at end of tween (start = 1.0).
-@export var end_scale: float = 4.0
+@export var end_scale: float = 6.0
 ## Duration of the expand + fade tween in seconds.
-@export var duration: float = 0.15
+@export var duration: float = 0.35
 
 
 func _ready() -> void:

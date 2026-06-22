@@ -16,6 +16,9 @@ signal vfx_hit_burst(pos: Vector3)
 signal vfx_kill(pos: Vector3, normal: Vector3)
 ## Emitted at blast impact when cast uses a RadiusTargetResolver — consumed by VfxRouter.
 signal vfx_blast(pos: Vector3)
+## Emitted on any hit with the active cast index (0=electric,1=fire,2=ice,3=poison,4=kinetic).
+## VfxRouter uses this to pick the per-element impact scene.
+signal vfx_element_impact(pos: Vector3, normal: Vector3, cast_index: int)
 signal out_of_ammo
 
 const _VM_REST_POS := Vector3(0.12, -0.12, -0.25)
@@ -243,6 +246,7 @@ func _on_flash_done() -> void:
 
 func _on_projectile_hit(target: Node3D, normal: Vector3, hit_pos: Vector3) -> void:
 	vfx_impact.emit(hit_pos, normal)
+	vfx_element_impact.emit(hit_pos, normal, _active_cast)
 	if cast_data != null and cast_data.resolver is RadiusTargetResolver:
 		vfx_blast.emit(hit_pos)
 	hit_confirmed.emit()
