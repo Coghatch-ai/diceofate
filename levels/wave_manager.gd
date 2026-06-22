@@ -48,6 +48,13 @@ const CLOSE_RETRIES: int = 6
 @export var enemy_scene_e: PackedScene
 ## Fraction of spawns that use enemy_scene_e (Shooter). 0.0 = none, 1.0 = all.
 @export var shooter_ratio: float = 0.1
+## Optional sixth enemy type (Flying Stinger). Checked first in priority chain.
+@export var enemy_scene_f: PackedScene
+## Fraction of spawns that use enemy_scene_f (Flyer). 0.0 = none, 1.0 = all.
+@export var flyer_ratio: float = 0.1
+## DEBUG: guarantee one Stinger on the Nth kill (1 = first kill, 0 = disabled).
+## Dial back to 0 once you've confirmed the Stinger works in play.
+@export var debug_flyer_on_kill: int = 0
 ## NodePaths to SpawnMarker* Marker3D nodes (children of WaveManager, resolved in _ready).
 @export var spawn_marker_paths: Array[NodePath] = []
 ## NodePaths to patrol waypoints shared by all spawned enemies (resolved in _ready).
@@ -167,28 +174,38 @@ func _seed_start() -> void:
 ##   Seeds and re-seeds use force_grunt=true for deterministic grunt opening waves.
 ##   Per-kill escalation respawns use force_grunt=false for the random type mix.
 ## force_magnet: when true, always uses enemy_scene_d (magnet/cyan) — used for first seed slot.
+## force_flyer: when true, always uses enemy_scene_f (Stinger) — used by debug_flyer_on_kill.
 func _spawn_one(
-	seed_phase: bool = false, force_grunt: bool = false, force_magnet: bool = false
+	seed_phase: bool = false,
+	force_grunt: bool = false,
+	force_magnet: bool = false,
+	force_flyer: bool = false
 ) -> void:
 	if enemy_scene == null:
 		return
 	var pos: Vector3 = _pick_spawn_point(seed_phase)
 
-	# Type selection priority: force_magnet > force_grunt > random roll by ratios.
+	# Type selection priority: force_flyer > force_magnet > force_grunt > random roll by ratios.
 	var chosen_scene: PackedScene = enemy_scene
-	if force_magnet and enemy_scene_d != null:
+	if force_flyer and enemy_scene_f != null:
+		chosen_scene = enemy_scene_f
+	elif force_magnet and enemy_scene_d != null:
 		chosen_scene = enemy_scene_d
 	elif not force_grunt:
 		var roll: float = randf()
-		if enemy_scene_e != null and roll < shooter_ratio:
+		if enemy_scene_f != null and roll < flyer_ratio:
+			chosen_scene = enemy_scene_f
+		elif enemy_scene_e != null and roll < flyer_ratio + shooter_ratio:
 			chosen_scene = enemy_scene_e
-		elif enemy_scene_d != null and roll < shooter_ratio + magnet_ratio:
+		elif enemy_scene_d != null and roll < flyer_ratio + shooter_ratio + magnet_ratio:
 			chosen_scene = enemy_scene_d
-		elif enemy_scene_c != null and roll < shooter_ratio + magnet_ratio + tank_ratio:
+		elif (
+			enemy_scene_c != null and roll < flyer_ratio + shooter_ratio + magnet_ratio + tank_ratio
+		):
 			chosen_scene = enemy_scene_c
 		elif (
 			enemy_scene_b != null
-			and roll < shooter_ratio + magnet_ratio + tank_ratio + runner_ratio
+			and roll < flyer_ratio + shooter_ratio + magnet_ratio + tank_ratio + runner_ratio
 		):
 			chosen_scene = enemy_scene_b
 
@@ -265,14 +282,20 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		advance_level.emit(_score, _lives)
 		return
 
+	# DEBUG: guarantee a Stinger on the Nth kill so the user can verify without grinding.
+	# debug_flyer_on_kill = 1 means "first kill spawns a Stinger". Set to 0 to disable.
+	var force_flyer_now: bool = (
+		debug_flyer_on_kill > 0 and _kills == debug_flyer_on_kill and enemy_scene_f != null
+	)
+
 	if count_after < active_cap:
 		# Spawn 2: the respawn replacement + one net-new enemy. Both are ESCALATION spawns
 		# (random type mix). Only the initial seed and re-seeds use force_grunt.
-		_spawn_one(false, false)
+		_spawn_one(false, false, false, force_flyer_now)
 		_spawn_one(false, false)
 	else:
 		# At cap: 1-for-1 replacement only.
-		_spawn_one(false, false)
+		_spawn_one(false, false, false, force_flyer_now)
 
 	print("WaveManager: active after respawn %d" % _active_enemies.size())
 

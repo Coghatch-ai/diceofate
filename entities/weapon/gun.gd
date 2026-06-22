@@ -11,6 +11,8 @@ signal vfx_impact(pos: Vector3, normal: Vector3)
 signal vfx_hit_burst(pos: Vector3)
 ## Emitted with world position when a kill is confirmed — consumed by VfxRouter.
 signal vfx_kill(pos: Vector3, normal: Vector3)
+## Emitted at blast impact when cast uses a RadiusTargetResolver — consumed by VfxRouter.
+signal vfx_blast(pos: Vector3)
 signal ammo_changed(current: int, reserve: int)
 signal out_of_ammo
 signal reload_started(duration: float)
@@ -43,6 +45,9 @@ const _VM_DIP_ROT := Vector3(25.0, 0.0, 0.0)
 @export var reserve_max: int = 48
 ## Ammo type this weapon consumes. Matched against Pickup.ammo_caliber on collect.
 @export var caliber: StringName = &"light"
+## Optional cast payload stamped onto each spawned projectile at fire time.
+## Null = fall back to projectile's bare on_hit() path (no regression for non-cast guns).
+@export var cast_data: CastData
 
 var _aiming: bool = false
 var _crouched: bool = false
@@ -121,7 +126,11 @@ func try_fire() -> bool:
 	if not _cooldown.is_stopped():
 		return false
 	_fire()
-	_fire_sfx.play()
+	# Guard: rapid fire (e.g. rifle at 0.08 s) can retrigger play() before the previous
+	# shot sound finishes, restarting from the beginning and causing audible clipping/cutoff.
+	# Only play if the player is not already mid-shot, letting overlapping bursts finish.
+	if not _fire_sfx.playing:
+		_fire_sfx.play()
 	_flash_pulse()
 	_cooldown.start()
 	fired.emit()
@@ -296,9 +305,12 @@ func _fire() -> void:
 	_firing = true
 	if projectile_scene == null:
 		return
+	var scene_root: Node = get_tree().current_scene
+	if scene_root == null:
+		return
 	var projectile := projectile_scene.instantiate() as Projectile
 	# Spawn into world space so the projectile travels independently of the firer.
-	get_tree().current_scene.add_child(projectile)
+	scene_root.add_child(projectile)
 	projectile.top_level = true
 	# Apply spread: perturb the muzzle basis by a random cone before launch.
 	# Crouch multiplier stacks with ADS: crouch+ADS = tightest cone.
@@ -315,12 +327,20 @@ func _fire() -> void:
 		if pitch_axis.length_squared() > 0.0:
 			spread_basis = spread_basis.rotated(pitch_axis, rand_pitch)
 	projectile.global_transform = Transform3D(spread_basis, _muzzle.global_position)
+	# Stamp cast payload so the projectile can apply data-authored effects on hit.
+	# Null is valid — projectile falls back to bare on_hit() path when cast_data is null.
+	projectile.cast_data = cast_data
+	# Cache instigator world position for knockback direction in the cast context.
+	projectile.instigator_pos = _muzzle.global_position
 	# SEAM: forward hit_confirmed up to weapon so hosts can react without coupling to Projectile.
 	projectile.hit.connect(_on_projectile_hit)
 
 
 func _on_projectile_hit(target: Node3D, normal: Vector3, hit_pos: Vector3) -> void:
 	vfx_impact.emit(hit_pos, normal)
+	# Blast cast: emit dedicated explosion VFX signal so VfxRouter spawns the AoE burst.
+	if cast_data != null and cast_data.resolver is RadiusTargetResolver:
+		vfx_blast.emit(hit_pos)
 	hit_confirmed.emit()
 	# If the target exposes a `died` signal, subscribe one-shot to detect a kill this frame.
 	# SEAM: duck-typed kill detection — only enemies with `died` trigger kill_confirmed;

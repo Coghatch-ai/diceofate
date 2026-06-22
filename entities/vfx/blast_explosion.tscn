@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://entities/vfx/vfx_base.tscn" id="1"]
+
+[sub_resource type="Gradient" id="Gradient_blast"]
+colors = PackedColorArray(1.0, 0.80, 0.20, 1.0, 0.85, 0.42, 0.05, 0.8, 0.30, 0.28, 0.24, 0.0)
+offsets = PackedFloat32Array(0.0, 0.45, 1.0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_blast"]
+gradient = SubResource("Gradient_blast")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_blast"]
+lifetime_randomness = 0.35
+emission_shape = 1
+emission_sphere_radius = 1.5
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 8.0
+initial_velocity_max = 18.0
+gravity = Vector3(0, -4, 0)
+scale_min = 0.06
+scale_max = 0.14
+color_ramp = SubResource("GradientTexture1D_blast")
+
+[node name="VfxOneShot" instance=ExtResource("1")]
+editor_description = "Blast AoE explosion — orange/white omnidirectional burst scaled to ~3 m radius."
+
+[node name="Particles" parent="." index="0"]
+amount = 150
+lifetime = 0.5
+process_material = SubResource("ParticleProcessMaterial_blast")

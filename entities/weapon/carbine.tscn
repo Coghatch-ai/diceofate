@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://carbine0001"]
+
+[ext_resource type="PackedScene" uid="uid://weapon0001" path="res://entities/weapon/weapon.tscn" id="1"]
+[ext_resource type="Script" uid="uid://bfuid10judeot" path="res://entities/weapon/sprint_sway.gd" id="3"]
+[ext_resource type="PackedScene" uid="uid://ctxx6c3k2hf4j" path="res://assets/models/scifi_pistol.glb" id="3_pistol"]
+[ext_resource type="Resource" path="res://entities/weapon/stun_cast.tres" id="4"]
+
+[node name="Carbine" unique_id=1111111111 instance=ExtResource("1")]
+editor_description = "Carbine — fast fire rate (0.15), light mag (20), stun_cast (damage=1+knockback, cyan). Slot 2 replaces Hammer for projectile composition proof."
+view_model_path = NodePath("CarbineViewModel")
+cast_data = ExtResource("4")
+fire_rate = 0.15
+ammo_max = 20
+reload_time = 1.0
+spread_hip = 3.0
+spread_ads = 0.5
+recoil_pitch = 0.05
+recoil_yaw = 0.02
+reserve_max = 60
+caliber = &"light"
+
+[node name="CarbineViewModel" type="Node3D" parent="." index="8" unique_id=1111111112]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, -0.12, -0.25)
+
+[node name="SprintSway" type="Node3D" parent="CarbineViewModel" index="0" unique_id=1111111113]
+editor_description = "Sprint pose + sine sway layer — children inherit this offset; tweens write CarbineViewModel above"
+script = ExtResource("3")
+
+[node name="SciPistol" parent="CarbineViewModel/SprintSway" index="0" unique_id=1111111114 instance=ExtResource("3_pistol")]
+transform = Transform3D(-0.0006737068, 0, 0.19999887, 0, 0.2, 0, -0.19999887, 0, -0.0006737068, 0, -0.040578924, 0)
+
+[node name="Muzzle" type="Marker3D" parent="CarbineViewModel/SprintSway" index="1" unique_id=1111111115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.3)
+
+[node name="MuzzleFlash" type="OmniLight3D" parent="CarbineViewModel/SprintSway/Muzzle" index="0" unique_id=1111111116]
+editor_description = "Muzzle flash pulse — driven by weapon.gd _flash_pulse(); off by default"
+visible = false
+light_color = Color(0.2, 0.8, 1, 1)
+light_energy = 4.0
+omni_range = 1.2

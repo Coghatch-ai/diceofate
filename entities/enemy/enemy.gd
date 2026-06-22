@@ -10,8 +10,8 @@ signal touched_player(enemy: Enemy)
 ## knows the hit source for directional knockback.
 signal bumped_player(enemy: Enemy)
 
-const _STUN_DURATION: float = 0.15
-const _KNOCKBACK_SPEED: float = 6.0
+const _STUN_DURATION: float = 0.4
+const _KNOCKBACK_SPEED: float = 14.0
 
 @export var move_speed: float = 3.5
 @export var patrol_speed: float = 1.75
@@ -20,8 +20,9 @@ const _KNOCKBACK_SPEED: float = 6.0
 @export var escape_range: float = 16.0
 @export var attack_cooldown: float = 0.8
 @export var patrol_wait: float = 1.0
-## Hits required to kill. Default 1 = one-shot (grunt, runner). Tank overrides to 3.
-@export var health: int = 1
+## Hits required to kill. Default 2 = two-shot (dmg delta visible: light=2 hits, heavy=1).
+## Tank scene overrides to 3.
+@export var health: int = 2
 ## Score awarded to the player on kill. Grunt = 1 (default); runner/magnet/tank override.
 @export var score_value: int = 1
 ## Waypoint NodePaths (set in the level scene); resolved to Marker3D refs in _ready().
@@ -161,6 +162,14 @@ func apply_knockback(hitter_pos: Vector3) -> void:
 ## NOTE: touched_player can trigger a synchronous level-load that frees this enemy.
 ## Guard create_tween() with is_instance_valid(self) so the tween is skipped if freed mid-emit.
 func perform_attack() -> void:
+	# Reparent touch SFX to scene root before emitting touched_player: the signal handler
+	# may trigger lose_life() -> queue_free() on this enemy, cutting the sound mid-play.
+	# Same fire-and-free pattern as _play_death_sfx (godot-fps-enemy-combat contract).
+	var scene_root: Node = get_tree().current_scene
+	if scene_root != null and _touch_reset_sfx.get_parent() == self:
+		_touch_reset_sfx.reparent(scene_root)
+		if not _touch_reset_sfx.finished.is_connected(_touch_reset_sfx.queue_free):
+			_touch_reset_sfx.finished.connect(_touch_reset_sfx.queue_free)
 	_touch_reset_sfx.play()
 	touched_player.emit(self)
 	bumped_player.emit(self)
@@ -173,9 +182,16 @@ func perform_attack() -> void:
 
 
 # ── Shootability ──────────────────────────────────────────────────────────────
-## Called by the projectile via duck-typed on_hit() — same contract as target.gd.
+## Called by the projectile via duck-typed on_hit() — aliases apply_damage(1).
+## Keeps the duck-typed hit seam working (godot-fps-enemy-combat contract).
 func on_hit() -> void:
-	_health -= 1
+	apply_damage(1)
+
+
+## Apply amount points of damage. Fatal hit emits died and frees the node.
+## Called directly by DamageEffect (cast path) or via on_hit() (bare projectile path).
+func apply_damage(amount: int) -> void:
+	_health -= amount
 	if _health > 0:
 		_flash_hit()
 		return

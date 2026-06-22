@@ -1,18 +1,17 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://nfcm2cdo75ky"]
 
-[ext_resource type="Script" path="res://levels/firing_yard.gd" id="1_savgl"]
-[ext_resource type="PackedScene" path="res://entities/target/target.tscn" id="2_0bybe"]
-[ext_resource type="Script" path="res://entities/target/target.gd" id="3_7q7lh"]
-[ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="4_0gyuw"]
-[ext_resource type="Script" path="res://entities/player/player.gd" id="5_nsw42"]
+[ext_resource type="Script" uid="uid://cy8lsukpxdknj" path="res://levels/firing_yard.gd" id="1_savgl"]
+[ext_resource type="PackedScene" uid="uid://target001" path="res://entities/target/target.tscn" id="2_0bybe"]
+[ext_resource type="PackedScene" uid="uid://bwxk8v5y3p2r1" path="res://entities/player/player.tscn" id="4_0gyuw"]
 [ext_resource type="NavigationMesh" path="res://levels/firing_yard_navmesh.tres" id="6_tw0cq"]
-[ext_resource type="Script" path="res://levels/wave_manager.gd" id="7_fqhaa"]
+[ext_resource type="Script" uid="uid://by48x3n4lbe5h" path="res://levels/wave_manager.gd" id="7_fqhaa"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="8_t1gec"]
 [ext_resource type="PackedScene" path="res://entities/npc/npc.tscn" id="9_s0383"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy_runner.tscn" id="10_abcde"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy_tank.tscn" id="11_fghij"]
-[ext_resource type="PackedScene" path="res://entities/enemy/enemy_magnetic.tscn" id="12_klmno"]
+[ext_resource type="PackedScene" uid="uid://bpr3isvnow02b" path="res://entities/enemy/enemy_magnetic.tscn" id="12_klmno"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy_shooter.tscn" id="13_pqrst"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_flying.tscn" id="14_stngr"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m6nd0"]
 albedo_color = Color(0.251, 0.251, 0.314, 1)
@@ -645,29 +644,17 @@ mesh = SubResource("BoxMesh_e1tlu")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.4, 27)
 mesh = SubResource("BoxMesh_jx5wc")
 
-[node name="TargetA" type="StaticBody3D" parent="." unique_id=2126699697 instance=ExtResource("2_0bybe")]
+[node name="TargetA" parent="." unique_id=2126699697 instance=ExtResource("2_0bybe")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.5, 20)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("3_7q7lh")
 
-[node name="TargetB" type="StaticBody3D" parent="." unique_id=1458721439 instance=ExtResource("2_0bybe")]
+[node name="TargetB" parent="." unique_id=1458721439 instance=ExtResource("2_0bybe")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.5, 14)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("3_7q7lh")
 
-[node name="TargetC" type="StaticBody3D" parent="." unique_id=1398729833 instance=ExtResource("2_0bybe")]
+[node name="TargetC" parent="." unique_id=1398729833 instance=ExtResource("2_0bybe")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1.5, 24)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("3_7q7lh")
 
-[node name="TargetD" type="StaticBody3D" parent="." unique_id=7875509 instance=ExtResource("2_0bybe")]
+[node name="TargetD" parent="." unique_id=7875509 instance=ExtResource("2_0bybe")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 2.5, 6)
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("3_7q7lh")
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=1465517978]
 transform = Transform3D(-1, 1.5180806e-08, -8.609462e-08, 0, 0.9848077, 0.17364818, 8.742278e-08, 0.17364818, -0.9848077, 0, 0, 0)
@@ -681,10 +668,8 @@ directional_shadow_max_distance = 60.0
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=26873444]
 environment = SubResource("Environment_e8ph6")
 
-[node name="Player" type="CharacterBody3D" parent="." unique_id=547491967 groups=["player"] instance=ExtResource("4_0gyuw")]
+[node name="Player" parent="." unique_id=547491967 instance=ExtResource("4_0gyuw")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 24, 1, 30)
-collision_layer = 2
-script = ExtResource("5_nsw42")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=500850330]
 navigation_mesh = ExtResource("6_tw0cq")
@@ -702,37 +687,37 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 0, 22)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
 
 [node name="SpawnMarker1" type="Marker3D" parent="." unique_id=2098181340]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.6087471, 9.960453)
 
 [node name="SpawnMarker2" type="Marker3D" parent="." unique_id=1876086575]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.454811, 1.1844282, 7.7496495)
 
 [node name="SpawnMarker3" type="Marker3D" parent="." unique_id=1897531248]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.92576, 0.89931583, 3)
 
 [node name="SpawnMarker4" type="Marker3D" parent="." unique_id=158799571]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39.82895, 0.53945464, 3.4081721)
 
 [node name="SpawnMarker5" type="Marker3D" parent="." unique_id=944226021]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47.299572, 0, 8.998159)
 
 [node name="SpawnMarker6" type="Marker3D" parent="." unique_id=1883204975]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 37)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47.708355, 1.5323336, 18.04477)
 
 [node name="SpawnMarker7" type="Marker3D" parent="." unique_id=659290326]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 0, 37)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47.30914, 0, 19.55348)
 
 [node name="SpawnMarker8" type="Marker3D" parent="." unique_id=1406019053]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 37)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.860634, 0.22480583, 12.275448)
 
 [node name="SpawnMarker9" type="Marker3D" parent="." unique_id=1638135233]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 37)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.284036, 0.91188, 24.218195)
 
 [node name="SpawnMarker10" type="Marker3D" parent="." unique_id=676922670]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.634613, 0.8338313, 21.563198)
 
 [node name="SpawnMarker11" type="Marker3D" parent="." unique_id=1043407356]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.985039, 0, 8.978556)
 
 [node name="WaveManager" type="Node" parent="." unique_id=1614246293]
 script = ExtResource("7_fqhaa")
@@ -741,15 +726,15 @@ enemy_scene_b = ExtResource("10_abcde")
 enemy_scene_c = ExtResource("11_fghij")
 enemy_scene_d = ExtResource("12_klmno")
 enemy_scene_e = ExtResource("13_pqrst")
+enemy_scene_f = ExtResource("14_stngr")
 spawn_marker_paths = Array[NodePath]([NodePath("../SpawnMarker0"), NodePath("../SpawnMarker1"), NodePath("../SpawnMarker2"), NodePath("../SpawnMarker3"), NodePath("../SpawnMarker4"), NodePath("../SpawnMarker5"), NodePath("../SpawnMarker6"), NodePath("../SpawnMarker7"), NodePath("../SpawnMarker8"), NodePath("../SpawnMarker9"), NodePath("../SpawnMarker10"), NodePath("../SpawnMarker11")])
 patrol_waypoint_paths = Array[NodePath]([NodePath("../EnemyWP0"), NodePath("../EnemyWP1"), NodePath("../EnemyWP2")])
 
-[node name="Npc0" type="StaticBody3D" parent="." unique_id=1844057137 instance=ExtResource("9_s0383")]
+[node name="Npc0" parent="." unique_id=1844057137 instance=ExtResource("9_s0383")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.9, 14)
 
-[node name="Npc1" type="StaticBody3D" parent="." unique_id=1350015156 instance=ExtResource("9_s0383")]
+[node name="Npc1" parent="." unique_id=1350015156 instance=ExtResource("9_s0383")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0.9, 18)
-
 
 [node name="HazardFloorMesh" type="MeshInstance3D" parent="." unique_id=1816642741]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.25, 4)

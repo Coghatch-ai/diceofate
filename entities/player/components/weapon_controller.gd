@@ -1,12 +1,12 @@
 # entities/player/components/weapon_controller.gd — weapon firing, reload, swap,
-# hammer melee, ammo pickup, recoil spring.
+# ammo pickup, recoil spring.
+# Slot 0=Pistol (Gun), 1=Rifle (Gun), 2=Carbine (Gun), 3=BlastLauncher (Gun), 4=Hammer (melee).
+# LMB fires active gun slot via try_fire(); on slot 4 LMB calls hammer.try_melee() instead.
+# RMB aims all gun slots (no effect on hammer slot).
+# Q cycles all 5 slots.
 class_name WeaponController
 extends Node3D
 ## Owns weapon/combat input + recoil spring + HUD wiring. Signals: fired, hit, kill (relayed).
-## Slot 0=Pistol (Gun), 1=Rifle (Gun), 2=Hammer.
-## LMB fires active slot: guns call try_fire(), hammer calls try_melee().
-## RMB aims guns only; no-op when hammer slot active.
-## Q cycles all 3 slots; hammer view-model stays visible at rest like guns.
 
 signal fired
 signal health_pickup_requested
@@ -22,40 +22,41 @@ signal health_pickup_requested
 
 var _crosshair: Crosshair
 var _ammo_hud: ArenaHud
-# Active weapon slot node — Gun (slots 0/1) or Hammer (slot 2). Duck-typed as Node3D.
+# Active weapon slot node — Gun (slots 0–3) or Hammer (slot 4). Duck-typed as Node3D.
 var _active_slot: Node3D
 var _slot_index: int = 0
 var _swapping: bool = false
 var _aiming: bool = false
-var _hit_stop_active: bool = false
 var _recoil_pitch: float = 0.0
 var _recoil_yaw: float = 0.0
 var _recoil_yaw_prev: float = 0.0
 var _recoil_target_pitch: float = 0.0
 var _recoil_target_yaw: float = 0.0
-# Additive melee-kick offset on Head.rotation.x — tweened 0→kick→0, read by player
-# and summed with recoil+look in one write. Never written directly to _head.rotation.x.
 var _melee_kick_offset: float = 0.0
 
 @onready var _head: Node3D = $Head
 @onready var _camera: Camera3D = $Head/Camera3D
 @onready var _pistol: Gun = $Head/Pistol
 @onready var _rifle: Gun = $Head/Rifle
+@onready var _carbine: Gun = $Head/Carbine
+@onready var _blast_launcher: Gun = $Head/BlastLauncher
 @onready var _hammer: Hammer = $Head/Hammer
 
 
 func _ready() -> void:
 	_slot_index = 0
 	_active_slot = _pistol
-	# Slot 0 starts visible; rifle and hammer hidden.
+	# Slot 0 starts visible; all others hidden.
 	_pistol.visible = true
 	_rifle.visible = false
+	_carbine.visible = false
+	_blast_launcher.visible = false
 	_hammer.visible = false
 	_connect_gun_signals(_pistol)
 	_connect_gun_signals(_rifle)
-	_hammer.hit_confirmed.connect(_on_hit_confirmed)
-	_hammer.kill_confirmed.connect(_on_kill_confirmed)
-	_hammer.hit_with_position.connect(_on_melee_hit)
+	_connect_gun_signals(_carbine)
+	_connect_gun_signals(_blast_launcher)
+	_connect_hammer_signals(_hammer)
 
 
 ## Called by the level host (main.gd) after load to inject the HUD crosshair.
@@ -89,7 +90,7 @@ func set_recoil_yaw_prev(value: float) -> void:
 	_recoil_yaw_prev = value
 
 
-## Additive melee-kick pitch offset — summed into head rotation by player (single write owner).
+## Additive melee-kick pitch offset — applied by player.gd each frame to head rotation.
 func get_melee_kick_offset() -> float:
 	return _melee_kick_offset
 
@@ -119,25 +120,24 @@ func update_recoil(delta: float) -> void:
 
 ## Processes weapon input each physics frame.
 func process_input(is_aiming_pressed: bool, ads_released: bool) -> void:
-	# ADS — guns only; no-op when hammer slot active.
-	if _slot_index != 2:
+	# ADS — gun slots only; ignored on hammer slot.
+	if _slot_index != 4:
 		if is_aiming_pressed:
 			_set_aiming(true)
 		elif ads_released:
 			_set_aiming(false)
 
-	# LMB: route to active slot.
-	# Gun slots (0/1): call try_fire(). Hammer slot (2): call try_melee().
+	# LMB: fire active gun slot OR swing hammer on slot 4.
 	if Input.is_action_pressed("shoot"):
-		if _slot_index == 2:
+		if _slot_index == 4:
 			_hammer.try_melee()
 		else:
 			var gun := _active_slot as Gun
 			if gun != null:
 				gun.try_fire()
 
-	# Manual reload (R) — guns only.
-	if Input.is_action_just_pressed("reload") and _slot_index != 2:
+	# Manual reload (R) — gun slots only.
+	if Input.is_action_just_pressed("reload"):
 		var gun := _active_slot as Gun
 		if gun != null:
 			gun.start_reload()
@@ -147,7 +147,7 @@ func process_input(is_aiming_pressed: bool, ads_released: bool) -> void:
 		_swap_weapon()
 
 
-## Notifies active gun of crouch state each frame. No-op for hammer slot.
+## Notifies active gun of crouch state each frame.
 func set_active_weapon_crouch(crouched: bool) -> void:
 	var gun := _active_slot as Gun
 	if gun != null:
@@ -163,13 +163,13 @@ func update_sprint(
 		gun.update_sprint(is_sprinting, is_moving, velocity_factor, delta)
 
 
-## Collects a pickup by kind. AMMO → refills all guns matching ammo_caliber; HEALTH → add life.
+## Collects a pickup by kind. AMMO -> refills all guns matching ammo_caliber; HEALTH -> add life.
 ## Returns true if something changed (pickup consumed), false if no-op (already full).
 func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> bool:
 	match kind:
 		Pickup.Kind.AMMO:
 			var took: bool = false
-			for w: Gun in [_pistol, _rifle]:
+			for w: Gun in [_pistol, _rifle, _carbine, _blast_launcher]:
 				if w.caliber == ammo_caliber:
 					took = w.refill_ammo() or took
 			return took
@@ -194,18 +194,23 @@ func _swap_weapon() -> void:
 	if _aiming:
 		_set_aiming(false)
 	_swapping = true
-	# 3-slot cycle: 0=pistol, 1=rifle, 2=hammer.
-	var next_index: int = (_slot_index + 1) % 3
+	# 5-slot cycle: 0=pistol, 1=rifle, 2=carbine, 3=blast_launcher, 4=hammer.
+	var next_index: int = (_slot_index + 1) % 5
 	var outgoing_gun: Gun = _active_slot as Gun
 	# Determine incoming slot node.
 	var incoming_slot: Node3D
-	if next_index == 0:
-		incoming_slot = _pistol
-	elif next_index == 1:
-		incoming_slot = _rifle
-	else:
-		incoming_slot = _hammer
-	# Holster outgoing gun (skip holster anim for hammer slot outgoing — no gun to dip).
+	match next_index:
+		0:
+			incoming_slot = _pistol
+		1:
+			incoming_slot = _rifle
+		2:
+			incoming_slot = _carbine
+		3:
+			incoming_slot = _blast_launcher
+		_:
+			incoming_slot = _hammer
+	# Holster outgoing gun (hammer has no holster animation — just hide immediately).
 	if outgoing_gun != null:
 		outgoing_gun.play_holster()
 	var holster_wait: float = 0.12 if outgoing_gun != null else 0.0
@@ -214,6 +219,8 @@ func _swap_weapon() -> void:
 			# Hide all slots; show only the incoming one.
 			_pistol.visible = false
 			_rifle.visible = false
+			_carbine.visible = false
+			_blast_launcher.visible = false
 			_hammer.visible = false
 			_slot_index = next_index
 			_active_slot = incoming_slot
@@ -224,8 +231,7 @@ func _swap_weapon() -> void:
 				incoming_gun.play_draw()
 				incoming_gun.swap_draw_finished.connect(_on_swap_draw_finished, CONNECT_ONE_SHOT)
 			else:
-				# Hammer slot: HammerViewModel already visible at rest (hammer.gd _ready).
-				# No draw animation; swap completes immediately.
+				# Hammer slot: no draw animation — swap is instant.
 				_on_swap_draw_finished(),
 		CONNECT_ONE_SHOT
 	)
@@ -235,7 +241,8 @@ func _on_swap_draw_finished() -> void:
 	_swapping = false
 
 
-## Wire ammo/reload signals from active gun to HUD. No-op for hammer slot (no ammo).
+## Wire ammo/reload signals from active gun to HUD.
+## No-ops silently when active slot is the Hammer (no ammo).
 func _wire_ammo_hud(slot: Node3D) -> void:
 	var gun := slot as Gun
 	if gun == null:
@@ -243,7 +250,7 @@ func _wire_ammo_hud(slot: Node3D) -> void:
 	if _ammo_hud == null:
 		return
 	# Disconnect old gun signals to avoid duplicate HUD updates.
-	for w: Gun in [_pistol, _rifle]:
+	for w: Gun in [_pistol, _rifle, _carbine, _blast_launcher]:
 		if w.ammo_changed.is_connected(_ammo_hud.set_ammo):
 			w.ammo_changed.disconnect(_ammo_hud.set_ammo)
 		if w.reload_started.is_connected(_on_reload_started_hud):
@@ -272,6 +279,14 @@ func _connect_gun_signals(gun: Gun) -> void:
 	gun.kill_confirmed.connect(_on_kill_confirmed)
 
 
+func _connect_hammer_signals(hammer: Hammer) -> void:
+	hammer.hit_confirmed.connect(_on_hit_confirmed)
+	hammer.kill_confirmed.connect(_on_kill_confirmed)
+	# hit_with_position carries hitter world-pos for directional knockback on the struck body.
+	# SEAM: Callable used directly; Hammer is a concrete typed ref (wiring-down, godot-composition).
+	hammer.hit_with_position.connect(_on_hammer_hit_with_position)
+
+
 func _on_gun_fired(gun: Gun) -> void:
 	if _active_slot != gun:
 		return
@@ -295,36 +310,16 @@ func _on_kill_confirmed() -> void:
 		_crosshair.kill_pop()
 
 
-## Fires on every melee body connect. Owns hit-stop, melee camera kick, knockback relay.
-func _on_melee_hit(hitter_pos: Vector3) -> void:
-	_do_hit_stop()
-	_do_melee_camera_kick()
-	# Relay knockback to every overlapping body that supports it (duck-typed, godot-composition).
+## Relay directional knockback from a hammer hit to the struck body.
+## hitter_pos is the hammer's world position at swing time (from hit_with_position signal).
+func _on_hammer_hit_with_position(hitter_pos: Vector3) -> void:
+	# Apply a melee-kick recoil impulse (upward camera punch) so the swing has feel.
+	_recoil_target_pitch = minf(_recoil_target_pitch + melee_kick_angle, recoil_max)
+	# Knockback on the struck bodies is already applied by hammer.gd via on_hit() ->
+	# apply_damage() path. The directional push (apply_knockback) needs the hitter_pos
+	# forwarded to each overlapping enemy — done here via the hitbox bodies.
 	for body: Node3D in _hammer.get_hit_bodies():
 		if body.has_method("apply_knockback"):
-			# SEAM: duck-typed knockback — any body with apply_knockback(Vector3) is valid.
+			# SEAM: apply_knockback proven present by has_method; duck-typed (godot-composition).
 			@warning_ignore("unsafe_method_access")
 			body.apply_knockback(hitter_pos)
-
-
-## Brief time_scale dip on melee connect. Re-entrant-safe: guard prevents overlapping dips.
-func _do_hit_stop() -> void:
-	if _hit_stop_active:
-		return
-	_hit_stop_active = true
-	Engine.time_scale = hit_stop_scale
-	# ignore_time_scale = true → timer runs in real time regardless of Engine.time_scale.
-	get_tree().create_timer(hit_stop_duration, true, false, true).timeout.connect(
-		func() -> void:
-			Engine.time_scale = 1.0
-			_hit_stop_active = false
-	)
-
-
-func _do_melee_camera_kick() -> void:
-	# Tween the OFFSET var only — player.gd is sole writer of _head.rotation.x.
-	# Composited as: _head.rotation.x = clamp(_look_pitch + _recoil_pitch + _melee_kick_offset).
-	var tw := create_tween()
-	# Sharper downward punch (positive X = look down) for melee impact feel.
-	tw.tween_property(self, "_melee_kick_offset", melee_kick_angle, kick_duration * 0.2)
-	tw.tween_property(self, "_melee_kick_offset", 0.0, kick_duration * 1.2)

@@ -26,8 +26,13 @@ func _ready() -> void:
 # ── Hit seam (duck-typed; called by projectile via godot-travelling-projectile-3d) ───
 
 
-## Called by the projectile via duck-typed on_hit(). Costs the player one life.
+## Called by the projectile via duck-typed on_hit() — aliases apply_damage(1).
 func on_hit() -> void:
+	apply_damage(1)
+
+
+## Apply damage. Any non-zero amount kills the NPC (costs player one life).
+func apply_damage(_amount: int) -> void:
 	if _dead:
 		return
 	_dead = true

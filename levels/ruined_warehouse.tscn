@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy_tank.tscn" id="9_ci2yd"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy_magnetic.tscn" id="10_hqugi"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy_shooter.tscn" id="11_a66wt"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_flying.tscn" id="14_stngr"]
 [ext_resource type="PackedScene" path="res://entities/pickup/pickup_health.tscn" id="12_wbq1y"]
 [ext_resource type="NavigationMesh" path="res://levels/ruined_warehouse_navmesh.tres" id="13_uhixc"]
 
@@ -789,6 +790,8 @@ enemy_scene_b = ExtResource("8_smki2")
 enemy_scene_c = ExtResource("9_ci2yd")
 enemy_scene_d = ExtResource("10_hqugi")
 enemy_scene_e = ExtResource("11_a66wt")
+enemy_scene_f = ExtResource("14_stngr")
+flyer_ratio = 0.1
 spawn_marker_paths = Array[NodePath]([NodePath("SpawnMarker0"), NodePath("SpawnMarker1"), NodePath("SpawnMarker2"), NodePath("SpawnMarker3"), NodePath("SpawnMarker4"), NodePath("SpawnMarker5"), NodePath("SpawnMarker6"), NodePath("SpawnMarker7"), NodePath("SpawnMarker8"), NodePath("SpawnMarker9"), NodePath("SpawnMarker10"), NodePath("SpawnMarker11"), NodePath("SpawnMarker12"), NodePath("SpawnMarker13"), NodePath("SpawnMarker14"), NodePath("SpawnMarker15"), NodePath("SpawnMarker16"), NodePath("SpawnMarker17"), NodePath("SpawnMarker18"), NodePath("SpawnMarker19"), NodePath("SpawnMarker20"), NodePath("SpawnMarker21"), NodePath("SpawnMarker22"), NodePath("SpawnMarker23")])
 patrol_waypoint_paths = Array[NodePath]([NodePath("../EnemyWP0"), NodePath("../EnemyWP1"), NodePath("../EnemyWP2")])
 

@@ -14,6 +14,7 @@ const _FX_IMPACT: PackedScene = preload("res://entities/vfx/impact_burst.tscn")
 const _FX_HIT_BURST: PackedScene = preload("res://entities/vfx/hit_burst.tscn")
 const _FX_DEATH_BURST: PackedScene = preload("res://entities/vfx/death_burst.tscn")
 const _FX_SHOCKWAVE: PackedScene = preload("res://entities/vfx/shockwave_ring.tscn")
+const _FX_BLAST: PackedScene = preload("res://entities/vfx/blast_explosion.tscn")
 
 ## Warmup position: far off-screen so compiled-shader warmup instances are invisible.
 const _WARMUP_POS := Vector3(0.0, -9999.0, 0.0)
@@ -38,6 +39,7 @@ func _ready() -> void:
 	weapon.vfx_impact.connect(_on_impact)
 	weapon.vfx_hit_burst.connect(_on_hit_burst)
 	weapon.vfx_kill.connect(_on_kill)
+	weapon.vfx_blast.connect(_on_blast)
 	# Cache the Muzzle marker once — avoids find_child() tree walk on every fired signal.
 	var found: Node = weapon.find_child("Muzzle", true, false)
 	if found is Marker3D:
@@ -73,6 +75,12 @@ func _on_kill(pos: Vector3, _normal: Vector3) -> void:
 	var t := Transform3D(Basis.IDENTITY, pos)
 	_spawn_vfx(_FX_DEATH_BURST, t)
 	_spawn_vfx(_FX_SHOCKWAVE, t)
+
+
+## Called on weapon.vfx_blast — AoE explosion burst at impact point (blast cast only).
+func _on_blast(pos: Vector3) -> void:
+	var t := Transform3D(Basis.IDENTITY, pos)
+	_spawn_vfx(_FX_BLAST, t)
 
 
 func _spawn_vfx(scene: PackedScene, at: Transform3D) -> void:
@@ -112,7 +120,7 @@ func _warmup_vfx() -> void:
 		return
 	var warmup_t := Transform3D(Basis.IDENTITY, _WARMUP_POS)
 	for scene: PackedScene in [
-		_FX_MUZZLE, _FX_IMPACT, _FX_HIT_BURST, _FX_DEATH_BURST, _FX_SHOCKWAVE
+		_FX_MUZZLE, _FX_IMPACT, _FX_HIT_BURST, _FX_DEATH_BURST, _FX_SHOCKWAVE, _FX_BLAST
 	]:
 		var fx: Node3D = scene.instantiate() as Node3D
 		root.add_child(fx, true)

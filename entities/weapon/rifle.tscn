@@ -3,10 +3,12 @@
 [ext_resource type="PackedScene" uid="uid://weapon0001" path="res://entities/weapon/weapon.tscn" id="1"]
 [ext_resource type="Script" uid="uid://bfuid10judeot" path="res://entities/weapon/sprint_sway.gd" id="3"]
 [ext_resource type="PackedScene" uid="uid://gsuokwokeook" path="res://assets/models/scifi_smg.glb" id="3_offvx"]
+[ext_resource type="Resource" path="res://entities/weapon/heavy_cast.tres" id="4"]
 
 [node name="Rifle" unique_id=1379512622 instance=ExtResource("1")]
-editor_description = "Rifle — faster fire rate (0.08), larger mag (30), longer reload (2.0)."
+editor_description = "Rifle — faster fire rate (0.08), larger mag (30), longer reload (2.0). cast_data=heavy_cast (damage=3+knockback)."
 view_model_path = NodePath("RifleViewModel")
+cast_data = ExtResource("4")
 fire_rate = 0.08
 ammo_max = 30
 reload_time = 2.0

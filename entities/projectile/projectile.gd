@@ -14,6 +14,16 @@ signal hit(target: Node3D, normal: Vector3, hit_pos: Vector3)
 ## Max degrees of heading correction per physics frame toward the nearest magnet.
 @export var pull_strength: float = 4.0
 
+## Stamped by Gun._fire() after add_child. Setter tints the mesh immediately.
+## Null = use bare on_hit() fallback path; mesh keeps scene-default material.
+var cast_data: CastData:
+	set(value):
+		cast_data = value
+		if value != null:
+			_tint_mesh(value.bullet_color)
+## World position of the instigator at fire time; forwarded to GameContext for knockback.
+var instigator_pos: Vector3 = Vector3.ZERO
+
 var _travelled: float = 0.0
 # Previous-frame world position — used as ray origin so the full travel step is covered.
 var _prev_position: Vector3 = Vector3.ZERO
@@ -91,12 +101,27 @@ func _on_body_entered(body: Node3D) -> void:
 	var hit_position: Vector3 = ray_hit["position"] as Vector3
 	# Report the impact (signals up), then despawn.
 	hit.emit(body, normal, hit_position)
-	# SEAM: duck-typed hit notification — any body exposing on_hit() reacts (godot-composition rule).
-	# Targets implement on_hit() to take damage; world geometry does not — method guard required.
-	if body.has_method("on_hit"):
-		# SEAM: method proven present by has_method check above; type not known at compile time.
-		@warning_ignore("unsafe_method_access")
-		body.on_hit()
+	if cast_data != null and cast_data.resolver != null:
+		# Cast path: build context, resolve targets, apply each effect.
+		var ctx := GameContext.new()
+		ctx.instigator = self
+		ctx.target = body
+		ctx.hit_pos = hit_position
+		ctx.hit_normal = normal
+		ctx.instigator_pos = instigator_pos
+		ctx.space = get_world_3d().direct_space_state
+		var targets: Array[Node] = cast_data.resolver.resolve(ctx)
+		for t: Node in targets:
+			for eff: Effect in cast_data.effects:
+				eff.apply(t, ctx)
+	else:
+		# Fallback: bare duck-typed on_hit() — no regression for non-cast weapons.
+		# SEAM: duck-typed hit notification — any body exposing on_hit() reacts (godot-composition rule).
+		# Targets implement on_hit() to take damage; world geometry does not — method guard required.
+		if body.has_method("on_hit"):
+			# SEAM: method proven present by has_method check above; type not known at compile time.
+			@warning_ignore("unsafe_method_access")
+			body.on_hit()
 	_play_hit_sfx()
 	queue_free()
 
@@ -133,6 +158,25 @@ func _raycast_hit(body: Node3D) -> Dictionary:
 	@warning_ignore("unsafe_cast")
 	var hit_pos: Vector3 = result["position"] as Vector3
 	return {"normal": hit_normal, "position": hit_pos}
+
+
+## Tint the projectile mesh to bullet_color on cast_data stamp.
+## Walks all MeshInstance3D descendants, make-unique each material so instances don't share.
+func _tint_mesh(color: Color) -> void:
+	var meshes: Array[Node] = find_children("*", "MeshInstance3D", true, false)
+	for node: Node in meshes:
+		if not node is MeshInstance3D:
+			continue
+		var mi: MeshInstance3D = node as MeshInstance3D
+		# Get active material (surface override or mesh default) and duplicate it.
+		var src: StandardMaterial3D = mi.get_active_material(0) as StandardMaterial3D
+		if src == null:
+			continue
+		var mat: StandardMaterial3D = src.duplicate() as StandardMaterial3D
+		mat.albedo_color = color
+		mat.emission_enabled = true
+		mat.emission = color
+		mi.set_surface_override_material(0, mat)
 
 
 # Reparent the one-shot player to the scene root so it survives queue_free() on this node.

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CastData" format=3]
+
+[ext_resource type="Script" path="res://tools/lib/cast/cast_data.gd" id="1"]
+[ext_resource type="Script" path="res://tools/lib/cast/damage_effect.gd" id="2"]
+[ext_resource type="Script" path="res://tools/lib/cast/knockback_effect.gd" id="3"]
+[ext_resource type="Script" path="res://tools/lib/cast/hit_target_resolver.gd" id="4"]
+
+[sub_resource type="Resource" id="1"]
+script = ExtResource("2")
+amount = 1
+
+[sub_resource type="Resource" id="2"]
+script = ExtResource("3")
+
+[sub_resource type="Resource" id="3"]
+script = ExtResource("4")
+
+[resource]
+script = ExtResource("1")
+effects = [SubResource("1"), SubResource("2")]
+resolver = SubResource("3")
+bullet_color = Color(1, 1, 0, 1)

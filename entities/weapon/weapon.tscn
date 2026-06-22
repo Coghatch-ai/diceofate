@@ -9,10 +9,12 @@
 [ext_resource type="Script" uid="uid://bfuid10judeot" path="res://entities/weapon/sprint_sway.gd" id="7"]
 [ext_resource type="Script" uid="uid://c5jnxcakqy4un" path="res://entities/vfx/vfx_router.gd" id="8"]
 [ext_resource type="Script" uid="uid://b7jkqwspi6wkm" path="res://entities/vfx/decal_pool_router.gd" id="9"]
+[ext_resource type="Resource" path="res://entities/weapon/pistol_cast.tres" id="10"]
 
 [node name="Pistol" type="Node3D" unique_id=159509955]
 script = ExtResource("1")
 projectile_scene = ExtResource("2")
+cast_data = ExtResource("10")
 
 [node name="Cooldown" type="Timer" parent="." unique_id=1642398070]
 wait_time = 0.2

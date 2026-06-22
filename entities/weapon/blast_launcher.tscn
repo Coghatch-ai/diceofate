@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://crb83nqu38rgm"]
+
+[ext_resource type="PackedScene" uid="uid://weapon0001" path="res://entities/weapon/weapon.tscn" id="1"]
+[ext_resource type="Script" uid="uid://bfuid10judeot" path="res://entities/weapon/sprint_sway.gd" id="3"]
+[ext_resource type="PackedScene" uid="uid://ctxx6c3k2hf4j" path="res://assets/models/scifi_pistol.glb" id="3_pistol"]
+[ext_resource type="Resource" path="res://entities/weapon/blast_cast.tres" id="4"]
+
+[node name="BlastLauncher" unique_id=2222222221 instance=ExtResource("1")]
+editor_description = "BlastLauncher — slow fire rate (0.6), small mag (6), blast_cast (damage=2+knockback AoE radius=3, orange). Slot 3 proves RadiusTargetResolver."
+view_model_path = NodePath("BlastViewModel")
+cast_data = ExtResource("4")
+fire_rate = 0.6
+ammo_max = 6
+reload_time = 2.0
+spread_hip = 1.5
+spread_ads = 0.3
+recoil_pitch = 0.14
+recoil_yaw = 0.04
+reserve_max = 18
+caliber = &"heavy"
+
+[node name="BlastViewModel" type="Node3D" parent="." index="8" unique_id=2222222222]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, -0.12, -0.25)
+
+[node name="SprintSway" type="Node3D" parent="BlastViewModel" index="0" unique_id=2222222223]
+editor_description = "Sprint pose + sine sway layer — children inherit this offset; tweens write BlastViewModel above"
+script = ExtResource("3")
+
+[node name="SciPistol" parent="BlastViewModel/SprintSway" index="0" unique_id=2222222224 instance=ExtResource("3_pistol")]
+transform = Transform3D(-0.0006737068, 0, 0.19999887, 0, 0.2, 0, -0.19999887, 0, -0.0006737068, 0, -0.040578924, 0)
+
+[node name="Muzzle" type="Marker3D" parent="BlastViewModel/SprintSway" index="1" unique_id=2222222225]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.3)
+
+[node name="MuzzleFlash" type="OmniLight3D" parent="BlastViewModel/SprintSway/Muzzle" index="0" unique_id=2222222226]
+editor_description = "Muzzle flash pulse — driven by weapon.gd _flash_pulse(); off by default"
+visible = false
+light_color = Color(1, 0.5, 0, 1)
+light_energy = 4.0
+omni_range = 1.5
