@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://chpik0xplfk1w" path="res://tools/lib/enemy/enemy_archetype.gd" id="1_archetype"]
+[ext_resource type="PackedScene" path="res://entities/enemy/behaviours/shooter_attack.tscn" id="2_shooter"]
+
+[resource]
+script = ExtResource("1_archetype")
+display_name = "Tank-Shooter"
+tint_color = Color(0.36, 0.28, 0.52, 1)
+max_health = 3
+move_speed = 2.2
+patrol_speed = 1.1
+detect_range = 14.0
+attack_range = 9.0
+escape_range = 16.0
+attack_cooldown = 1.6
+score_value = 7
+touch_damage = 25
+behaviours = [ExtResource("2_shooter")]

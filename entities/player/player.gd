@@ -85,8 +85,6 @@ var _look_pitch: float = 0.0
 var _recoil_pitch: float = 0.0
 var _recoil_yaw: float = 0.0
 var _recoil_yaw_prev: float = 0.0
-# Additive melee-kick offset — fetched from WeaponController each frame, summed here.
-var _melee_kick_offset: float = 0.0
 var _ads_tween: Tween
 # Head-bob state — additive Y/X offsets on _head, never fight look/recoil/crouch.
 var _bob_t: float = 0.0
@@ -147,9 +145,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Yaw on the body, pitch tracked in _look_pitch (recoil added separately in physics).
 		rotate_y(-motion.relative.x * sens)
 		_look_pitch = clampf(_look_pitch - motion.relative.y * sens, -PI / 2.0, PI / 2.0)
-		_head.rotation.x = clampf(
-			_look_pitch + _recoil_pitch + _melee_kick_offset, -PI / 2.0, PI / 2.0
-		)
+		_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
@@ -189,11 +185,9 @@ func _physics_process(delta: float) -> void:
 	_recoil_pitch = _weapon_controller.get_recoil_pitch()
 	_recoil_yaw = _weapon_controller.get_recoil_yaw()
 	_recoil_yaw_prev = _weapon_controller.get_recoil_yaw_prev()
-	_melee_kick_offset = _weapon_controller.get_melee_kick_offset()
 
-	# 6. Single owner of _head.rotation.x: look + recoil + melee-kick summed here.
-	# WeaponController tweens _melee_kick_offset 0→kick→0; never writes _head.rotation.x directly.
-	_head.rotation.x = clampf(_look_pitch + _recoil_pitch + _melee_kick_offset, -PI / 2.0, PI / 2.0)
+	# 6. Single owner of _head.rotation.x: look + recoil summed here.
+	_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
 	rotation.y += _recoil_yaw - _recoil_yaw_prev
 	_weapon_controller.set_recoil_yaw_prev(_recoil_yaw)
 

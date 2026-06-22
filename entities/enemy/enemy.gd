@@ -126,7 +126,15 @@ func can_see_target() -> bool:
 
 # ── Navigation (called by states) ─────────────────────────────────────────────
 func set_destination(point: Vector3) -> void:
-	_nav.target_position = point
+	# Allow movement-role behaviour to transform the point (e.g. FlyingMovement clamps Y).
+	var dest: Vector3 = point
+	for child: Node in _abilities.get_children():
+		if child.has_method("pre_set_destination"):
+			# SEAM: duck-typed pre_set_destination — EnemyBehaviour base defines this seam.
+			@warning_ignore("unsafe_method_access")
+			dest = child.pre_set_destination(dest)
+			break
+	_nav.target_position = dest
 
 
 func navigation_finished() -> bool:
@@ -134,7 +142,18 @@ func navigation_finished() -> bool:
 
 
 ## Drive one frame toward current nav target at speed. Gravity + move_and_slide run here.
+## Delegates to movement-role behaviour when one is bound (wants_nav_velocity == true).
 func move_along_path(speed: float, delta: float) -> void:
+	# Delegate to movement-role behaviour if present.
+	for child: Node in _abilities.get_children():
+		if child.has_method("wants_nav_velocity"):
+			# SEAM: duck-typed wants_nav_velocity — EnemyBehaviour base defines this seam.
+			@warning_ignore("unsafe_method_access")
+			if child.wants_nav_velocity():
+				@warning_ignore("unsafe_method_access")
+				child.drive_move(speed, delta)
+				return
+	# Default: gravity-nav walk.
 	var desired: Vector3 = Vector3.ZERO
 	if not _nav.is_navigation_finished():
 		var next: Vector3 = _nav.get_next_path_position()
@@ -153,6 +172,16 @@ func move_along_path(speed: float, delta: float) -> void:
 
 
 func stop(delta: float) -> void:
+	# Delegate to movement-role behaviour if present.
+	for child: Node in _abilities.get_children():
+		if child.has_method("wants_nav_velocity"):
+			# SEAM: duck-typed wants_nav_velocity — EnemyBehaviour base defines this seam.
+			@warning_ignore("unsafe_method_access")
+			if child.wants_nav_velocity():
+				@warning_ignore("unsafe_method_access")
+				child.drive_stop(delta)
+				return
+	# Default: zero XZ + gravity.
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	velocity.x = 0.0
@@ -174,6 +203,13 @@ func _on_nav_velocity_computed(safe_velocity: Vector3) -> void:
 	# Skip nav drive during knockback stun — _physics_process owns velocity then.
 	if _stun_timer > 0.0:
 		return
+	# Skip if a movement-role behaviour blocks nav velocity (e.g. FlyingMovement during dive).
+	for child: Node in _abilities.get_children():
+		if child.has_method("blocks_nav_velocity"):
+			# SEAM: duck-typed blocks_nav_velocity — EnemyBehaviour base defines this seam.
+			@warning_ignore("unsafe_method_access")
+			if child.blocks_nav_velocity():
+				return
 	velocity = safe_velocity
 	move_and_slide()
 

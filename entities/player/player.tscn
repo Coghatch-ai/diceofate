@@ -8,7 +8,6 @@
 [ext_resource type="AudioStream" uid="uid://cih5vynsi1u2b" path="res://assets/audio/player_land.wav" id="4_land"]
 [ext_resource type="PackedScene" uid="uid://carbine0001" path="res://entities/weapon/carbine.tscn" id="5_carbine"]
 [ext_resource type="PackedScene" uid="uid://blastlauncher1" path="res://entities/weapon/blast_launcher.tscn" id="7_blast"]
-[ext_resource type="PackedScene" uid="uid://melee0001" path="res://entities/weapon/melee.tscn" id="8_hammer"]
 [ext_resource type="PackedScene" uid="uid://d3lfh3vj7qs5q" path="res://entities/player/components/weapon_controller.tscn" id="6_weapon_controller"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
@@ -44,10 +43,6 @@ editor_description = "Carbine slot 2 — stun_cast (damage=1+knockback, cyan). R
 
 [node name="BlastLauncher" parent="WeaponController/Head" unique_id=2333333331 instance=ExtResource("7_blast")]
 editor_description = "BlastLauncher slot 3 — blast_cast (damage=2+knockback AoE radius=3, orange). Proves RadiusTargetResolver."
-visible = false
-
-[node name="Hammer" parent="WeaponController/Head" unique_id=3444444441 instance=ExtResource("8_hammer")]
-editor_description = "Hammer slot 4 — melee, LMB swings, Q cycles to/from this slot. Restored per combat-playtest-fixes."
 visible = false
 
 [node name="JumpSfx" type="AudioStreamPlayer" parent="." unique_id=740762720]

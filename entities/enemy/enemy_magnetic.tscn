@@ -14,6 +14,7 @@ script = ExtResource("2_script")
 move_speed = 2.5
 patrol_speed = 1.25
 detect_range = 14.0
+health = 1
 
 [node name="CollisionShape3D" parent="." index="1"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

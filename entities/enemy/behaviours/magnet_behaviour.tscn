@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/enemy/behaviours/magnet_behaviour.gd" id="1_script"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_bubble"]
+radius = 4.0
+height = 8.0
+radial_segments = 16
+rings = 8
+
+[node name="MagnetBehaviour" type="Node"]
+script = ExtResource("1_script")
+
+[node name="RadiusBubble" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("SphereMesh_bubble")

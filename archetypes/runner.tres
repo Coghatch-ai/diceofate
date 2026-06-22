@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyArchetype" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://chpik0xplfk1w" path="res://tools/lib/enemy/enemy_archetype.gd" id="1_archetype"]
+
+[resource]
+script = ExtResource("1_archetype")
+display_name = "Runner"
+tint_color = Color(0.62, 0.3, 0.08, 1)
+max_health = 2
+move_speed = 6.0
+patrol_speed = 3.0
+detect_range = 9.0
+attack_range = 1.8
+escape_range = 16.0
+attack_cooldown = 0.8
+score_value = 2
+touch_damage = 25
+behaviours = []

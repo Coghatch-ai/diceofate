@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/enemy/behaviours/shooter_attack.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://entities/projectile/enemy_projectile.tscn" id="2_eproj"]
+
+[node name="ShooterAttack" type="Node"]
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_eproj")

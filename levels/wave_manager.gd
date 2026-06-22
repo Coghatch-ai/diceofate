@@ -47,12 +47,20 @@ const CLOSE_RETRIES: int = 6
 @export var enemy_scene_f: PackedScene
 ## Fraction of spawns that use enemy_scene_f (Flyer). 0.0 = none, 1.0 = all.
 @export var flyer_ratio: float = 0.1
-## Optional archetype-driven spawn slot. When set, spawns the generic enemy_scene with
+## Optional archetype-driven spawn slot A. When set, spawns the generic enemy_scene with
 ## this archetype assigned before add_child (alongside the existing PackedScene slots).
-## Checked last in the priority chain; archetype_ratio controls how often it fires.
+## Checked after PackedScene slots in the priority chain.
 @export var spawn_archetype: EnemyArchetype
 ## Fraction of spawns that use spawn_archetype. 0.0 = none, 1.0 = all.
 @export_range(0.0, 1.0, 0.05) var archetype_ratio: float = 0.0
+## Optional archetype-driven spawn slot B (e.g. tank_magnet).
+@export var spawn_archetype_b: EnemyArchetype
+## Fraction of spawns that use spawn_archetype_b. 0.0 = none, 1.0 = all.
+@export_range(0.0, 1.0, 0.05) var archetype_b_ratio: float = 0.0
+## Optional archetype-driven spawn slot C (e.g. tank_shooter).
+@export var spawn_archetype_c: EnemyArchetype
+## Fraction of spawns that use spawn_archetype_c. 0.0 = none, 1.0 = all.
+@export_range(0.0, 1.0, 0.05) var archetype_c_ratio: float = 0.0
 ## DEBUG: guarantee one Stinger on the Nth kill (1 = first kill, 0 = disabled).
 @export var debug_flyer_on_kill: int = 0
 ## NodePaths to SpawnMarker* Marker3D nodes (children of WaveManager, resolved in _ready).

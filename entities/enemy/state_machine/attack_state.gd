@@ -8,6 +8,8 @@ func enter() -> void:
 
 
 func physics_update(delta: float) -> String:
+	if not is_instance_valid(enemy):
+		return ""
 	enemy.stop(delta)
 	if enemy.distance_to_target() > enemy.attack_range:
 		return "ChaseState"
@@ -16,6 +18,9 @@ func physics_update(delta: float) -> String:
 
 
 func _try_attack() -> void:
+	if not is_instance_valid(enemy):
+		return
 	if enemy.attack_timer.is_stopped():
 		enemy.perform_attack()
-		enemy.attack_timer.start()
+		if is_instance_valid(enemy):
+			enemy.attack_timer.start()
