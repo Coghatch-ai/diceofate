@@ -87,33 +87,32 @@ anchor_bottom = 1.0
 grow_horizontal = 1
 grow_vertical = 0
 offset_left = 8.0
-offset_top = -72.0
+offset_top = -84.0
 offset_right = 200.0
 offset_bottom = -8.0
 alignment = 2
-editor_description = "Bottom-left: heart pips + stamina bar."
+editor_description = "Bottom-left: HP bar + stamina bar."
 
-[node name="LivesContainer" type="HBoxContainer" parent="HUD/ArenaHud/BottomLeft"]
-custom_minimum_size = Vector2(0, 24)
-editor_description = "Row of pip ColorRects; script toggles visibility for lives count."
+[node name="HpRow" type="HBoxContainer" parent="HUD/ArenaHud/BottomLeft"]
+custom_minimum_size = Vector2(0, 14)
+editor_description = "Label + bar track for player HP."
 
-[node name="Pip0" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/LivesContainer"]
-custom_minimum_size = Vector2(20, 20)
+[node name="HpLabel" type="Label" parent="HUD/ArenaHud/BottomLeft/HpRow"]
+text = "HP"
+vertical_alignment = 1
+
+[node name="HpBar" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/HpRow"]
+custom_minimum_size = Vector2(120, 10)
+size_flags_horizontal = 3
 size_flags_vertical = 4
-color = Color(0.9, 0.15, 0.15, 1.0)
-editor_description = "Heart pip 1 (rightmost = last life)."
+color = Color(0.2, 0.2, 0.2, 0.8)
+editor_description = "Dark track; HpFill child covers the filled portion."
 
-[node name="Pip1" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/LivesContainer"]
-custom_minimum_size = Vector2(20, 20)
-size_flags_vertical = 4
-color = Color(0.9, 0.15, 0.15, 1.0)
-editor_description = "Heart pip 2."
-
-[node name="Pip2" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/LivesContainer"]
-custom_minimum_size = Vector2(20, 20)
-size_flags_vertical = 4
-color = Color(0.9, 0.15, 0.15, 1.0)
-editor_description = "Heart pip 3."
+[node name="HpFill" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/HpRow/HpBar"]
+offset_right = 120.0
+offset_bottom = 10.0
+color = Color(0.85, 0.1, 0.1, 1.0)
+editor_description = "Red fill; width driven by set_health()."
 
 [node name="StaminaRow" type="HBoxContainer" parent="HUD/ArenaHud/BottomLeft"]
 custom_minimum_size = Vector2(0, 14)
@@ -189,24 +188,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 text = ""
 
-[node name="LifeLostLabel" type="Label" parent="HUD/ArenaHud"]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-offset_left = -300.0
-offset_top = -60.0
-offset_right = 300.0
-offset_bottom = 60.0
-horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 64
-text = "LIFE LOST"
-visible = false
-editor_description = "Transient centered flash shown on each non-final life-loss; fades via tween in script."
 
 [node name="ControlsHud" type="Control" parent="HUD"]
 unique_name_in_owner = true

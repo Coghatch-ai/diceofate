@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://entities/npc/npc.gd" id="1"]
 [ext_resource type="Script" path="res://entities/npc/npc_vfx.gd" id="2"]
+[ext_resource type="Script" path="res://tools/lib/health_component.gd" id="3_hc"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.3
@@ -50,3 +51,7 @@ one_shot = true
 [node name="NpcVfx" type="Node" parent="."]
 script = ExtResource("2")
 editor_description = "VFX component: spawns rescue halo on saved branch only."
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_hc")
+max_health = 1

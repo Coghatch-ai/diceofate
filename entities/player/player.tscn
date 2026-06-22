@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bwxk8v5y3p2r1"]
 
 [ext_resource type="Script" uid="uid://ebbh6xowcejd" path="res://entities/player/player.gd" id="1"]
+[ext_resource type="Script" uid="uid://diwfahxo6eej3" path="res://tools/lib/health_component.gd" id="9_health"]
 [ext_resource type="PackedScene" uid="uid://weapon0001" path="res://entities/weapon/weapon.tscn" id="2"]
 [ext_resource type="AudioStream" uid="uid://blkf0ian5o32c" path="res://assets/audio/player_jump.wav" id="3_jump"]
 [ext_resource type="PackedScene" uid="uid://8ce876l06gxc" path="res://entities/weapon/rifle.tscn" id="3_rifle"]
@@ -56,3 +57,7 @@ bus = &"SFX"
 [node name="LandSfx" type="AudioStreamPlayer" parent="." unique_id=998998730]
 stream = ExtResource("4_land")
 bus = &"SFX"
+
+[node name="HealthComponent" type="Node" parent="." unique_id=1111111101]
+script = ExtResource("9_health")
+max_health = 100

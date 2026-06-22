@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyArchetype" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://chpik0xplfk1w" path="res://tools/lib/enemy/enemy_archetype.gd" id="1_archetype"]
+
+[resource]
+script = ExtResource("1_archetype")
+display_name = "Grunt"
+tint_color = Color(1, 1, 1, 1)
+max_health = 2
+move_speed = 3.5
+patrol_speed = 1.75
+detect_range = 12.0
+attack_range = 1.8
+escape_range = 16.0
+attack_cooldown = 0.8
+score_value = 1
+touch_damage = 25
+behaviours = []

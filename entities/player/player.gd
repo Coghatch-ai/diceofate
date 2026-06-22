@@ -1,7 +1,10 @@
 # entities/player/player.gd — first-person movement, mouse-look, jump, crouch,
-# sprint, slide, head-bob.
+# sprint, slide, head-bob, health.
 class_name Player
 extends CharacterBody3D
+
+## Forwarded from HealthComponent so WaveManager can connect death without reaching into the comp.
+signal died
 
 @export var move_speed: float = 4.0
 @export var move_accel: float = 6.0
@@ -67,6 +70,10 @@ extends CharacterBody3D
 @export var knockback_speed: float = 6.0
 ## Duration (s) input is suppressed and knockback decays after a bump. Mirrors enemy _STUN_DURATION.
 @export var knockback_stun_duration: float = 0.15
+## Starting + maximum HP. 100 = 4 enemy touches to die (25 dmg each).
+@export_range(1, 500, 1) var max_health: int = 100
+## HP restored by a health pickup.
+@export_range(1, 200, 1) var heal_amount: int = 40
 
 # SEAM: ProjectSettings.get_setting() returns Variant; the physics gravity setting is always float.
 @warning_ignore("unsafe_cast")
@@ -105,12 +112,16 @@ var _arena_hud: ArenaHud
 @onready var _jump_sfx: AudioStreamPlayer = $JumpSfx
 @onready var _land_sfx: AudioStreamPlayer = $LandSfx
 @onready var _collision: CollisionShape3D = $CollisionShape3D
+@onready var _health_comp: HealthComponent = $HealthComponent
 
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_camera.fov = hip_fov
 	_stamina = stamina_max
+	_health_comp.max_health = max_health
+	_health_comp.reset()
+	_health_comp.died.connect(_on_health_comp_died)
 	_weapon_controller.health_pickup_requested.connect(_on_health_pickup_requested)
 
 
@@ -397,11 +408,20 @@ func apply_knockback(hitter_pos: Vector3) -> void:
 	_kb_stun_timer = knockback_stun_duration
 
 
-## Handles health pickup signal from WeaponController. Routes to WaveManager (level domain).
+## Delegate damage to HealthComponent. Duck-typed seam for DamageEffect / on_hit paths.
+func apply_damage(amount: int) -> void:
+	_health_comp.apply_damage(amount)
+
+
+## Expose HealthComponent so WaveManager can wire health_changed → HUD without find_child.
+func get_health_comp() -> HealthComponent:
+	return _health_comp
+
+
+## Handles health pickup signal from WeaponController. Heals the HealthComponent directly.
 func _on_health_pickup_requested() -> void:
-	var wm: Node = get_tree().root.find_child("WaveManager", false, false)
-	if wm == null or not wm.has_method("add_life"):
-		return
-	# SEAM: duck-typed call to WaveManager.add_life() — any node with that method works.
-	@warning_ignore("unsafe_method_access")
-	wm.add_life()
+	_health_comp.heal(heal_amount)
+
+
+func _on_health_comp_died() -> void:
+	died.emit()

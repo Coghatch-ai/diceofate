@@ -74,16 +74,19 @@ func load_level(path: String) -> void:
 	if wave_manager != null:
 		wave_manager.score_changed.connect(_arena_hud.set_score)
 		wave_manager.active_changed.connect(_arena_hud.set_active)
-		wave_manager.lives_changed.connect(_arena_hud.set_lives)
 		wave_manager.run_lost.connect(_on_run_ended.bind(false))
 		wave_manager.advance_level.connect(_on_advance_level)
-		wave_manager.life_lost.connect(_arena_hud.flash_life_lost)
-		_arena_hud.set_lives(wave_manager.lives)
-		# Inject wave_manager into the level so fall/hazard handlers can call lose_life().
+		# Inject wave_manager into the level so fall/hazard handlers can call apply_damage().
 		# SEAM: duck-typed set — level scripts (FiringYard/RuinedWarehouse) share the
 		# wave_manager export but have no common base class.
 		@warning_ignore("unsafe_property_access")
 		current_level.wave_manager = wave_manager
+
+	# Wire player HealthComponent.health_changed → HUD HP bar.
+	if player != null:
+		var hc: HealthComponent = player.get_health_comp()
+		hc.health_changed.connect(_arena_hud.set_health)
+		_arena_hud.set_health(hc.max_health, hc.max_health)
 
 
 func _attach_post_process_quad(camera: Camera3D) -> void:
@@ -106,10 +109,9 @@ func _attach_post_process_quad(camera: Camera3D) -> void:
 	camera.add_child(quad)
 
 
-func _on_advance_level(score: int, lives: int) -> void:
+func _on_advance_level(score: int) -> void:
 	RunStateData.active = true
 	RunStateData.score = score
-	RunStateData.lives = lives
 	_level_index = (_level_index + 1) % _levels.size()
 	# Deferred: signal may arrive from inside an enemy's own physics/attack callback.
 	# Calling load_level() synchronously frees the level (and the enemy) while still

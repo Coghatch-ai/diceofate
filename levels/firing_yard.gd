@@ -68,8 +68,9 @@ const CRUSHER_X_MAX: float = 20.0
 const CRUSHER_SPEED: float = 4.0  # m/s
 
 ## WaveManager sibling — injected by main.gd after level load.
-## Used to route fall/hazard life-loss through the shared lose_life() seam.
 @export var wave_manager: WaveManager
+## HP damage dealt to the player on fall/hazard reset.
+@export_range(1, 100, 1) var hazard_damage: int = 25
 
 # Total period in seconds: ~214s daylight arc + ~86s night = 5 min full cycle.
 # Lower for verification runs (e.g. 12.0 = 25x speed).
@@ -103,7 +104,7 @@ func _ready() -> void:
 	# levels/firing_yard_navmesh.tres — no runtime bake needed.
 
 
-# Shared reset helper — teleports a Player body back to spawn and costs a life.
+# Shared reset helper — teleports the player back to spawn and deals hazard damage.
 func _reset_player(body: Node3D) -> void:
 	if not body.is_in_group("player"):
 		return
@@ -112,8 +113,11 @@ func _reset_player(body: Node3D) -> void:
 	# SEAM: duck-typed reset — velocity is on CharacterBody3D, not the Node3D base type.
 	@warning_ignore("unsafe_property_access")
 	body.velocity = Vector3.ZERO
-	if wave_manager != null:
-		wave_manager.lose_life()
+	if not body.has_method("apply_damage"):
+		return
+	# SEAM: duck-typed apply_damage — any node with apply_damage(int) accepted.
+	@warning_ignore("unsafe_method_access")
+	body.apply_damage(hazard_damage)
 
 
 # Respawn the player when they fall through a fake-wall hole.

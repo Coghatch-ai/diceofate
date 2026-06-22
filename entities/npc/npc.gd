@@ -8,16 +8,25 @@ signal died(npc: Npc)
 signal rescued(npc: Npc)
 
 ## WaveManager injected by the level root in _ready() (same DI pattern as FiringYard).
+## Kept for injection but no longer used for lives — NPC death/rescue route HP directly.
 @export var wave_manager: WaveManager
+## HP damage dealt to the player when this NPC is killed. Default matches touch_damage (25).
+@export_range(1, 100, 1) var kill_penalty: int = 25
+## HP healed to the player when this NPC is rescued.
+@export_range(1, 200, 1) var rescue_heal: int = 40
 
 var _dead: bool = false
 
 @onready var _mesh: MeshInstance3D = $MeshInstance3D
 @onready var _rescue_area: Area3D = $RescueArea
 @onready var _rescue_timer: Timer = $RescueTimer
+@onready var _health_comp: HealthComponent = $HealthComponent
 
 
 func _ready() -> void:
+	_health_comp.max_health = 1
+	_health_comp.reset()
+	_health_comp.died.connect(_on_health_comp_died)
 	_rescue_area.body_entered.connect(_on_RescueArea_body_entered)
 	_rescue_area.body_exited.connect(_on_RescueArea_body_exited)
 	_rescue_timer.timeout.connect(_on_RescueTimer_timeout)
@@ -31,14 +40,19 @@ func on_hit() -> void:
 	apply_damage(1)
 
 
-## Apply damage. Any non-zero amount kills the NPC (costs player one life).
-func apply_damage(_amount: int) -> void:
+## Apply damage. Delegates to HealthComponent; death handled in _on_health_comp_died.
+func apply_damage(amount: int) -> void:
+	if _dead:
+		return
+	_health_comp.apply_damage(amount)
+
+
+func _on_health_comp_died() -> void:
 	if _dead:
 		return
 	_dead = true
 	_rescue_timer.stop()
-	if wave_manager != null:
-		wave_manager.lose_life()
+	_damage_player(kill_penalty)
 	_flash(Color(0.80, 0.10, 0.10))
 	died.emit(self)
 	queue_free()
@@ -63,12 +77,33 @@ func _on_RescueTimer_timeout() -> void:
 	if _dead:
 		return
 	_dead = true
-	if wave_manager != null:
-		wave_manager.add_life()
+	_heal_player(rescue_heal)
 	_flash(Color(0.18, 0.72, 0.28))
 	rescued.emit(self)
 	died.emit(self)
 	queue_free()
+
+
+func _damage_player(amount: int) -> void:
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+	if player == null or not player.has_method("apply_damage"):
+		return
+	# SEAM: duck-typed apply_damage — any node with apply_damage(int) accepted.
+	@warning_ignore("unsafe_method_access")
+	player.apply_damage(amount)
+
+
+func _heal_player(amount: int) -> void:
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+	if player == null or not player.has_method("get_health_comp"):
+		return
+	# SEAM: duck-typed get_health_comp — Player exposes this accessor.
+	# Return is Variant from duck call; cast to HealthComponent is safe by contract.
+	@warning_ignore("unsafe_method_access")
+	@warning_ignore("unsafe_cast")
+	var hc: HealthComponent = player.get_health_comp() as HealthComponent
+	if hc != null:
+		hc.heal(amount)
 
 
 # ── Flash helper ──────────────────────────────────────────────────────────────────────

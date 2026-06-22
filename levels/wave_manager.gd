@@ -6,11 +6,7 @@ signal kills_changed(total: int)
 signal active_changed(count: int)
 signal score_changed(total: int)
 signal run_lost(score: int)
-signal advance_level(score: int, lives: int)
-signal lives_changed(remaining: int)
-## Emitted when the player loses a life but the run continues (remaining > 0).
-## Connect to ArenaHud.flash_life_lost() in main.gd.
-signal life_lost
+signal advance_level(score: int)
 
 ## Collision mask bit for the world/wall layer (layer 1 = bit 0).
 const WALL_MASK: int = 1
@@ -25,10 +21,9 @@ const FRONT_CONE_DEG: float = 90.0
 const NAV_SNAP_TOLERANCE: float = 1.5
 const CLOSE_RETRIES: int = 6
 
-## Player spawn position for life-loss respawn. Set per-level by the builder or scene.
-## Default matches FiringYard so that scene requires no override.
+## Player spawn position for respawn. Default matches FiringYard.
 @export var spawn_pos: Vector3 = Vector3(24.0, 1.0, 30.0)
-## Player spawn rotation Y for life-loss respawn. Default matches FiringYard (facing −Z = PI).
+## Player spawn rotation Y. Default matches FiringYard (facing −Z = PI).
 @export var spawn_rot_y: float = PI
 ## Packed scene used to instance enemies at runtime.
 @export var enemy_scene: PackedScene
@@ -52,8 +47,13 @@ const CLOSE_RETRIES: int = 6
 @export var enemy_scene_f: PackedScene
 ## Fraction of spawns that use enemy_scene_f (Flyer). 0.0 = none, 1.0 = all.
 @export var flyer_ratio: float = 0.1
+## Optional archetype-driven spawn slot. When set, spawns the generic enemy_scene with
+## this archetype assigned before add_child (alongside the existing PackedScene slots).
+## Checked last in the priority chain; archetype_ratio controls how often it fires.
+@export var spawn_archetype: EnemyArchetype
+## Fraction of spawns that use spawn_archetype. 0.0 = none, 1.0 = all.
+@export_range(0.0, 1.0, 0.05) var archetype_ratio: float = 0.0
 ## DEBUG: guarantee one Stinger on the Nth kill (1 = first kill, 0 = disabled).
-## Dial back to 0 once you've confirmed the Stinger works in play.
 @export var debug_flyer_on_kill: int = 0
 ## NodePaths to SpawnMarker* Marker3D nodes (children of WaveManager, resolved in _ready).
 @export var spawn_marker_paths: Array[NodePath] = []
@@ -63,36 +63,30 @@ const CLOSE_RETRIES: int = 6
 @export var start_count: int = 2
 ## Maximum simultaneous active enemies; above this deaths respawn 1-for-1.
 @export var active_cap: int = 30
-## Score target required to win the run (replaces flat kill count from G2).
-## With grunt=1/runner=2/magnet=4/tank=5 and mixed spawns, ~75 pts ≈ 2–4 min.
+## Score target required to win the run.
 @export var win_score: int = 75
-## Lives the player starts with; depleted by enemy touches.
-@export var lives: int = 3
+## Damage applied to player HP on each enemy touch.
+@export_range(1, 100, 1) var touch_damage: int = 25
 
 var _spawn_markers: Array[Marker3D] = []
 var _patrol_waypoints: Array[Marker3D] = []
 var _active_enemies: Array[Enemy] = []
 var _kills: int = 0
 var _score: int = 0
-var _lives: int = 0
 var _run_over: bool = false
 
 # Tracks which markers are occupied by live spawned enemies (cleared when an enemy dies/frees).
-# Used to avoid placing two enemies on the same marker within one spawn batch.
 var _occupied_markers: Array[Marker3D] = []
-# Last marker chosen by _pick_far_marker_pos; tagged onto the spawned enemy for death cleanup.
 var _last_spawn_marker: Marker3D = null
 
 # Reusable PhysicsRayQueryParameters3D allocated once, reused per LOS check.
 var _ray_query: PhysicsRayQueryParameters3D
 
 # Cached nav map RID for navmesh-snap of close-ring candidates.
-# Populated in _ready() once NavigationRegion3D is available in the tree.
 var _nav_map: RID
 
 
 func _ready() -> void:
-	# Resolve NodePath exports → typed arrays (hand-authored .tscn can't store Array[Marker3D]).
 	for np: NodePath in spawn_marker_paths:
 		var node: Node = get_node(np)
 		if node is Marker3D:
@@ -109,12 +103,10 @@ func _ready() -> void:
 	_ray_query = PhysicsRayQueryParameters3D.new()
 	_ray_query.collision_mask = WALL_MASK
 
-	# Cache the nav map RID from the first NavigationRegion3D in the parent scene.
 	var nav_region: NavigationRegion3D = (
 		get_tree().get_first_node_in_group("nav_region") as NavigationRegion3D
 	)
 	if nav_region == null:
-		# Fallback: search parent for any NavigationRegion3D child.
 		nav_region = _find_nav_region()
 	if nav_region != null:
 		_nav_map = nav_region.get_navigation_map()
@@ -128,36 +120,22 @@ func _ready() -> void:
 		push_error("WaveManager: no spawn markers resolved")
 		return
 
-	# Defer seeding: _ready runs while the parent tree is still setting up children,
-	# so add_child() would fail. call_deferred waits for the frame to settle first.
 	_seed_start.call_deferred()
-
-
-## Adds one life up to the cap (lives export). Returns false (no-op) if already at cap.
-func add_life() -> bool:
-	if _lives >= lives:
-		return false
-	_lives += 1
-	lives_changed.emit(_lives)
-	return true
 
 
 func _seed_start() -> void:
 	if RunStateData.active:
-		_lives = RunStateData.lives
 		_score = RunStateData.score
 		RunStateData.active = false
 	else:
-		_lives = lives
 		_score = 0
 	_kills = 0
 	_run_over = false
 	_occupied_markers.clear()
-	lives_changed.emit(_lives)
 	kills_changed.emit(_kills)
 	score_changed.emit(_score)
-	# SEED RULE: first enemy is always a magnet (cyan) for quick melee testing; remaining are grunts.
-	# Per-kill escalation respawns use the random type roll (see _spawn_one force_grunt=false).
+	# Wire player HP → run_lost. Player must be in group "player".
+	_wire_player_health()
 	_spawn_one(true, false, true)
 	for i: int in range(start_count - 1):
 		_spawn_one(true, true)
@@ -165,16 +143,28 @@ func _seed_start() -> void:
 	active_changed.emit(_active_enemies.size())
 
 
+## Connect player HealthComponent.died → _on_player_died so HP=0 ends the run.
+func _wire_player_health() -> void:
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+	if player == null:
+		return
+	if not player.has_method("get_health_comp"):
+		return
+	# SEAM: duck-typed get_health_comp() — Player exposes this to avoid reaching into internals.
+	# Return is Variant from duck call; cast to HealthComponent is safe by contract.
+	@warning_ignore("unsafe_method_access")
+	@warning_ignore("unsafe_cast")
+	var hc: HealthComponent = player.get_health_comp() as HealthComponent
+	if hc == null:
+		return
+	if not hc.died.is_connected(_on_player_died):
+		hc.died.connect(_on_player_died)
+
+
 # ── Spawn ─────────────────────────────────────────────────────────────────────
 
 
 ## Spawn one enemy.
-## seed_phase: passed to _pick_spawn_point for LOS exclusion semantics (same logic both paths).
-## force_grunt: when true, always uses enemy_scene (base grunt) regardless of ratios.
-##   Seeds and re-seeds use force_grunt=true for deterministic grunt opening waves.
-##   Per-kill escalation respawns use force_grunt=false for the random type mix.
-## force_magnet: when true, always uses enemy_scene_d (magnet/cyan) — used for first seed slot.
-## force_flyer: when true, always uses enemy_scene_f (Stinger) — used by debug_flyer_on_kill.
 func _spawn_one(
 	seed_phase: bool = false,
 	force_grunt: bool = false,
@@ -185,8 +175,8 @@ func _spawn_one(
 		return
 	var pos: Vector3 = _pick_spawn_point(seed_phase)
 
-	# Type selection priority: force_flyer > force_magnet > force_grunt > random roll by ratios.
 	var chosen_scene: PackedScene = enemy_scene
+	var chosen_archetype: EnemyArchetype = null
 	if force_flyer and enemy_scene_f != null:
 		chosen_scene = enemy_scene_f
 	elif force_magnet and enemy_scene_d != null:
@@ -208,6 +198,23 @@ func _spawn_one(
 			and roll < flyer_ratio + shooter_ratio + magnet_ratio + tank_ratio + runner_ratio
 		):
 			chosen_scene = enemy_scene_b
+		elif (
+			spawn_archetype != null
+			and (
+				roll
+				< (
+					flyer_ratio
+					+ shooter_ratio
+					+ magnet_ratio
+					+ tank_ratio
+					+ runner_ratio
+					+ archetype_ratio
+				)
+			)
+		):
+			# Archetype slot: use generic enemy_scene with archetype assigned.
+			chosen_scene = enemy_scene
+			chosen_archetype = spawn_archetype
 
 	var inst: Node = chosen_scene.instantiate()
 	if not inst is Enemy:
@@ -216,23 +223,19 @@ func _spawn_one(
 		return
 
 	var enemy: Enemy = inst as Enemy
-	# Set patrol waypoint NodePaths so the enemy resolves them in its own _ready().
-	# Paths must be absolute from the scene tree root so they resolve from the enemy's
-	# future parent (the level root, sibling of WaveManager).
+	# Assign archetype before add_child so _ready() can seed stats from it.
+	if chosen_archetype != null:
+		enemy.archetype = chosen_archetype
 	var relative_paths: Array[NodePath] = []
 	for wp: Marker3D in _patrol_waypoints:
 		relative_paths.append(NodePath(wp.get_path()))
 	enemy.patrol_waypoint_paths = relative_paths
 
-	# Collision settings mirror the original baked enemies.
 	enemy.collision_layer = 8
 	enemy.collision_mask = 1
 
-	# Add to the level root (sibling of WaveManager) so nav and collision work normally.
 	get_parent().add_child(enemy)
-	# global_position requires the node to be in the tree; set after add_child.
 	enemy.global_position = pos + Vector3(0.0, 0.1, 0.0)
-	# Tag the marker used so _on_enemy_died can release it from _occupied_markers.
 	if _last_spawn_marker != null:
 		enemy.set_meta("spawn_marker", _last_spawn_marker)
 	_last_spawn_marker = null
@@ -251,8 +254,20 @@ func _connect_enemy(enemy: Enemy) -> void:
 # ── Event handlers ────────────────────────────────────────────────────────────
 
 
+func _on_player_died() -> void:
+	if _run_over:
+		return
+	_run_over = true
+	for e: Enemy in _active_enemies:
+		if is_instance_valid(e):
+			e.queue_free()
+	_active_enemies.clear()
+	_occupied_markers.clear()
+	active_changed.emit(_active_enemies.size())
+	run_lost.emit(_score)
+
+
 func _on_enemy_died(enemy: Enemy) -> void:
-	# Release any marker this enemy occupied so future spawns can reuse it.
 	if enemy.has_meta("spawn_marker"):
 		# SEAM: meta value is Marker3D by construction (set in _spawn_one).
 		@warning_ignore("unsafe_cast")
@@ -279,63 +294,33 @@ func _on_enemy_died(enemy: Enemy) -> void:
 
 	if _score >= win_score:
 		_run_over = true
-		advance_level.emit(_score, _lives)
+		advance_level.emit(_score)
 		return
 
-	# DEBUG: guarantee a Stinger on the Nth kill so the user can verify without grinding.
-	# debug_flyer_on_kill = 1 means "first kill spawns a Stinger". Set to 0 to disable.
 	var force_flyer_now: bool = (
 		debug_flyer_on_kill > 0 and _kills == debug_flyer_on_kill and enemy_scene_f != null
 	)
 
 	if count_after < active_cap:
-		# Spawn 2: the respawn replacement + one net-new enemy. Both are ESCALATION spawns
-		# (random type mix). Only the initial seed and re-seeds use force_grunt.
 		_spawn_one(false, false, false, force_flyer_now)
 		_spawn_one(false, false)
 	else:
-		# At cap: 1-for-1 replacement only.
 		_spawn_one(false, false, false, force_flyer_now)
 
 	print("WaveManager: active after respawn %d" % _active_enemies.size())
 
 
-## Shared life-loss entry point — decrement, emit signals, re-seed or end run.
-## Call from enemy touches AND fall/hazard resets so all life-loss routes are unified.
-func lose_life() -> void:
+func _on_enemy_touched_player(_enemy: Enemy) -> void:
 	if _run_over:
 		return
-
-	print("WaveManager: lose_life — lives before: %d" % _lives)
-	_lives -= 1
-	lives_changed.emit(_lives)
-
-	if _lives <= 0:
-		_run_over = true
-		for e: Enemy in _active_enemies:
-			if is_instance_valid(e):
-				e.queue_free()
-		_active_enemies.clear()
-		_occupied_markers.clear()
-		active_changed.emit(_active_enemies.size())
-		run_lost.emit(_score)
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+	if player == null:
 		return
-
-	# Lives remain — flash, clear enemies, advance to re-seed.
-	# Do NOT set _run_over here: the run is not over; advance_level triggers a level swap.
-	# Enemies are freed below before the signal fires, so no stale _on_enemy_died calls arrive.
-	life_lost.emit()
-	for e: Enemy in _active_enemies:
-		if is_instance_valid(e):
-			e.queue_free()
-	_active_enemies.clear()
-	_occupied_markers.clear()
-	active_changed.emit(_active_enemies.size())
-	advance_level.emit(_score, _lives)
-
-
-func _on_enemy_touched_player(_enemy: Enemy) -> void:
-	lose_life()
+	if not player.has_method("apply_damage"):
+		return
+	# SEAM: duck-typed apply_damage — any node with apply_damage(int) accepted.
+	@warning_ignore("unsafe_method_access")
+	player.apply_damage(touch_damage)
 
 
 func _on_enemy_bumped_player(enemy: Enemy) -> void:
@@ -352,9 +337,6 @@ func _on_enemy_bumped_player(enemy: Enemy) -> void:
 # ── Spawn point selection ─────────────────────────────────────────────────────
 
 
-## Returns a world-space spawn position. seed_phase=true always picks a FAR marker
-## (out-of-sight, or farthest fallback). Otherwise rolls CLOSE_FRACTION chance for a
-## procedural close-ring point behind the player; falls back to FAR on nav-snap failure.
 func _pick_spawn_point(seed_phase: bool) -> Vector3:
 	if _spawn_markers.is_empty():
 		return spawn_pos
@@ -368,7 +350,6 @@ func _pick_spawn_point(seed_phase: bool) -> Vector3:
 	return _pick_far_marker_pos()
 
 
-## Pick a FAR marker: prefer out-of-sight + unoccupied; fallback = farthest marker.
 func _pick_far_marker_pos() -> Vector3:
 	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
 	if player == null:
@@ -422,53 +403,39 @@ func _pick_far_marker_pos() -> Vector3:
 	return chosen.global_position
 
 
-## Attempt to pick a navmesh-valid point on the close ring behind the player.
-## Returns Vector3.ZERO if all retries fail (caller falls back to FAR).
 func _try_close_ring_point() -> Vector3:
 	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
 	if player == null:
 		return Vector3.ZERO
 
 	var player_pos: Vector3 = player.global_position
-	# Player forward in XZ: rotation.y is the yaw; forward = -Z rotated by yaw.
 	var facing_y: float = player.rotation.y
-	# Rear arc: angles where the candidate falls OUTSIDE the front ±45° cone.
-	# We bias toward the rear half by sampling in [front+45°, front+315°] range
-	# (i.e. 270° of the rear+side arc), with equal probability across that range.
 	var half_cone: float = deg_to_rad(FRONT_CONE_DEG * 0.5)
 
 	for _i: int in range(CLOSE_RETRIES):
-		# Sample angle in rear 270° arc (exclude front 90° cone).
-		# rear arc = [facing_y + half_cone, facing_y + 2PI - half_cone]
-		# arc_span = 2PI - FRONT_CONE_DEG_rad
 		var arc_span: float = TAU - deg_to_rad(FRONT_CONE_DEG)
 		var angle: float = facing_y + half_cone + randf() * arc_span
 
 		var radius: float = CLOSE_MIN + randf() * (CLOSE_MAX - CLOSE_MIN)
 		var offset: Vector3 = Vector3(sin(angle) * radius, 0.0, cos(angle) * radius)
 		var candidate: Vector3 = player_pos + offset
-		# Keep candidate at floor height (y=0 on navmesh; enemy spawns +0.1 above).
 		candidate.y = 0.5
 
 		var snapped_pos: Vector3 = _nav_snap(candidate)
 		if snapped_pos == Vector3.ZERO:
 			continue
-		# Accept if snapped point is within tolerance of candidate (XZ only).
 		var xz_dist: float = (
 			Vector2(snapped_pos.x - candidate.x, snapped_pos.z - candidate.z).length()
 		)
 		if xz_dist <= NAV_SNAP_TOLERANCE:
-			# Also verify minimum distance from player to prevent spawning on top of them.
 			if player_pos.distance_to(snapped_pos) >= CLOSE_MIN:
 				return snapped_pos
 
 	return Vector3.ZERO
 
 
-## Snap a world position to the navmesh. Returns Vector3.ZERO if nav map not ready.
 func _nav_snap(pos: Vector3) -> Vector3:
 	if not _nav_map.is_valid():
-		# Try to re-acquire on demand (map may not have been ready at _ready time).
 		var nav_region: NavigationRegion3D = _find_nav_region()
 		if nav_region != null:
 			_nav_map = nav_region.get_navigation_map()
@@ -477,7 +444,6 @@ func _nav_snap(pos: Vector3) -> Vector3:
 	return NavigationServer3D.map_get_closest_point(_nav_map, pos)
 
 
-## Walk the parent scene tree to find the first NavigationRegion3D child.
 func _find_nav_region() -> NavigationRegion3D:
 	var parent: Node = get_parent()
 	if parent == null:
@@ -488,7 +454,6 @@ func _find_nav_region() -> NavigationRegion3D:
 	return null
 
 
-## Pick a random unoccupied marker (no-player fallback path).
 func _pick_unoccupied_random() -> Marker3D:
 	var free_markers: Array[Marker3D] = []
 	for m: Marker3D in _spawn_markers:

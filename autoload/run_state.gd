@@ -6,5 +6,3 @@ extends Node
 static var active: bool = false
 ## Score to restore into the next level's WaveManager when active is true.
 static var score: int = 0
-## Lives to restore into the next level's WaveManager when active is true.
-static var lives: int = 0

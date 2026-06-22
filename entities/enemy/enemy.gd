@@ -20,15 +20,19 @@ const _KNOCKBACK_SPEED: float = 14.0
 @export var escape_range: float = 16.0
 @export var attack_cooldown: float = 0.8
 @export var patrol_wait: float = 1.0
+## Optional archetype resource. When set, stats + tint are seeded from it in _ready()
+## and any listed behaviour scenes are instanced under the Abilities node.
+## When null the manually-set @export values below are used as-is (existing subclasses).
+@export var archetype: EnemyArchetype
 ## Hits required to kill. Default 2 = two-shot (dmg delta visible: light=2 hits, heavy=1).
-## Tank scene overrides to 3.
+## Tank scene overrides to 3. Overridden by archetype.max_health when archetype is set.
 @export var health: int = 2
 ## Score awarded to the player on kill. Grunt = 1 (default); runner/magnet/tank override.
+## Overridden by archetype.score_value when archetype is set.
 @export var score_value: int = 1
 ## Waypoint NodePaths (set in the level scene); resolved to Marker3D refs in _ready().
 @export var patrol_waypoint_paths: Array[NodePath] = []
 var patrol_waypoints: Array[Marker3D] = []
-var _health: int = 1
 # Maps MeshInstance3D → Material or null; captured before each hit flash to restore after.
 var _saved_overrides: Dictionary = {}
 # Knockback stun state — nav-velocity drive is skipped while _stun_timer > 0.
@@ -49,10 +53,38 @@ var _base_scale: Vector3 = Vector3.ONE
 @onready var _death_sfx: AudioStreamPlayer = $DeathSfx
 @onready var _touch_reset_sfx: AudioStreamPlayer = $TouchResetSfx
 @onready var _ambient_sfx: AudioStreamPlayer3D = $EnemyAmbientSfx
+@onready var _health_comp: HealthComponent = $HealthComponent
+@onready var _abilities: Node = $Abilities
 
 
 func _ready() -> void:
-	_health = health
+	# Apply archetype stats when set (overrides manual exports).
+	if archetype != null:
+		health = archetype.max_health
+		score_value = archetype.score_value
+		move_speed = archetype.move_speed
+		patrol_speed = archetype.patrol_speed
+		detect_range = archetype.detect_range
+		attack_range = archetype.attack_range
+		escape_range = archetype.escape_range
+		attack_cooldown = archetype.attack_cooldown
+		# Apply tint when archetype specifies a non-default colour.
+		if archetype.tint_color != Color.WHITE:
+			_apply_tint(archetype.tint_color)
+		# Instance behaviour scenes under Abilities and bind each to self.
+		for scene: PackedScene in archetype.behaviours:
+			var beh: Node = scene.instantiate()
+			_abilities.add_child(beh)
+			# SEAM: duck-typed bind — EnemyBehaviour base has bind(enemy); guard for safety.
+			if beh.has_method("bind"):
+				@warning_ignore("unsafe_method_access")
+				beh.bind(self)
+	# Override max_health then reset so _current seeds from the export value, not the
+	# component default (child _ready() runs before parent _ready() — bottom-up order).
+	_health_comp.max_health = health
+	_health_comp.reset()
+	_health_comp.died.connect(_on_health_comp_died)
+	_health_comp.health_changed.connect(_on_health_comp_changed)
 	_base_scale = _mesh_instance.scale
 	attack_timer.wait_time = attack_cooldown
 	attack_timer.one_shot = true
@@ -159,9 +191,17 @@ func apply_knockback(hitter_pos: Vector3) -> void:
 
 # ── Attack telegraph (called by AttackState) ──────────────────────────────────
 ## Harmless scale-lunge telegraph + touch signal. Emits touched_player(self) each attack (C2).
+## Delegates to first EnemyBehaviour child with do_attack() when present (slice-2 hook).
 ## NOTE: touched_player can trigger a synchronous level-load that frees this enemy.
 ## Guard create_tween() with is_instance_valid(self) so the tween is skipped if freed mid-emit.
 func perform_attack() -> void:
+	# Delegate to first attack-behaviour component if one is bound (slice 2+).
+	for child: Node in _abilities.get_children():
+		if child.has_method("do_attack"):
+			# SEAM: duck-typed do_attack — EnemyBehaviour base defines this seam.
+			@warning_ignore("unsafe_method_access")
+			child.do_attack()
+			return
 	# Reparent touch SFX to scene root before emitting touched_player: the signal handler
 	# may trigger lose_life() -> queue_free() on this enemy, cutting the sound mid-play.
 	# Same fire-and-free pattern as _play_death_sfx (godot-fps-enemy-combat contract).
@@ -188,13 +228,21 @@ func on_hit() -> void:
 	apply_damage(1)
 
 
-## Apply amount points of damage. Fatal hit emits died and frees the node.
+## Apply amount points of damage. Delegates to HealthComponent.
 ## Called directly by DamageEffect (cast path) or via on_hit() (bare projectile path).
 func apply_damage(amount: int) -> void:
-	_health -= amount
-	if _health > 0:
+	_health_comp.apply_damage(amount)
+
+
+## HealthComponent.health_changed → non-fatal hit flash (current > 0 still guaranteed
+## by HealthComponent: died fires only when _current reaches 0, health_changed always first).
+func _on_health_comp_changed(current: int, _max: int) -> void:
+	if current > 0:
 		_flash_hit()
-		return
+
+
+## HealthComponent.died → death sequence (mirrors old fatal branch of apply_damage).
+func _on_health_comp_died() -> void:
 	_play_death_sfx()
 	died.emit(self)
 	_flash_and_die()
@@ -265,6 +313,21 @@ func _flash_and_die() -> void:
 		tw.tween_property(flash_mat, "emission", Color.WHITE, 0.06)
 	tw.set_parallel(false)
 	tw.tween_callback(queue_free)
+
+
+## Apply a flat albedo tint to all MeshInstance3D parts (archetype tint_color).
+## Only called when archetype.tint_color != Color.WHITE.
+func _apply_tint(color: Color) -> void:
+	for child: Node in _mesh_instance.find_children("*", "MeshInstance3D", true, false):
+		if not child is MeshInstance3D:
+			continue
+		var mi: MeshInstance3D = child as MeshInstance3D
+		var mat: StandardMaterial3D = mi.get_active_material(0) as StandardMaterial3D
+		if mat == null:
+			continue
+		var tint_mat: StandardMaterial3D = mat.duplicate() as StandardMaterial3D
+		tint_mat.albedo_color = color
+		mi.set_surface_override_material(0, tint_mat)
 
 
 # Reparent death sfx to scene root so it survives queue_free() on this node.

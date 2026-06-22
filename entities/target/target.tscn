@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://target001"]
+[gd_scene load_steps=5 format=3 uid="uid://target001"]
 
 [ext_resource type="Script" path="res://entities/target/target.gd" id="1"]
+[ext_resource type="Script" path="res://tools/lib/health_component.gd" id="2_hc"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_body"]
 size = Vector3(1.0, 1.0, 1.0)
@@ -25,3 +26,7 @@ shape = SubResource("BoxShape3D_body")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_body")
 surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_hc")
+max_health = 1
