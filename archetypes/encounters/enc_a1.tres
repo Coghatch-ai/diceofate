@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RoomEncounter" load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://csxyq8dkp855m" path="res://tools/lib/encounter/room_encounter.gd" id="1_enc"]
+[ext_resource type="Script" uid="uid://doisaastbveeg" path="res://tools/lib/encounter/room_spawn.gd" id="2_spawn"]
+[ext_resource type="Script" uid="uid://chpik0xplfk1w" path="res://tools/lib/enemy/enemy_archetype.gd" id="3_arch"]
+[ext_resource type="Resource" path="res://archetypes/immune_fire.tres" id="4_immune_fire"]
+
+[sub_resource type="Resource" id="RoomSpawn_a1"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_immune_fire")
+spawn_marker_id = &"SpawnA1"
+
+[resource]
+script = ExtResource("1_enc")
+id = &"a1"
+spawns = [SubResource("RoomSpawn_a1")]
+hint_text = "FIRE-IMMUNE — switch bullets (R / ICE)"
+clear_advances = true

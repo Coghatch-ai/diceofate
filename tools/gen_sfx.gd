@@ -54,16 +54,28 @@ func _gen_death() -> PackedByteArray:
 	return out
 
 
-# Harsh buzz — alarm/reset sting.
+# Soft bell chime — gentle notification ring (sine partials, bell-like decay).
+# Three sine partials: fundamental + octave + inharmonic upper, exponential decay.
+# Sounds like a UI notification chime, not an alarm.
 func _gen_reset() -> PackedByteArray:
-	var dur := int(SAMPLE_RATE * 0.25)
+	const FUNDAMENTAL_HZ: float = 880.0  # A5 — clear, bright but not harsh
+	const OCTAVE_HZ: float = 1760.0  # 2× fundamental — adds shimmer
+	const INHARMONIC_HZ: float = 1540.0  # ~minor-7th up — bell inharmonicity
+	const DECAY_RATE: float = 14.0  # bell-like exponential: ~5% amplitude at 0.21 s
+	const PEAK_AMPLITUDE: float = 0.45  # quieter than the old 0.8 buzz
+	const OCTAVE_GAIN: float = 0.4  # octave partial weight
+	const INHARMONIC_GAIN: float = 0.2  # inharmonic partial weight
+	var dur := int(SAMPLE_RATE * 0.30)
 	var out := PackedByteArray()
 	out.resize(dur * 2)
 	for i: int in dur:
 		var t := float(i) / SAMPLE_RATE
-		var env := exp(-t * 12.0)
-		var square := 1.0 if sin(TAU * 220.0 * t) > 0.0 else -1.0
-		var s := clampf(square * env * 0.8, -1.0, 1.0)
+		var env := exp(-t * DECAY_RATE)
+		var partial1 := sin(TAU * FUNDAMENTAL_HZ * t)
+		var partial2 := sin(TAU * OCTAVE_HZ * t) * OCTAVE_GAIN
+		var partial3 := sin(TAU * INHARMONIC_HZ * t) * INHARMONIC_GAIN
+		var mixed := (partial1 + partial2 + partial3) / (1.0 + OCTAVE_GAIN + INHARMONIC_GAIN)
+		var s := clampf(mixed * env * PEAK_AMPLITUDE, -1.0, 1.0)
 		var v := int(s * 32767.0)
 		out[i * 2] = v & 0xFF
 		out[i * 2 + 1] = (v >> 8) & 0xFF
@@ -104,24 +116,35 @@ func _gen_land() -> PackedByteArray:
 	return out
 
 
-# 1-second looping low growl — 80 Hz saw + filtered noise, seamless loop (starts/ends at zero).
+# 2-second looping low rumble — 60 Hz triangle + 120 Hz sub + low-pass filtered noise.
+# Low-pass filter: one-pole IIR (coeff ~0.97) tames broadband crash into a soft hiss.
+# Seamless loop: starts and ends at zero-crossing via 10 ms ramps.
 func _gen_ambient() -> PackedByteArray:
-	var dur := SAMPLE_RATE  # exactly 1 s for clean loop point
+	var dur := SAMPLE_RATE * 2  # 2 s — longer loop sounds less repetitive
 	var out := PackedByteArray()
 	out.resize(dur * 2)
+	# One-pole IIR low-pass state (single-sample memory, no cross-frame state needed).
+	var lp_state := 0.0
+	const LP_COEFF := 0.97  # pole near DC; cuts high-freq harshness
 	for i: int in dur:
 		var t := float(i) / SAMPLE_RATE
-		# Fade in/out at edges to avoid click at loop boundary (5 ms ramps).
-		var fade_len := int(SAMPLE_RATE * 0.005)
+		# 10 ms fade ramps at loop boundaries — eliminates click.
+		var fade_len := int(SAMPLE_RATE * 0.010)
 		var env := 1.0
 		if i < fade_len:
 			env = float(i) / float(fade_len)
 		elif i > dur - fade_len:
 			env = float(dur - i) / float(fade_len)
-		# Low sawtooth growl at 80 Hz + heavy noise for organic texture.
-		var saw := fmod(t * 80.0, 1.0) * 2.0 - 1.0
-		var noise := randf_range(-1.0, 1.0)
-		var s := clampf((saw * 0.5 + noise * 0.5) * env * 0.6, -1.0, 1.0)
+		# Triangle wave at 60 Hz — softer harmonic content than sawtooth.
+		var phase := fmod(t * 60.0, 1.0)
+		var tri := (2.0 * phase - 1.0) if phase < 0.5 else (3.0 - 2.0 * phase * 2.0)
+		# Sub harmonic at 120 Hz (adds body without harshness).
+		var sub := sin(TAU * 120.0 * t) * 0.3
+		# Low-pass filtered noise — IIR one-pole integrator softens white noise to rumble.
+		var raw_noise := randf_range(-1.0, 1.0)
+		lp_state = LP_COEFF * lp_state + (1.0 - LP_COEFF) * raw_noise
+		# Mix: 60% tonal (tri+sub), 40% filtered noise.
+		var s := clampf((tri * 0.45 + sub + lp_state * 0.4) * env * 0.45, -1.0, 1.0)
 		var v := int(s * 32767.0)
 		out[i * 2] = v & 0xFF
 		out[i * 2 + 1] = (v >> 8) & 0xFF

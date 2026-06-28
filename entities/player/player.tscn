@@ -1,11 +1,17 @@
 [gd_scene format=3 uid="uid://bwxk8v5y3p2r1"]
 
 [ext_resource type="Script" uid="uid://ebbh6xowcejd" path="res://entities/player/player.gd" id="1"]
-[ext_resource type="Script" uid="uid://diwfahxo6eej3" path="res://tools/lib/health_component.gd" id="9_health"]
 [ext_resource type="AudioStream" uid="uid://blkf0ian5o32c" path="res://assets/audio/player_jump.wav" id="3_jump"]
 [ext_resource type="PackedScene" uid="uid://8ce876l06gxc" path="res://entities/weapon/rifle.tscn" id="3_rifle"]
 [ext_resource type="AudioStream" uid="uid://cih5vynsi1u2b" path="res://assets/audio/player_land.wav" id="4_land"]
 [ext_resource type="PackedScene" uid="uid://d3lfh3vj7qs5q" path="res://entities/player/components/weapon_controller.tscn" id="6_weapon_controller"]
+[ext_resource type="Script" uid="uid://diwfahxo6eej3" path="res://tools/lib/health_component.gd" id="9_health"]
+[ext_resource type="Script" uid="uid://dflef74bxrree" path="res://entities/player/components/grenade_throw_controller.gd" id="10_grenade_ctrl"]
+[ext_resource type="PackedScene" path="res://entities/grenade/grenade.tscn" id="11_grenade"]
+[ext_resource type="Resource" path="res://entities/grenade/default_grenade_data.tres" id="12_grenade_data"]
+[ext_resource type="Script" uid="uid://l6s7bq8tp87t" path="res://tools/lib/stat/stat_block.gd" id="14_stat_block"]
+[ext_resource type="Script" uid="uid://c5g3cwuwxnba3" path="res://tools/lib/status_receiver.gd" id="15_status_receiver"]
+[ext_resource type="Script" uid="uid://bjpmu5sklv5h8" path="res://addons/raytraced_audio/raytraced_audio_listener.gd" id="16_rtal"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -13,6 +19,7 @@ height = 1.8
 
 [node name="Player" type="CharacterBody3D" unique_id=1043620130 groups=["player"]]
 collision_layer = 2
+collision_mask = 9
 script = ExtResource("1")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2080019338]
@@ -25,6 +32,10 @@ shape = SubResource("CapsuleShape3D_player")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="WeaponController/Head" unique_id=1798063931]
+transform = Transform3D(0.99975973, 0, -0.021919578, 0, 1, 0, 0.021919578, 0, 0.99975973, 0, 0, 0)
+
+[node name="RaytracedAudioListener" type="AudioListener3D" parent="WeaponController/Head/Camera3D" unique_id=1798063932]
+script = ExtResource("16_rtal")
 
 [node name="Rifle" parent="WeaponController/Head" unique_id=1952421181 instance=ExtResource("3_rifle")]
 editor_description = "Rifle — single weapon, always active."
@@ -41,3 +52,23 @@ bus = &"SFX"
 [node name="HealthComponent" type="Node" parent="." unique_id=1111111101]
 script = ExtResource("9_health")
 max_health = 100
+
+[node name="GrenadeThrowController" type="Node" parent="." unique_id=1542189106]
+editor_description = "Grenade throw component — input+cooldown. Inject head via player _ready."
+script = ExtResource("10_grenade_ctrl")
+grenade_scene = ExtResource("11_grenade")
+grenade_data = ExtResource("12_grenade_data")
+
+[node name="StatBlock" type="Node" parent="." unique_id=1100000001]
+editor_description = "Stat-block component — base values + runtime modifiers; emits stat_changed."
+script = ExtResource("14_stat_block")
+base_values = {
+&"move_speed": 4.0
+}
+clamp_limits = {
+&"move_speed": Vector2(0.5, 40)
+}
+
+[node name="StatusReceiver" type="Node" parent="." unique_id=1100000002]
+editor_description = "Timed status effects (burn/slow/shock/buff). Buff expiry calls StatBlock.remove_all_from_source."
+script = ExtResource("15_status_receiver")

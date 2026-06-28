@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_archetype")
+id = &"grunt"
 display_name = "Grunt"
 tint_color = Color(1, 1, 1, 1)
 max_health = 2
@@ -15,4 +16,7 @@ escape_range = 16.0
 attack_cooldown = 0.8
 score_value = 1
 touch_damage = 25
+hit_flash_color = Color(1, 0.1, 0.1, 1)
+hit_flash_duration = 0.05
+hitstop_seconds = 0.0
 behaviours = []

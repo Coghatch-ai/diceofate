@@ -6,7 +6,7 @@ extends Effect
 @export_range(1, 20, 1) var dps: int = 2
 @export_range(0.1, 30.0, 0.1) var duration: float = 3.0
 ## DamageType applied per tick. FIRE for fire; POISON for poison cloud. Defaults FIRE.
-@export_enum("PHYSICAL", "FIRE", "ICE", "ELECTRIC", "POISON")
+@export_enum("PHYSICAL", "FIRE", "ICE", "ELECTRIC", "POISON", "ACID")
 var damage_type: int = DamageType.Kind.FIRE
 
 

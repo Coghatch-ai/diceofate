@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://tools/lib/enemy/boss_data.gd" id="1_bd"]
+[ext_resource type="PackedScene" path="res://entities/boss/attacks/charge_attack.tscn" id="2_charge"]
+[ext_resource type="PackedScene" path="res://entities/boss/attacks/slam_attack.tscn" id="3_slam"]
+[ext_resource type="PackedScene" path="res://entities/vfx/boss_explode_shockwave.tscn" id="4_slam_vfx"]
+[ext_resource type="PackedScene" path="res://entities/boss/attacks/summon_attack.tscn" id="5_summon"]
+
+[resource]
+script = ExtResource("1_bd")
+display_name = "The Warden"
+tint_color = Color(0.6, 0.1, 0.1, 1.0)
+max_health = 20
+score_value = 50
+body_scale = 2.0
+resistances = {4: 0.0}
+move_speed = 4.5
+detect_range = 25.0
+escape_range = 40.0
+idle_duration = 0.6
+telegraph_duration = 0.6
+recover_duration = 0.5
+charge_speed = 18.0
+charge_duration = 0.5
+charge_damage = 30
+knockback_impulse = 14.0
+volley_count = 5
+volley_spread_deg = 20.0
+volley_shot_interval = 0.15
+slam_radius = 6.0
+slam_damage = 40
+slam_vfx_scene = ExtResource("4_slam_vfx")
+attacks = Array[PackedScene]([ExtResource("2_charge"), ExtResource("3_slam"), ExtResource("5_summon")])
+phase2_hp_fraction = 0.4
+phase2_cadence_mult = 0.6

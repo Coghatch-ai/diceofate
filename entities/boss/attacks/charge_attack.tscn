@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/boss/attacks/charge_attack.gd" id="1_charge"]
+
+[node name="ChargeAttack" type="Node"]
+script = ExtResource("1_charge")
+editor_description = "BossAttack: dash toward player + contact damage. Reads data from bound Boss.data."

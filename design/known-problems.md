@@ -9,23 +9,13 @@ when the instance is fixed.
 
 | Instance | Sites | Target |
 |---|---|---|
-| tint-walker | runner/tank/shooter/magnet (×4) | `tools/lib/enemy_utils.gd` |
 | `_get_vfx_root` | vfx_router, npc_vfx (×2) | `tools/lib/vfx_utils.gd` |
-| floor-slab StaticBody3D+mesh+collision | firing_yard_nodes, build_rw_slice_e4, build_ruined_warehouse (×3) | `tools/lib/level_nodes.gd` (LevelNodes) |
-| `_reset_player` verbatim | firing_yard.gd, ruined_warehouse.gd (×2) | shared helper |
-
-## Composition boundaries (rule: godot-composition)
-
-| Instance | Site | Fix direction |
-|---|---|---|
-| group-scan + parent-walk for nav-region | WaveManager | `@export` injection (rule 5) |
-| behaviorless subclasses differ only by tint | runner/tank | `@export tint_color` on Enemy base (rule 7) |
 
 ## .tscn authoring (rule: godot-verify Transform3D-ban)
 
 | Instance | Site |
 |---|---|
-| hand-authored Transform3D | main.tscn:29, player.tscn:20,31,36,41 |
+| hand-authored Transform3D | player.tscn:25,31,34,38,60 |
 
 ## Process — RESOLVED at tool level
 
@@ -40,3 +30,5 @@ note once that change is committed/deployed.
 | Question | Answer |
 |---|---|
 | Player health ownership | A Health **component** on the player (signals up / calls down), **NOT** the run_state autoload. Health is its own entity per godot-composition; do not centralize entity state in an autoload. |
+| Disconnecting a signal | Guard with `is_connected(sig, callable)` before `disconnect(...)` (and the mirror for connect) — disconnecting an unconnected signal throws. Rule: godot-composition "Signal hygiene". |
+| Signal naming | Name a signal for the **event that happened** (past tense — `died`, `health_changed`), one canonical name per event declared once; never name it for the listener's command, never mirror the same fact under two names. Rule: godot-composition "Signal hygiene". |

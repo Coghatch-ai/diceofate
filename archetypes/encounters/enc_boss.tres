@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RoomEncounter" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://csxyq8dkp855m" path="res://tools/lib/encounter/room_encounter.gd" id="1_enc"]
+
+[resource]
+script = ExtResource("1_enc")
+id = &"boss"
+spawns = []
+hint_text = "THE WARDEN — survive the charge"
+clear_advances = false

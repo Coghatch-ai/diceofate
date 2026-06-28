@@ -10,11 +10,14 @@ signal health_pickup_requested
 
 @export var recoil_settle: float = 8.0
 @export var recoil_snap: float = 18.0
-@export var recoil_max: float = 0.25
+@export var recoil_max: float = 0.18
 @export var ads_tween_time: float = 0.15
 @export var kick_duration: float = 0.08
 @export var hit_stop_duration: float = 0.06
 @export var hit_stop_scale: float = 0.05
+
+## Seconds of no firing before the consecutive-shot index resets to 0.
+@export_range(0.1, 3.0, 0.05) var shots_reset_after: float = 0.6
 
 var _crosshair: Crosshair
 var _ammo_hud: ArenaHud
@@ -24,6 +27,10 @@ var _recoil_yaw: float = 0.0
 var _recoil_yaw_prev: float = 0.0
 var _recoil_target_pitch: float = 0.0
 var _recoil_target_yaw: float = 0.0
+## Consecutive shots fired without a gap; reset after shots_reset_after idle seconds.
+var _shot_index: int = 0
+## Accumulator tracking idle time since last shot; compared against shots_reset_after.
+var _idle_accum: float = 0.0
 
 @onready var _head: Node3D = $Head
 @onready var _camera: Camera3D = $Head/Camera3D
@@ -82,11 +89,16 @@ func is_aiming() -> bool:
 
 
 ## Called by player every physics frame to update recoil spring.
+## Also ticks the idle-reset counter so _shot_index returns to 0 after a firing gap.
 func update_recoil(delta: float) -> void:
 	_recoil_target_pitch = lerpf(_recoil_target_pitch, 0.0, recoil_settle * delta)
 	_recoil_target_yaw = lerpf(_recoil_target_yaw, 0.0, recoil_settle * delta)
 	_recoil_pitch = lerpf(_recoil_pitch, _recoil_target_pitch, recoil_snap * delta)
 	_recoil_yaw = lerpf(_recoil_yaw, _recoil_target_yaw, recoil_snap * delta)
+	# Idle-reset: count up while not firing; clamp to avoid float overflow.
+	_idle_accum = minf(_idle_accum + delta, shots_reset_after + 0.1)
+	if _idle_accum >= shots_reset_after:
+		_shot_index = 0
 
 
 ## Processes weapon input each physics frame.
@@ -131,7 +143,7 @@ func update_sprint(
 func collect_pickup(kind: Pickup.Kind, _ammo_caliber: StringName = &"light") -> bool:
 	match kind:
 		Pickup.Kind.HEALTH:
-			# SEAM: signal upward to player; player routes to WaveManager (godot-composition rule).
+			# SEAM: signal upward to player; player handles heal directly (godot-composition rule).
 			health_pickup_requested.emit()
 			return true
 	return false
@@ -170,10 +182,27 @@ func _connect_gun_signals(gun: Gun) -> void:
 func _on_gun_fired(gun: Gun) -> void:
 	if _rifle != gun:
 		return
-	_recoil_target_pitch = minf(_recoil_target_pitch + gun.recoil_pitch, recoil_max)
-	_recoil_target_yaw = clampf(
-		_recoil_target_yaw + randf_range(-gun.recoil_yaw, gun.recoil_yaw), -recoil_max, recoil_max
-	)
+	# Curve-driven path: active CastData has a RecoilProfile → sample by shot index.
+	# Additive-on-head guarantee (I2): impulse feeds ONLY _recoil_target_* accumulators.
+	# player.gd sums recoil onto _look_pitch / rotation.y. Never written here.
+	var cast: CastData = gun.cast_data
+	var profile: RecoilProfile = cast.recoil_profile if cast != null else null
+	if profile != null:
+		var pitch_impulse: float = profile.sample_pitch(_shot_index)
+		var yaw_impulse: float = profile.sample_yaw(_shot_index)
+		_recoil_target_pitch = minf(_recoil_target_pitch + pitch_impulse, recoil_max)
+		_recoil_target_yaw = clampf(_recoil_target_yaw + yaw_impulse, -recoil_max, recoil_max)
+	else:
+		# Null profile: fall back to Gun scalar recoil_pitch/yaw (original behaviour).
+		_recoil_target_pitch = minf(_recoil_target_pitch + gun.recoil_pitch, recoil_max)
+		_recoil_target_yaw = clampf(
+			_recoil_target_yaw + randf_range(-gun.recoil_yaw, gun.recoil_yaw),
+			-recoil_max,
+			recoil_max
+		)
+	# Advance shot index; idle-reset in update_recoil resets it after shots_reset_after.
+	_shot_index += 1
+	_idle_accum = 0.0
 	if _crosshair != null:
 		_crosshair.fire_pop()
 	fired.emit()

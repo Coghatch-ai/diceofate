@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EnemyArchetype" format=3 uid="uid://dup2d2gys4220"]
+
+[ext_resource type="PackedScene" uid="uid://dsa4ol8u6yfyp" path="res://x-shared-assets/models/Carl.glb" id="1_8eftb"]
+[ext_resource type="Script" uid="uid://chpik0xplfk1w" path="res://tools/lib/enemy/enemy_archetype.gd" id="1_archetype"]
+
+[resource]
+script = ExtResource("1_archetype")
+id = &"immune_kinetic"
+display_name = "KinImmune"
+tint_color = Color(0.85, 0.85, 0.85, 1)
+resistances = {
+0: 0.0
+}
+model = ExtResource("1_8eftb")

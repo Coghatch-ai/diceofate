@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="RoomEncounter" format=3 uid="uid://dx1c2yxvivl54"]
+
+[ext_resource type="Script" uid="uid://csxyq8dkp855m" path="res://tools/lib/encounter/room_encounter.gd" id="1_enc"]
+[ext_resource type="Script" uid="uid://doisaastbveeg" path="res://tools/lib/encounter/room_spawn.gd" id="2_spawn"]
+[ext_resource type="Resource" path="res://archetypes/tank_magnet.tres" id="4_tank_magnet"]
+
+[sub_resource type="Resource" id="RoomSpawn_ir6a"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_tank_magnet")
+spawn_marker_id = &"Spawn_R6_a"
+
+[sub_resource type="Resource" id="RoomSpawn_ir6b"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_tank_magnet")
+spawn_marker_id = &"Spawn_R6_b"
+
+[sub_resource type="Resource" id="RoomSpawn_ir6c"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_tank_magnet")
+spawn_marker_id = &"Spawn_R6_c"
+
+[resource]
+script = ExtResource("1_enc")
+id = &"iron_r6"
+spawns = Array[ExtResource("2_spawn")]([SubResource("RoomSpawn_ir6a"), SubResource("RoomSpawn_ir6b"), SubResource("RoomSpawn_ir6c")])
+hint_text = "Cyan enemies pull your bullets."

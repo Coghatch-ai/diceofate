@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CastData" format=3 uid="uid://bg8tioh8vmopd"]
+
+[ext_resource type="Script" uid="uid://qepjgeqnac7d" path="res://tools/lib/cast/cast_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://dcd2iut0hyedi" path="res://tools/lib/cast/effect.gd" id="1_effect"]
+[ext_resource type="Script" uid="uid://1jxibdhchpuw" path="res://tools/lib/cast/knockback_effect.gd" id="2"]
+[ext_resource type="Script" uid="uid://ngah3pqca7b1" path="res://tools/lib/cast/hit_target_resolver.gd" id="3"]
+
+[sub_resource type="Resource" id="1"]
+script = ExtResource("2")
+
+[sub_resource type="Resource" id="2"]
+script = ExtResource("3")
+
+[resource]
+script = ExtResource("1")
+effects = Array[ExtResource("1_effect")]([SubResource("1")])
+resolver = SubResource("2")
+bullet_color = Color(1, 1, 0.3, 1)
+muzzle_color = Color(1, 1, 0.3, 1)
+muzzle_energy = 3.0
+max_ammo = 0
+ammo_cost = 0
+ammo_regen = 0.0

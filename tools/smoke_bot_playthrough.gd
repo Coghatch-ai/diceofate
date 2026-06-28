@@ -1,12 +1,12 @@
 # tools/smoke_bot_playthrough.gd — headless L2.5 input-driven playthrough bot.
-# Boots firing_yard.tscn, drives a deterministic input timeline, asserts state DELTAS.
+# Boots iron_floor.tscn, drives a deterministic input timeline, asserts state DELTAS.
 # Asserts: move_forward moves player; jump flips is_on_floor; crouch lowers eye+collider;
 #          mouse-look changes _look_pitch; weapon fire + enemy hit/kill chain (signal await).
 # Run: $GODOT --headless --fixed-fps 60 --path . --script tools/smoke_bot_playthrough.gd
 # Exit 0 = all pass, 1 = any failure. DO NOT assert render/draw-call/pipeline counts here.
 extends SceneTree
 
-const FIRING_YARD := "res://levels/firing_yard.tscn"
+const IRON_FLOOR := "res://levels/iron_floor.tscn"
 const GRUNT_SCENE := "res://entities/enemy/enemy.tscn"
 const WEAPON_SCENE := "res://entities/weapon/weapon.tscn"
 
@@ -37,16 +37,16 @@ func _run_all() -> void:
 # ---------------------------------------------------------------------------
 func _test_move_forward() -> void:
 	print("\n[TEST] move_forward moves player along forward axis")
-	var yard := _load_scene(FIRING_YARD)
+	var yard := _load_scene(IRON_FLOOR)
 	if yard == null:
-		_fail("firing_yard.tscn failed to load")
+		_fail("iron_floor.tscn failed to load")
 		return
 	# Settle: 3 physics frames so _ready() + first physics tick populate.
 	for _i: int in 3:
 		await physics_frame
 	var player := yard.find_child("Player", true, false) as CharacterBody3D
 	if player == null:
-		_fail("Player node not found in firing_yard")
+		_fail("Player node not found in iron_floor")
 		yard.queue_free()
 		return
 	# Snapshot before; capture forward basis BEFORE movement changes rotation.
@@ -77,9 +77,9 @@ func _test_move_forward() -> void:
 # ---------------------------------------------------------------------------
 func _test_jump() -> void:
 	print("\n[TEST] jump branch drives JumpSfx + leaves floor")
-	var yard := _load_scene(FIRING_YARD)
+	var yard := _load_scene(IRON_FLOOR)
 	if yard == null:
-		_fail("firing_yard.tscn failed to load")
+		_fail("iron_floor.tscn failed to load")
 		return
 	for _i: int in 3:
 		await physics_frame
@@ -133,9 +133,9 @@ func _test_jump() -> void:
 # ---------------------------------------------------------------------------
 func _test_crouch() -> void:
 	print("\n[TEST] crouch lowers eye height and collider")
-	var yard := _load_scene(FIRING_YARD)
+	var yard := _load_scene(IRON_FLOOR)
 	if yard == null:
-		_fail("firing_yard.tscn failed to load")
+		_fail("iron_floor.tscn failed to load")
 		return
 	for _i: int in 3:
 		await physics_frame
@@ -179,9 +179,9 @@ func _test_crouch() -> void:
 # ---------------------------------------------------------------------------
 func _test_mouse_look() -> void:
 	print("\n[TEST] mouse-look wiring: _look_pitch -> _head.rotation.x")
-	var yard := _load_scene(FIRING_YARD)
+	var yard := _load_scene(IRON_FLOOR)
 	if yard == null:
-		_fail("firing_yard.tscn failed to load")
+		_fail("iron_floor.tscn failed to load")
 		return
 	for _i: int in 3:
 		await physics_frame
@@ -213,7 +213,7 @@ func _test_mouse_look() -> void:
 
 # ---------------------------------------------------------------------------
 # TEST: fire aimed at enemy → hit_confirmed + died via signal-await-with-timeout.
-# Spawns enemy directly (WaveManager not driven headless). Drives weapon seam.
+# Spawns enemy directly (RoomController not driven headless). Drives weapon seam.
 # ---------------------------------------------------------------------------
 func _test_fire_and_kill() -> void:
 	print("\n[TEST] fire + enemy kill chain (hit_confirmed + died)")
@@ -224,9 +224,6 @@ func _test_fire_and_kill() -> void:
 		return
 	var enemy := enemy_packed.instantiate() as Enemy
 	var weapon := weapon_packed.instantiate()
-	# Pin health=1 before add_child so _ready() seeds _health=1.
-	# Grunt default is now health=2 for perceptibility; this test checks the kill-confirm seam.
-	enemy.health = 1
 	get_root().add_child(enemy)
 	get_root().add_child(weapon)
 	for _i: int in 3:
@@ -258,9 +255,12 @@ func _test_fire_and_kill() -> void:
 	# kill_confirmed fires only when enemy.died fires (weapon._on_target_died connects
 	# died→kill_confirmed), so kill_confirmed_count >= 1 transitively proves enemy.died
 	# emitted. Deleting died.emit() in enemy.gd → kill_confirmed never fires → red.
+	# Default enemy.health == 2: two on_hit() calls reduce HP 2→1→0 → death.
 	# Counters wired BEFORE seam drive so any regression is caught immediately.
 	@warning_ignore("unsafe_method_access")
 	weapon._on_projectile_hit(enemy, Vector3.UP, Vector3.ZERO)
+	# First hit: non-fatal (HP 2→1). Second hit: fatal (HP 1→0) → died → kill_confirmed.
+	enemy.on_hit()
 	enemy.on_hit()
 	# One physics frame so any deferred connects settle.
 	await physics_frame

@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="RoomEncounter" format=3 uid="uid://nwdb26g4fprt"]
+
+[ext_resource type="Script" uid="uid://csxyq8dkp855m" path="res://tools/lib/encounter/room_encounter.gd" id="1_enc"]
+[ext_resource type="Script" uid="uid://doisaastbveeg" path="res://tools/lib/encounter/room_spawn.gd" id="2_spawn"]
+[ext_resource type="Resource" path="res://archetypes/grunt.tres" id="4_grunt"]
+[ext_resource type="Resource" path="res://archetypes/tank_magnet.tres" id="5_tank_magnet"]
+[ext_resource type="Resource" uid="uid://bo0rgrt1r6fxs" path="res://archetypes/immune_fire.tres" id="6_immune_fire"]
+[ext_resource type="Resource" uid="uid://piilh2mffcoc" path="res://archetypes/runner.tres" id="7_runner"]
+
+[sub_resource type="Resource" id="RoomSpawn_ir9a"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_grunt")
+spawn_marker_id = &"Spawn_R9_a"
+
+[sub_resource type="Resource" id="RoomSpawn_ir9b"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_grunt")
+spawn_marker_id = &"Spawn_R9_b"
+
+[sub_resource type="Resource" id="RoomSpawn_ir9c"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("5_tank_magnet")
+spawn_marker_id = &"Spawn_R9_c"
+
+[sub_resource type="Resource" id="RoomSpawn_ir9d"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("6_immune_fire")
+spawn_marker_id = &"Spawn_R9_d"
+
+[sub_resource type="Resource" id="RoomSpawn_ir9e"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("7_runner")
+spawn_marker_id = &"Spawn_R9_e"
+
+[resource]
+script = ExtResource("1_enc")
+id = &"iron_r9"
+spawns = Array[ExtResource("2_spawn")]([SubResource("RoomSpawn_ir9a"), SubResource("RoomSpawn_ir9b"), SubResource("RoomSpawn_ir9c"), SubResource("RoomSpawn_ir9d"), SubResource("RoomSpawn_ir9e")])
+hint_text = "Cyan enemies pull bullets — aim carefully."

@@ -1,46 +1,36 @@
 # main.gd — persistent shell: loads and swaps level scenes under %LevelHost.
 extends Node
 
-@export_file("*.tscn") var initial_level: String = "res://levels/firing_yard.tscn"
+@export_file("*.tscn") var initial_level: String = ""
 
 var current_level: Node = null
-var _levels: Array[String] = [
-	"res://levels/firing_yard.tscn",
-	"res://levels/ruined_warehouse.tscn",
-	"res://levels/blast_court.tscn",
-]
-var _level_index: int = 0
 var _result_showing: bool = false
 
 @onready var _level_host: Node = %LevelHost
 @onready var _crosshair: Crosshair = %Crosshair
 @onready var _arena_hud: ArenaHud = %ArenaHud
+@onready var _radar_minimap: RadarMinimap = %RadarMinimap
+@onready var _scouter_view: RenderViewPanel = %ScouterView
 
 
 func _ready() -> void:
 	# Must process while paused so _input handles the restart action on the end screen.
 	process_mode = PROCESS_MODE_ALWAYS
-	if _levels.is_empty() or initial_level.is_empty():
+	if initial_level.is_empty():
 		return
-	_level_index = _levels.find(initial_level)
-	if _level_index == -1:
-		_level_index = 0
-	load_level(_levels[_level_index])
+	load_level(initial_level)
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("cycle_level"):
-		if _levels.is_empty():
-			return
-		_level_index = (_level_index + 1) % _levels.size()
-		load_level(_levels[_level_index])
-
 	if _result_showing and event.is_action_pressed("restart"):
 		get_tree().paused = false
 		_result_showing = false
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		_arena_hud.hide_result()
-		load_level(_levels[_level_index])
+		RunStateData.lap = 0
+		RunStateData.active = false
+		if not initial_level.is_empty():
+			load_level(initial_level)
 
 
 func load_level(path: String) -> void:
@@ -64,24 +54,22 @@ func load_level(path: String) -> void:
 			_attach_post_process_quad(camera)
 		player.set_crosshair(_crosshair)
 		player.set_ammo_hud(_arena_hud)
+		_radar_minimap.set_player(player)
+		_scouter_view.set_player(player)
 
-	# Wire WaveManager signals to the persistent HUD (if the level has one).
+	# Wire RoomController signals to the persistent HUD (if the level has one).
 	# Guard score reset: when RunStateData.active is in flight the carried score_changed emit
 	# from _seed_start will update the HUD — zeroing here would flash 0 before it fires.
 	if not RunStateData.active:
 		_arena_hud.set_score(0)
 	_arena_hud.set_active(0)
-	var wave_manager := current_level.find_child("WaveManager") as WaveManager
-	if wave_manager != null:
-		wave_manager.score_changed.connect(_arena_hud.set_score)
-		wave_manager.active_changed.connect(_arena_hud.set_active)
-		wave_manager.run_lost.connect(_on_run_ended.bind(false))
-		wave_manager.advance_level.connect(_on_advance_level)
-		# Inject wave_manager into the level so fall/hazard handlers can call apply_damage().
-		# SEAM: duck-typed set — level scripts (FiringYard/RuinedWarehouse) share the
-		# wave_manager export but have no common base class.
-		@warning_ignore("unsafe_property_access")
-		current_level.wave_manager = wave_manager
+	var room_controller := current_level.find_child("RoomController") as RoomController
+	if room_controller != null:
+		room_controller.score_changed.connect(_arena_hud.set_score)
+		room_controller.active_changed.connect(_arena_hud.set_active)
+		room_controller.run_lost.connect(_on_run_ended.bind(false))
+		room_controller.advance_level.connect(_on_advance_level)
+		room_controller.hint_changed.connect(_arena_hud.set_hint)
 
 	# Wire player HealthComponent.health_changed → HUD HP bar.
 	if player != null:
@@ -111,13 +99,12 @@ func _attach_post_process_quad(camera: Camera3D) -> void:
 
 
 func _on_advance_level(score: int) -> void:
-	RunStateData.active = true
+	# Single-level game: advance_level always means the run is won.
+	# Carry score + lap into the next run so RoomController can scale difficulty on restart.
 	RunStateData.score = score
-	_level_index = (_level_index + 1) % _levels.size()
-	# Deferred: signal may arrive from inside an enemy's own physics/attack callback.
-	# Calling load_level() synchronously frees the level (and the enemy) while still
-	# executing inside perform_attack() — create_tween() on a freed instance crashes.
-	load_level.call_deferred(_levels[_level_index])
+	RunStateData.lap += 1
+	RunStateData.active = true
+	_on_run_ended(score, true)
 
 
 func _on_run_ended(score: int, won: bool) -> void:

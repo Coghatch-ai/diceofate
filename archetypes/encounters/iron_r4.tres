@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="RoomEncounter" format=3 uid="uid://kqau8ttlnix0"]
+
+[ext_resource type="Script" uid="uid://csxyq8dkp855m" path="res://tools/lib/encounter/room_encounter.gd" id="1_enc"]
+[ext_resource type="Script" uid="uid://doisaastbveeg" path="res://tools/lib/encounter/room_spawn.gd" id="2_spawn"]
+[ext_resource type="Resource" path="res://archetypes/immune_ice.tres" id="4_immune_ice"]
+
+[sub_resource type="Resource" id="RoomSpawn_ir4a"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_immune_ice")
+spawn_marker_id = &"Spawn_R4_a"
+
+[sub_resource type="Resource" id="RoomSpawn_ir4b"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_immune_ice")
+spawn_marker_id = &"Spawn_R4_b"
+
+[sub_resource type="Resource" id="RoomSpawn_ir4c"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_immune_ice")
+spawn_marker_id = &"Spawn_R4_c"
+
+[resource]
+script = ExtResource("1_enc")
+id = &"iron_r4"
+spawns = Array[ExtResource("2_spawn")]([SubResource("RoomSpawn_ir4a"), SubResource("RoomSpawn_ir4b"), SubResource("RoomSpawn_ir4c")])
+hint_text = "Ice won't hurt these — switch again."

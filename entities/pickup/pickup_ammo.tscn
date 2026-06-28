@@ -1,7 +1,11 @@
 [gd_scene format=3]
 
 [ext_resource type="PackedScene" path="res://entities/pickup/pickup.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/models/pickup_ammo.glb" id="2_mesh"]
 
 [node name="PickupAmmo" instance=ExtResource("1_base")]
 editor_description = "Ammo pickup — refills active weapon magazine to full."
 kind = 0
+
+[node name="Mesh" parent="." instance=ExtResource("2_mesh")]
+position = Vector3(0, 0.2, 0)

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="GrenadeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/grenade/grenade_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+throw_force = 18.0
+arc_force = 6.0
+fuse_time = 1.5
+blast_radius = 5.0
+damage = 60
+cooldown = 1.0

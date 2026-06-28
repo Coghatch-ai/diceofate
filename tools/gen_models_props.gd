@@ -392,6 +392,37 @@ static func get_props() -> Array[Dictionary]:
 				},
 			],
 		},
+		{
+			# shoulder_turret — compact housing box + short barrel cylinder pointing +Z (rear).
+			# Mounted on player upper-back; scale ~0.12 x 0.10 x 0.10 m housing.
+			# STEEL_MID body + HAZARD_AMBER barrel so it reads as "powered device" at a glance.
+			# Swap for a sourced .glb when asset-advisor delivers the real model.
+			"name": "shoulder_turret",
+			"parts":
+			[
+				{
+					# main housing box
+					"shape": "box",
+					"size": Vector3(0.12, 0.10, 0.10),
+					"pos": Vector3(0.0, 0.05, 0.0),
+					"color": ArtStyle.STEEL_MID,
+				},
+				{
+					# top sensor/dome block
+					"shape": "box",
+					"size": Vector3(0.06, 0.04, 0.06),
+					"pos": Vector3(0.0, 0.12, 0.0),
+					"color": ArtStyle.STEEL_DARK,
+				},
+				{
+					# barrel cylinder pointing +Z (rear-firing direction)
+					"shape": "cylinder",
+					"size": Vector3(0.028, 0.08, 0.028),
+					"pos": Vector3(0.0, 0.05, 0.09),
+					"color": ArtStyle.HAZARD_AMBER,
+				},
+			],
+		},
 	]
 	var arena: Array[Dictionary] = GenModelsPropsArena.get_props()
 	props.append_array(arena)

@@ -29,6 +29,9 @@ const _VM_DIP_ROT := Vector3(25.0, 0.0, 0.0)
 @export var projectile_scene: PackedScene
 ## NodePath to the view-model Node3D holding the mesh, Muzzle and MuzzleFlash.
 @export var view_model_path: NodePath = ^"PistolViewModel"
+## Feel/firing tunables loaded from a WeaponData resource.
+## When set, _ready() copies its values into the fields below, overriding scene defaults.
+@export var weapon_data: WeaponData
 @export var fire_rate: float = 0.2
 ## Cone half-angle (degrees) for hip-fire spread.
 @export var spread_hip: float = 2.5
@@ -69,6 +72,14 @@ var _last_hit_normal: Vector3 = Vector3.UP
 
 
 func _ready() -> void:
+	# Apply feel tunables from WeaponData resource when provided.
+	if weapon_data != null:
+		fire_rate = weapon_data.fire_rate
+		spread_hip = weapon_data.spread_hip
+		spread_ads = weapon_data.spread_ads
+		crouch_spread_mult = weapon_data.crouch_spread_mult
+		recoil_pitch = weapon_data.recoil_pitch
+		recoil_yaw = weapon_data.recoil_yaw
 	_view_model = get_node(view_model_path) as Node3D
 	if _view_model == null:
 		push_error("Gun: view_model_path '%s' not found or not Node3D" % view_model_path)
@@ -234,7 +245,15 @@ func _flash_pulse() -> void:
 	if _flash_tween:
 		_flash_tween.kill()
 	_muzzle_flash.visible = true
-	_muzzle_flash.light_energy = 4.0
+	# Per-cast color + energy from CastData.muzzle_color / muzzle_energy (data-driven identity).
+	# Null cast_data falls back to warm-white defaults.
+	var flash_color: Color = Color(1.0, 0.7, 0.3)
+	var flash_energy: float = 4.0
+	if cast_data != null:
+		flash_color = cast_data.muzzle_color
+		flash_energy = cast_data.muzzle_energy
+	_muzzle_flash.light_color = flash_color
+	_muzzle_flash.light_energy = flash_energy
 	_flash_tween = create_tween()
 	_flash_tween.tween_property(_muzzle_flash, "light_energy", 0.0, 0.04)
 	_flash_tween.tween_callback(_on_flash_done)

@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+# tools/lint_tscn_names — fail if any .tscn has two sibling nodes with the same name under the same parent.
+# Usage: tools/lint_tscn_names [glob ...]
+# Exit 0 = clean; exit 1 = clashes found.
+
+import re
+import sys
+import pathlib
+
+ROOT = pathlib.Path(__file__).parent.parent
+# Matches explicit parent= node headers: [node name="X" ... parent="P"]
+# Root nodes omit parent= entirely; they can't clash with siblings (there's only one).
+TSCN_RE = re.compile(r'\[node name="([^"]+)"[^\]]*parent="([^"]*)"')
+
+globs = sys.argv[1:] or ["**/*.tscn"]
+files: list[pathlib.Path] = []
+for g in globs:
+    files.extend(
+        p for p in ROOT.glob(g)
+        if ".godot" not in p.parts and "addons" not in p.parts
+    )
+
+clashes = 0
+clash_files: set[pathlib.Path] = set()
+
+for f in sorted(files):
+    seen: dict[tuple[str, str], int] = {}  # (parent_path, name) -> first line_no
+    for i, line in enumerate(f.read_text(errors="replace").splitlines(), 1):
+        m = TSCN_RE.search(line)
+        if not m:
+            continue
+        name: str = m.group(1)
+        parent: str = m.group(2)
+        key = (parent, name)
+        if key in seen:
+            print(
+                f'CLASH {f.relative_to(ROOT)}:{i} parent="{parent}"'
+                f' name="{name}" (first seen line {seen[key]})'
+            )
+            clashes += 1
+            clash_files.add(f)
+        else:
+            seen[key] = i
+
+if clashes:
+    print(
+        f"lint_tscn_names: FAIL — {clashes} clash(es)"
+        f" in {len(clash_files)} file(s)"
+    )
+    sys.exit(1)
+
+print("lint_tscn_names: PASS")

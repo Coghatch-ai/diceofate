@@ -10,8 +10,16 @@ const SLOT_COUNT: int = 5
 const SLOT_KEYS: Array[String] = ["Q", "E", "R", "T", "Y"]
 ## Short element names shown under the key label.
 const SLOT_NAMES: Array[String] = ["ELEC", "FIRE", "ICE", "POIS", "KIN"]
+## Hotbar font-size tiers (primary readouts largest, secondary smaller).
+const _SLOT_KEY_SIZE: int = 52
+const _SLOT_NAME_SIZE: int = 36
+const _SLOT_AMMO_SIZE: int = 58
 
 var _pulse_tween: Tween
+var _fade_tween: Tween
+var _hint_tween: Tween
+var _fade_rect: ColorRect
+var _hint_label: Label
 ## Slot containers: each holds a ColorRect swatch + Label count.
 var _slots: Array[Control] = []
 var _slot_swatches: Array[ColorRect] = []
@@ -39,6 +47,26 @@ func _ready() -> void:
 	set_health(100, 100)
 	set_stamina(100.0, 100.0)
 	_result_panel.visible = false
+	# Transient centered hint label for room encounter teach lines.
+	_hint_label = Label.new()
+	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_hint_label.add_theme_font_size_override("font_size", 42)
+	_hint_label.modulate = Color(1.0, 1.0, 0.2, 0.0)
+	_hint_label.set_anchors_and_offsets_preset(PRESET_CENTER_TOP)
+	_hint_label.offset_top = 120.0
+	_hint_label.offset_bottom = 180.0
+	_hint_label.offset_left = -400.0
+	_hint_label.offset_right = 400.0
+	_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_hint_label)
+	# Full-screen black rect for respawn flash — created at runtime, stays invisible until needed.
+	_fade_rect = ColorRect.new()
+	_fade_rect.color = Color(0.0, 0.0, 0.0, 0.0)
+	_fade_rect.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fade_rect.z_index = 100
+	add_child(_fade_rect)
 
 
 func set_score(n: int) -> void:
@@ -129,17 +157,17 @@ func _build_hotbar_slots() -> void:
 		_slots.append(panel)
 
 		var slot := VBoxContainer.new()
-		slot.custom_minimum_size = Vector2(96.0, 104.0)
+		slot.custom_minimum_size = Vector2(120.0, 170.0)
 		panel.add_child(slot)
 
 		var key_lbl := Label.new()
 		key_lbl.text = SLOT_KEYS[i]
 		key_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		key_lbl.add_theme_font_size_override("font_size", 20)
+		key_lbl.add_theme_font_size_override("font_size", _SLOT_KEY_SIZE)
 		slot.add_child(key_lbl)
 
 		var swatch := ColorRect.new()
-		swatch.custom_minimum_size = Vector2(96.0, 22.0)
+		swatch.custom_minimum_size = Vector2(110.0, 24.0)
 		swatch.color = colors[i]
 		slot.add_child(swatch)
 		_slot_swatches.append(swatch)
@@ -147,18 +175,50 @@ func _build_hotbar_slots() -> void:
 		var name_lbl := Label.new()
 		name_lbl.text = SLOT_NAMES[i]
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_lbl.add_theme_font_size_override("font_size", 14)
+		name_lbl.add_theme_font_size_override("font_size", _SLOT_NAME_SIZE)
 		slot.add_child(name_lbl)
 
 		var ammo_lbl := Label.new()
 		ammo_lbl.text = "0/0"
 		ammo_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		ammo_lbl.add_theme_font_size_override("font_size", 22)
+		ammo_lbl.add_theme_font_size_override("font_size", _SLOT_AMMO_SIZE)
 		slot.add_child(ammo_lbl)
 		_slot_labels.append(ammo_lbl)
 
 	# Highlight slot 0 by default.
 	set_active_bullet(0)
+
+
+## 3-phase black-hold fade to fully occlude a hard respawn teleport.
+## Phase 1: fade to black over fade_in_t. Phase 2: at_black_cb fires, hold for hold_t.
+## Phase 3: fade out over fade_out_t. Tween runs through tree-pause (TWEEN_PAUSE_PROCESS).
+func flash_fade(
+	fade_in_t: float = 0.18,
+	hold_t: float = 0.12,
+	fade_out_t: float = 0.25,
+	at_black_cb: Callable = Callable()
+) -> void:
+	if _fade_tween != null:
+		_fade_tween.kill()
+	_fade_rect.color = Color(0.0, 0.0, 0.0, 0.0)
+	_fade_tween = create_tween()
+	_fade_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_fade_tween.tween_property(_fade_rect, "color", Color(0.0, 0.0, 0.0, 1.0), fade_in_t)
+	if at_black_cb.is_valid():
+		_fade_tween.tween_callback(at_black_cb)
+	_fade_tween.tween_interval(hold_t)
+	_fade_tween.tween_property(_fade_rect, "color", Color(0.0, 0.0, 0.0, 0.0), fade_out_t)
+
+
+## Show a transient centered hint that fades out after ~3 s.
+func set_hint(text: String) -> void:
+	_hint_label.text = text
+	if _hint_tween != null:
+		_hint_tween.kill()
+	_hint_label.modulate = Color(1.0, 1.0, 0.2, 1.0)
+	_hint_tween = create_tween()
+	_hint_tween.tween_interval(2.5)
+	_hint_tween.tween_property(_hint_label, "modulate", Color(1.0, 1.0, 0.2, 0.0), 0.5)
 
 
 func _start_hp_pulse() -> void:

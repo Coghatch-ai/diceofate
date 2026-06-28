@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MinimapConfig" format=3 uid="uid://dm61m0qc35k2p"]
+
+[ext_resource type="Script" uid="uid://cdax77ljvpica" path="res://entities/hud/minimap_config.gd" id="1"]
+[ext_resource type="Script" uid="uid://ga77s7tfl6h7" path="res://entities/hud/minimap_tracked_group.gd" id="2"]
+
+[sub_resource type="Resource" id="TrackedGroup_enemies"]
+script = ExtResource("2")
+
+[resource]
+script = ExtResource("1")
+tracked_groups = Array[ExtResource("2")]([SubResource("TrackedGroup_enemies")])

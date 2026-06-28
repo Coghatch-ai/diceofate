@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/vfx/acid_decal_pool.gd" id="1"]
+
+[node name="AcidCraterPool" type="Node3D"]
+script = ExtResource("1")
+editor_description = "Round-robin acid crater Decal pool (8 slots). Place under VfxRoot."

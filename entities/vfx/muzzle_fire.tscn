@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://entities/vfx/vfx_base.tscn" id="1"]
+
+[sub_resource type="Gradient" id="Gradient_muzzle_fire"]
+colors = PackedColorArray(3.0, 1.5, 0.1, 1.0, 0.8, 0.2, 0.0, 0.0)
+offsets = PackedFloat32Array(0.0, 1.0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_muzzle_fire"]
+gradient = SubResource("Gradient_muzzle_fire")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_muzzle_fire"]
+lifetime_randomness = 0.4
+emission_shape = 0
+direction = Vector3(0, 0, -1)
+spread = 22.0
+initial_velocity_min = 3.0
+initial_velocity_max = 9.0
+gravity = Vector3(0, 1.5, 0)
+scale_min = 0.08
+scale_max = 0.20
+color_ramp = SubResource("GradientTexture1D_muzzle_fire")
+
+[node name="VfxOneShot" instance=ExtResource("1")]
+editor_description = "FIRE muzzle — wide orange lick, slower bloom with slight upward curl."
+
+[node name="Particles" parent="." index="0"]
+amount = 56
+lifetime = 0.36
+process_material = SubResource("ParticleProcessMaterial_muzzle_fire")

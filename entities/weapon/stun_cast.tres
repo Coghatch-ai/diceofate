@@ -1,14 +1,16 @@
-[gd_resource type="Resource" script_class="CastData" format=3]
+[gd_resource type="Resource" script_class="CastData" format=3 uid="uid://co84wyq7pkajy"]
 
-[ext_resource type="Script" path="res://tools/lib/cast/cast_data.gd" id="1"]
-[ext_resource type="Script" path="res://tools/lib/cast/damage_effect.gd" id="2"]
-[ext_resource type="Script" path="res://tools/lib/cast/knockback_effect.gd" id="3"]
-[ext_resource type="Script" path="res://tools/lib/cast/slow_effect.gd" id="4"]
-[ext_resource type="Script" path="res://tools/lib/cast/hit_target_resolver.gd" id="5"]
+[ext_resource type="Script" uid="uid://qepjgeqnac7d" path="res://tools/lib/cast/cast_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://dcd2iut0hyedi" path="res://tools/lib/cast/effect.gd" id="1_f218r"]
+[ext_resource type="Script" uid="uid://uuglks3hq3a5" path="res://tools/lib/cast/damage_effect.gd" id="2"]
+[ext_resource type="Script" uid="uid://1jxibdhchpuw" path="res://tools/lib/cast/knockback_effect.gd" id="3"]
+[ext_resource type="Script" uid="uid://denftsq2k1c5h" path="res://tools/lib/cast/slow_effect.gd" id="4"]
+[ext_resource type="Script" uid="uid://ngah3pqca7b1" path="res://tools/lib/cast/hit_target_resolver.gd" id="5"]
+[ext_resource type="Resource" uid="uid://bhifuxiu4jba8" path="res://entities/weapon/recoil/stun_recoil.tres" id="6"]
+[ext_resource type="PackedScene" path="res://entities/vfx/muzzle_ice.tscn" id="7"]
 
 [sub_resource type="Resource" id="1"]
 script = ExtResource("2")
-amount = 1
 damage_type = 2
 
 [sub_resource type="Resource" id="2"]
@@ -16,17 +18,18 @@ script = ExtResource("3")
 
 [sub_resource type="Resource" id="3"]
 script = ExtResource("4")
-slow_factor = 0.4
-duration = 2.5
 
 [sub_resource type="Resource" id="4"]
 script = ExtResource("5")
 
 [resource]
 script = ExtResource("1")
-effects = [SubResource("1"), SubResource("2"), SubResource("3")]
+effects = Array[ExtResource("1_f218r")]([SubResource("1"), SubResource("2"), SubResource("3")])
 resolver = SubResource("4")
 bullet_color = Color(0.3, 0.6, 1, 1)
+recoil_profile = ExtResource("6")
+muzzle_color = Color(0.4, 0.7, 1, 1)
+muzzle_energy = 3.5
+muzzle_vfx_scene = ExtResource("7")
 max_ammo = 12
-ammo_cost = 1
 ammo_regen = 1.0

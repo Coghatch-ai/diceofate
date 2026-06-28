@@ -1,0 +1,1 @@
+{"nodes": [{"id": "cast_game_context_gamecontext", "label": "GameContext (hit DTO for Effect.apply)", "file_type": "code", "source_file": "tools/lib/cast/game_context.gd", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null}], "edges": [], "hyperedges": []}

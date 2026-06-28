@@ -1,18 +1,18 @@
 # entities/enemy/enemy.gd — CharacterBody3D enemy: nav + perception, driven by StateMachine.
 class_name Enemy
-extends CharacterBody3D
+extends Damageable
 
-## Emitted just before queue_free() so WaveManager can react (C1).
+## Emitted just before queue_free() so RoomController can react (C1).
 signal died(enemy: Enemy)
 ## Emitted when the enemy reaches attack_range of the player (C2).
 signal touched_player(enemy: Enemy)
-## Emitted alongside touched_player on each attack — carries self so the receiver
-## knows the hit source for directional knockback.
+## Emitted alongside touched_player — carries self for directional knockback.
 signal bumped_player(enemy: Enemy)
 
 const _STUN_DURATION: float = 0.4
 const _KNOCKBACK_SPEED: float = 14.0
 const _BURN_AURA_SCENE: PackedScene = preload("res://entities/vfx/burn_aura_vfx.tscn")
+const _DEFAULT_HIT_SPARK: PackedScene = preload("res://entities/vfx/hit_burst.tscn")
 
 @export var move_speed: float = 3.5
 @export var patrol_speed: float = 1.75
@@ -20,39 +20,42 @@ const _BURN_AURA_SCENE: PackedScene = preload("res://entities/vfx/burn_aura_vfx.
 @export var attack_range: float = 1.8
 @export var escape_range: float = 16.0
 @export var attack_cooldown: float = 0.8
+## Non-uniform scale multiplier applied to the mesh during the attack lunge telegraph.
+@export var lunge_scale: Vector3 = Vector3(1.3, 0.7, 1.3)
+## Duration of each half of the lunge tween (seconds).
+@export_range(0.05, 1.0, 0.01) var lunge_duration: float = 0.1
 @export var patrol_wait: float = 1.0
-## Optional archetype resource. When set, stats + tint are seeded from it in _ready()
-## and any listed behaviour scenes are instanced under the Abilities node.
-## When null the manually-set @export values below are used as-is (existing subclasses).
+## Archetype: when set, seeds stats+tint+behaviours in _ready(); null = use manual exports.
 @export var archetype: EnemyArchetype
-## Hits required to kill. Default 2 = two-shot (dmg delta visible: light=2 hits, heavy=1).
-## Tank scene overrides to 3. Overridden by archetype.max_health when archetype is set.
+## Hits to kill. Tank = 3. Overridden by archetype.max_health when archetype set.
 @export var health: int = 2
-## Score awarded to the player on kill. Grunt = 1 (default); runner/magnet/tank override.
-## Overridden by archetype.score_value when archetype is set.
-@export var score_value: int = 1
+# score_value inherited from Damageable (default 1). Overridden by archetype.score_value.
+## Player push speed (m/s) on contact. 0 = disabled. Read from archetype.push_strength.
+@export_range(0.0, 30.0, 0.5) var push_strength: float = 6.0
+## Max simultaneous pursuers (0 = unlimited). Shared static count in PursueState.
+@export_range(0, 20, 1) var pursue_cap: int = 0
+## Speed of cap-blocked enemies (fraction of move_speed); blocked enemies still advance.
+@export_range(0.1, 1.0, 0.05) var blocked_advance_speed: float = 0.6
 ## Waypoint NodePaths (set in the level scene); resolved to Marker3D refs in _ready().
 @export var patrol_waypoint_paths: Array[NodePath] = []
 var patrol_waypoints: Array[Marker3D] = []
-# Maps MeshInstance3D → Material or null; captured before each hit flash to restore after.
-var _saved_overrides: Dictionary = {}
-# Knockback stun state — nav-velocity drive is skipped while _stun_timer > 0.
+var _saved_overrides: Dictionary = {}  # MeshInstance3D → Material|null; hit-flash restore.
+var _hit_flash_tween: Tween  # Tracked so _flash_and_die can kill before free.
+var _flash_mats: Array[StandardMaterial3D] = []  # Held so flash_mat outlives the Tween.
 var _stun_timer: float = 0.0
 var _knockback_velocity: Vector3 = Vector3.ZERO
-# Base move_speed captured in _ready() so slow/restore never accumulates drift.
-var _base_move_speed: float = 0.0
+var _base_move_speed: float = 0.0  # Captured once; slow/restore never drifts.
 
 # SEAM: ProjectSettings.get_setting() returns Variant; physics gravity is always float.
 @warning_ignore("unsafe_call_argument")
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
-# Base scale saved on ready for telegraph reset.
 var _base_scale: Vector3 = Vector3.ONE
-# Active burn/poison aura VFX node; null when no burn is active.
 var _burn_aura: BurnAuraVfx
 
 @onready var attack_timer: Timer = $AttackTimer
 @onready var patrol_wait_timer: Timer = $PatrolWaitTimer
-@onready var _nav: NavigationAgent3D = $NavigationAgent3D
+## Public nav agent — states read nav.distance_to_target() for debug trace.
+@onready var nav: NavigationAgent3D = $NavigationAgent3D
 @onready var _eye: RayCast3D = $EyeRay
 @onready var _mesh_instance: Node3D = $Mesh
 @onready var _death_sfx: AudioStreamPlayer = $DeathSfx
@@ -61,6 +64,7 @@ var _burn_aura: BurnAuraVfx
 @onready var _health_comp: HealthComponent = $HealthComponent
 @onready var _abilities: Node = $Abilities
 @onready var _status_receiver: StatusReceiver = $StatusReceiver
+@onready var _state_machine: EnemyStateMachine = $StateMachine
 
 
 func _ready() -> void:
@@ -74,20 +78,26 @@ func _ready() -> void:
 		attack_range = archetype.attack_range
 		escape_range = archetype.escape_range
 		attack_cooldown = archetype.attack_cooldown
-		# Apply tint when archetype specifies a non-default colour.
+		push_strength = archetype.push_strength
+		# Model swap before _apply_tint so tint targets the final mesh.
+		if archetype.model != null:
+			for child: Node in _mesh_instance.get_children():
+				child.queue_free()
+			_mesh_instance.add_child(archetype.model.instantiate())
 		if archetype.tint_color != Color.WHITE:
 			_apply_tint(archetype.tint_color)
-		# Instance behaviour scenes under Abilities and bind each to self.
 		for scene: PackedScene in archetype.behaviours:
 			var beh: Node = scene.instantiate()
 			_abilities.add_child(beh)
-			# SEAM: duck-typed bind — EnemyBehaviour base has bind(enemy); guard for safety.
+			# SEAM: duck-typed bind — EnemyBehaviour base defines this seam.
 			if beh.has_method("bind"):
 				@warning_ignore("unsafe_method_access")
 				beh.bind(self)
-	# Override max_health then reset so _current seeds from the export value, not the
-	# component default (child _ready() runs before parent _ready() — bottom-up order).
+	add_to_group("enemies")
+	# Child _ready() runs before parent (bottom-up); override max_health then reset.
 	_health_comp.max_health = health
+	if archetype != null and not archetype.resistances.is_empty():
+		_health_comp.resistances = archetype.resistances
 	_health_comp.reset()
 	_health_comp.died.connect(_on_health_comp_died)
 	_health_comp.health_changed.connect(_on_health_comp_changed)
@@ -97,15 +107,15 @@ func _ready() -> void:
 	attack_timer.one_shot = true
 	patrol_wait_timer.wait_time = patrol_wait
 	patrol_wait_timer.one_shot = true
-	_nav.velocity_computed.connect(_on_nav_velocity_computed)
+	nav.velocity_computed.connect(_on_nav_velocity_computed)
+	bumped_player.connect(_on_bumped_player)
 	_status_receiver.slow_changed.connect(_on_slow_changed)
 	_status_receiver.shock_started.connect(_on_shock_started)
 	_status_receiver.shock_ended.connect(_on_shock_ended)
 	_status_receiver.burn_started.connect(_on_burn_started)
 	_status_receiver.burn_ended.connect(_on_burn_ended)
 	_ambient_sfx.play()
-	# Resolve NodePath exports to typed Marker3D refs (typed Array[Marker3D] can't be
-	# stored as NodePaths in hand-authored .tscn; we resolve here at runtime).
+	# Resolve NodePath exports to typed Marker3D refs (typed array can't store NodePaths in .tscn).
 	for np: NodePath in patrol_waypoint_paths:
 		var marker: Node = get_node(np)
 		if marker is Marker3D:
@@ -132,25 +142,23 @@ func can_see_target() -> bool:
 		return false
 	_eye.target_position = _eye.to_local(t.global_position)
 	_eye.force_raycast_update()
-	# Ray hits player → unobstructed line of sight. Hits anything else → wall blocks.
 	return _eye.is_colliding() and _eye.get_collider() == t
 
 
 # ── Navigation (called by states) ─────────────────────────────────────────────
 func set_destination(point: Vector3) -> void:
-	# Allow movement-role behaviour to transform the point (e.g. FlyingMovement clamps Y).
 	var dest: Vector3 = point
 	for child: Node in _abilities.get_children():
 		if child.has_method("pre_set_destination"):
-			# SEAM: duck-typed pre_set_destination — EnemyBehaviour base defines this seam.
+			# SEAM: duck-typed — EnemyBehaviour.pre_set_destination (e.g. FlyingMovement clamps Y).
 			@warning_ignore("unsafe_method_access")
 			dest = child.pre_set_destination(dest)
 			break
-	_nav.target_position = dest
+	nav.target_position = dest
 
 
 func navigation_finished() -> bool:
-	return _nav.is_navigation_finished()
+	return nav.is_navigation_finished()
 
 
 ## Drive one frame toward current nav target at speed. Gravity + move_and_slide run here.
@@ -167,8 +175,8 @@ func move_along_path(speed: float, delta: float) -> void:
 				return
 	# Default: gravity-nav walk.
 	var desired: Vector3 = Vector3.ZERO
-	if not _nav.is_navigation_finished():
-		var next: Vector3 = _nav.get_next_path_position()
+	if not nav.is_navigation_finished():
+		var next: Vector3 = nav.get_next_path_position()
 		desired = (next - global_position)
 		desired.y = 0.0
 		if desired.length_squared() > 0.0001:
@@ -180,7 +188,7 @@ func move_along_path(speed: float, delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	desired.y = velocity.y
-	_nav.velocity = desired
+	nav.velocity = desired
 
 
 func stop(delta: float) -> void:
@@ -237,24 +245,30 @@ func apply_knockback(hitter_pos: Vector3) -> void:
 	_stun_timer = _STUN_DURATION
 
 
+## bumped_player → shove the player; duck-typed, push_strength=0 disables.
+func _on_bumped_player(_enemy: Enemy) -> void:
+	if push_strength <= 0.0:
+		return
+	var t: Node3D = target()
+	if t == null or not t.has_method("apply_knockback"):
+		return
+	# SEAM: duck-typed — Player.apply_knockback(hitter_pos, speed_override).
+	@warning_ignore("unsafe_method_access")
+	t.apply_knockback(global_position, push_strength)
+
+
 # ── Attack telegraph (called by AttackState) ──────────────────────────────────
 ## Harmless scale-lunge telegraph + touch signal. Emits touched_player(self) each attack (C2).
-## Delegates to first EnemyBehaviour child with do_attack() when present (slice-2 hook).
-## NOTE: touched_player can trigger a synchronous level-load that frees this enemy.
-## Guard create_tween() with is_instance_valid(self) so the tween is skipped if freed mid-emit.
+## Delegates to first EnemyBehaviour with do_attack(); else default lunge + touched_player.
+## NOTE: touched_player can trigger a synchronous level-load → guard with is_instance_valid.
 func perform_attack() -> void:
-	# Delegate to first attack-behaviour component if one is bound (slice 2+).
 	for child: Node in _abilities.get_children():
 		if child.has_method("do_attack"):
 			# SEAM: duck-typed do_attack — EnemyBehaviour base defines this seam.
 			@warning_ignore("unsafe_method_access")
 			child.do_attack()
 			return
-	# Reparent touch SFX to scene root before emitting touched_player: the signal handler
-	# may trigger lose_life() -> queue_free() on this enemy, cutting the sound mid-play.
-	# Same fire-and-free pattern as _play_death_sfx (godot-fps-enemy-combat contract).
-	# Guard: _touch_reset_sfx may already be freed (reparented + finished.queue_free fired
-	# on a previous attack cycle — enemy lives longer than the SFX node).
+	# Guard: SFX may already be freed from a previous attack cycle (reparent-and-free pattern).
 	if is_instance_valid(_touch_reset_sfx):
 		var scene_root: Node = get_tree().current_scene
 		if scene_root != null and _touch_reset_sfx.get_parent() == self:
@@ -268,21 +282,17 @@ func perform_attack() -> void:
 	if not is_instance_valid(self):
 		return
 	var tw: Tween = create_tween()
-	tw.tween_property(_mesh_instance, "scale", _base_scale * Vector3(1.3, 0.7, 1.3), 0.1)
-	tw.tween_property(_mesh_instance, "scale", _base_scale, 0.1)
+	tw.tween_property(_mesh_instance, "scale", _base_scale * lunge_scale, lunge_duration)
+	tw.tween_property(_mesh_instance, "scale", _base_scale, lunge_duration)
 
 
 # ── Shootability ──────────────────────────────────────────────────────────────
-## Called by the projectile via duck-typed on_hit() — aliases apply_damage(1).
-## Keeps the duck-typed hit seam working (godot-fps-enemy-combat contract).
+## Duck-typed hit seam (godot-fps-enemy-combat) — aliases apply_damage(1).
 func on_hit() -> void:
 	apply_damage(1)
 
 
-## Apply amount points of damage. Delegates to HealthComponent (slice 1+3).
-## Accepts optional damage type for resistance scaling; defaults to PHYSICAL so
-## on_hit() and any untyped caller are unchanged (slice 1/2 backward-compat).
-## If a ShieldComponent sibling is present it absorbs damage first; overflow goes to health.
+## Apply typed damage via HealthComponent. ShieldComponent absorbs first; overflow to health.
 func apply_damage(amount: int, type: DamageType.Kind = DamageType.Kind.PHYSICAL) -> void:
 	var shield: ShieldComponent = get_node_or_null("ShieldComponent") as ShieldComponent
 	var overflow: int = amount
@@ -293,32 +303,26 @@ func apply_damage(amount: int, type: DamageType.Kind = DamageType.Kind.PHYSICAL)
 
 
 # ── Status effect seams (called by StatusReceiver via duck-typed add_status_X) ────────────
-## Start burn/poison DoT. Delegates to StatusReceiver child.
 func add_status_burn(dps: int, duration: float, type: DamageType.Kind) -> void:
 	_status_receiver.add_status_burn(dps, duration, type)
 
 
-## Start movement slow. Delegates to StatusReceiver child.
 func add_status_slow(factor: float, duration: float) -> void:
 	_status_receiver.add_status_slow(factor, duration)
 
 
-## Start electric stun. Delegates to StatusReceiver child.
 func add_status_shock(stun_duration: float) -> void:
 	_status_receiver.add_status_shock(stun_duration)
 
 
-## StatusReceiver.slow_changed → scale nav speed from base (no drift on refresh/restore).
 func _on_slow_changed(factor: float) -> void:
 	move_speed = _base_move_speed * factor
 
 
-## StatusReceiver.shock_started → reuse existing stun gate.
 func _on_shock_started() -> void:
 	_stun_timer = INF
 
 
-## StatusReceiver.shock_ended → release stun gate.
 func _on_shock_ended() -> void:
 	_stun_timer = 0.0
 	_knockback_velocity = Vector3.ZERO
@@ -340,8 +344,7 @@ func _on_burn_ended() -> void:
 	_burn_aura = null
 
 
-## HealthComponent.health_changed → non-fatal hit flash (current > 0 still guaranteed
-## by HealthComponent: died fires only when _current reaches 0, health_changed always first).
+## HealthComponent.health_changed → non-fatal hit flash (current > 0: died fires only at 0).
 func _on_health_comp_changed(current: int, _max: int) -> void:
 	if current > 0:
 		_flash_hit()
@@ -349,12 +352,15 @@ func _on_health_comp_changed(current: int, _max: int) -> void:
 
 ## HealthComponent.died → death sequence (mirrors old fatal branch of apply_damage).
 func _on_health_comp_died() -> void:
+	# Transition FSM before dying so PursueState.exit() releases the pursue-cap slot.
+	if _state_machine != null:
+		_state_machine.transition_to("PatrolState")
 	_play_death_sfx()
 	died.emit(self)
 	_flash_and_die()
 
 
-## Brief non-fatal hit flash: red tint then restore, no queue_free.
+## Brief non-fatal hit flash: archetype-driven color+duration, spark VFX, optional hitstop.
 func _flash_hit() -> void:
 	var mesh_nodes: Array[MeshInstance3D] = []
 	for child: Node in _mesh_instance.find_children("*", "MeshInstance3D", true, false):
@@ -362,8 +368,27 @@ func _flash_hit() -> void:
 			mesh_nodes.append(child as MeshInstance3D)
 	if mesh_nodes.is_empty():
 		return
+	# Read per-archetype feedback params; fall back to safe defaults when no archetype set.
+	var flash_color: Color = Color(1.0, 0.1, 0.1, 1.0)
+	var flash_dur: float = 0.05
+	var hitstop: float = 0.0
+	var spark_scene: PackedScene = _DEFAULT_HIT_SPARK
+	if archetype != null:
+		flash_color = archetype.hit_flash_color
+		flash_dur = archetype.hit_flash_duration
+		hitstop = archetype.hitstop_seconds
+		if archetype.hit_spark_scene != null:
+			spark_scene = archetype.hit_spark_scene
+	# Restore previous overrides FIRST so the RS never sees the old hit_mat as a dead
+	# material RID. Only THEN kill the old tween (which releases the old hit_mat refs).
+	# Wrong order (prior bug): clear saved → kill tween → hit_mat freed while still override.
+	_restore_materials()
+	if _hit_flash_tween != null and _hit_flash_tween.is_valid():
+		_hit_flash_tween.kill()
+		_hit_flash_tween = null
 	_saved_overrides.clear()
-	var tw: Tween = create_tween()
+	_hit_flash_tween = create_tween()
+	var tw: Tween = _hit_flash_tween
 	tw.set_parallel(true)
 	for mi: MeshInstance3D in mesh_nodes:
 		# Save current override (may be the tint mat set by runner/tank _ready).
@@ -374,11 +399,18 @@ func _flash_hit() -> void:
 		var hit_mat: StandardMaterial3D = mat.duplicate() as StandardMaterial3D
 		mi.set_surface_override_material(0, hit_mat)
 		hit_mat.emission_enabled = true
-		tw.tween_property(hit_mat, "albedo_color", Color.RED, 0.05)
-		tw.tween_property(hit_mat, "emission", Color.RED, 0.05)
+		tw.tween_property(hit_mat, "albedo_color", flash_color, flash_dur)
+		tw.tween_property(hit_mat, "emission", flash_color, flash_dur)
 	tw.set_parallel(false)
 	# Restore saved overrides so runner/tank tint reappears after flash.
 	tw.tween_callback(_restore_materials)
+	# Spawn hit spark VFX at enemy world position (fire-and-free, under scene root).
+	EnemyFlashHelper.spawn_hit_spark(
+		get_tree().current_scene, spark_scene, global_position + Vector3(0.0, 0.9, 0.0)
+	)
+	# Optional hitstop: brief time_scale dip then restore.
+	if hitstop > 0.0:
+		EnemyFlashHelper.apply_hitstop(self, hitstop)
 
 
 ## Restore per-mesh overrides saved before the last hit flash.
@@ -386,10 +418,9 @@ func _restore_materials() -> void:
 	for key: Variant in _saved_overrides.keys():
 		if not key is MeshInstance3D:
 			continue
-		# SEAM: key is MeshInstance3D by construction (_flash_hit only stores MeshInstance3D keys).
+		# SEAM: key=MeshInstance3D, value=Material|null, by construction (_flash_hit only writes).
 		@warning_ignore("unsafe_cast")
 		var mesh_inst: MeshInstance3D = key as MeshInstance3D
-		# SEAM: value is Material or null (Variant) by construction.
 		@warning_ignore("unsafe_cast")
 		mesh_inst.set_surface_override_material(0, _saved_overrides[key] as Material)
 	_saved_overrides.clear()
@@ -397,6 +428,13 @@ func _restore_materials() -> void:
 
 ## Make materials unique, flash white (albedo + emission) on all mesh parts, then free.
 func _flash_and_die() -> void:
+	# Restore first so RS visual instances point to tint/base mats (valid), then kill the
+	# hit-flash tween (which releases old hit_mat refs). Wrong prior order was kill→restore:
+	# the kill freed hit_mat while it was still the active RS override → null-material burst.
+	_restore_materials()
+	if _hit_flash_tween != null and _hit_flash_tween.is_valid():
+		_hit_flash_tween.kill()
+		_hit_flash_tween = null
 	# Collect every MeshInstance3D under the mesh wrapper (kitbash has one per part).
 	var mesh_nodes: Array[MeshInstance3D] = []
 	for child: Node in _mesh_instance.find_children("*", "MeshInstance3D", true, false):
@@ -405,6 +443,7 @@ func _flash_and_die() -> void:
 	if mesh_nodes.is_empty():
 		queue_free()
 		return
+	_flash_mats.clear()
 	var tw: Tween = create_tween()
 	tw.set_parallel(true)
 	for mi: MeshInstance3D in mesh_nodes:
@@ -417,12 +456,24 @@ func _flash_and_die() -> void:
 		flash_mat.emission_enabled = true
 		tw.tween_property(flash_mat, "albedo_color", Color.WHITE, 0.06)
 		tw.tween_property(flash_mat, "emission", Color.WHITE, 0.06)
+		# Hold ref in member array so flash_mat outlives the Tween until _die_and_clear_mats
+		# unlinks the override from the RS — prevents null-material RID query at RS teardown.
+		_flash_mats.append(flash_mat)
 	tw.set_parallel(false)
-	tw.tween_callback(queue_free)
+	tw.tween_callback(_die_and_clear_mats)
 
 
-## Apply a flat albedo tint to all MeshInstance3D parts (archetype tint_color).
-## Only called when archetype.tint_color != Color.WHITE.
+## Clear surface overrides BEFORE queue_free so flash_mats are unlinked from RS visual
+## instances before node teardown. Without this, flash_mat RIDs can be freed mid-render.
+func _die_and_clear_mats() -> void:
+	for child: Node in _mesh_instance.find_children("*", "MeshInstance3D", true, false):
+		if child is MeshInstance3D:
+			(child as MeshInstance3D).set_surface_override_material(0, null)
+	_flash_mats.clear()
+	queue_free()
+
+
+## Apply flat albedo tint to all MeshInstance3D parts (archetype tint_color).
 func _apply_tint(color: Color) -> void:
 	for child: Node in _mesh_instance.find_children("*", "MeshInstance3D", true, false):
 		if not child is MeshInstance3D:
@@ -436,14 +487,12 @@ func _apply_tint(color: Color) -> void:
 		mi.set_surface_override_material(0, tint_mat)
 
 
-# Reparent death sfx to scene root so it survives queue_free() on this node.
 func _play_death_sfx() -> void:
 	var scene_root: Node = get_tree().current_scene
 	if scene_root == null:
 		return
 	_ambient_sfx.stop()
 	_death_sfx.reparent(scene_root)
-	# Guard: same pattern as projectile hit SFX — prevent double-connect if called twice.
 	if not _death_sfx.finished.is_connected(_death_sfx.queue_free):
 		_death_sfx.finished.connect(_death_sfx.queue_free)
 	_death_sfx.play()

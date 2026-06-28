@@ -3,7 +3,8 @@
 class_name Player
 extends CharacterBody3D
 
-## Forwarded from HealthComponent so WaveManager can connect death without reaching into the comp.
+## Forwarded from HealthComponent so RoomController can connect death
+## without reaching into the comp.
 signal died
 
 @export var move_speed: float = 4.0
@@ -18,8 +19,8 @@ signal died
 ## descent faster than the rise — snappier, less floaty feel. Tune alongside jump_velocity.
 @export var fall_gravity_mult: float = 1.5
 @export var mouse_sensitivity: float = 0.0016
-## FOV while hip-firing (default).
-@export var hip_fov: float = 75.0
+## FOV while hip-firing (default). 85° sits in the comfortable 85-90° range; 75° was too low.
+@export var hip_fov: float = 85.0
 ## FOV while aiming down sights.
 @export var ads_fov: float = 55.0
 ## Duration of the ADS FOV tween (seconds).
@@ -28,8 +29,8 @@ signal died
 @export var ads_move_scale: float = 0.6
 ## Sprint speed multiplier (hold sprint action).
 @export var sprint_mult: float = 1.6
-## Camera FOV while sprinting (hip_fov + kick).
-@export var sprint_fov: float = 81.0
+## Camera FOV while sprinting (hip_fov + 3° kick — gentler than the original 6° delta).
+@export var sprint_fov: float = 88.0
 ## Per-frame lerp rate for sprint FOV kick.
 @export var sprint_fov_lerp: float = 8.0
 ## Crouched capsule height (stand = 1.8; radius 0.4 → min 0.8, so 1.2 is safe).
@@ -66,6 +67,11 @@ signal died
 @export var stamina_regen_delay: float = 0.6
 ## Minimum stamina required to START a new sprint.
 @export var stamina_min_to_sprint: float = 10.0
+## Extra jumps allowed while airborne (1 = double-jump; 0 = single; 2 = triple, etc.).
+## Reset to 0 on landing. Data-driven: change here or in Inspector without touching logic.
+@export_range(0, 4, 1) var max_air_jumps: int = 1
+## Jump velocity reused for air jumps. Defaults to jump_velocity; tune independently if desired.
+@export var air_jump_velocity: float = 9.0
 ## Impulse speed (m/s) applied when an enemy bumps the player. Mirrors enemy _KNOCKBACK_SPEED.
 @export var knockback_speed: float = 6.0
 ## Duration (s) input is suppressed and knockback decays after a bump. Mirrors enemy _STUN_DURATION.
@@ -79,6 +85,7 @@ signal died
 @warning_ignore("unsafe_cast")
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity") as float
 var _was_on_floor: bool = false
+var _air_jumps_used: int = 0
 var _crouch_amount: float = 0.0
 var _aiming: bool = false
 var _look_pitch: float = 0.0
@@ -111,6 +118,9 @@ var _arena_hud: ArenaHud
 @onready var _land_sfx: AudioStreamPlayer = $LandSfx
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 @onready var _health_comp: HealthComponent = $HealthComponent
+@onready var _grenade_ctrl: GrenadeThrowController = $GrenadeThrowController
+@onready var _stats: StatBlock = $StatBlock
+@onready var _status_receiver: StatusReceiver = $StatusReceiver
 
 
 func _ready() -> void:
@@ -121,6 +131,9 @@ func _ready() -> void:
 	_health_comp.reset()
 	_health_comp.died.connect(_on_health_comp_died)
 	_weapon_controller.health_pickup_requested.connect(_on_health_pickup_requested)
+	_grenade_ctrl.head = _head
+	_stats.set_base(&"move_speed", move_speed)
+	_stats.stat_changed.connect(_on_stat_changed)
 
 
 ## Called by the level host (main.gd) after load to inject the HUD crosshair.
@@ -148,6 +161,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_head.rotation.x = clampf(_look_pitch + _recoil_pitch, -PI / 2.0, PI / 2.0)
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	elif event.is_action_pressed("throw_grenade"):
+		_grenade_ctrl.try_throw()
 
 
 func _physics_process(delta: float) -> void:
@@ -158,15 +173,24 @@ func _physics_process(delta: float) -> void:
 		var grav_mult: float = fall_gravity_mult if velocity.y < 0.0 else 1.0
 		velocity.y -= _gravity * gravity_scale * grav_mult * delta
 
-	# 2. Jump only when grounded.
-	if Input.is_action_just_pressed("jump") and on_floor_now:
-		velocity.y = jump_velocity
-		_jump_sfx.play()
+	# 2. Jump: grounded → normal jump; airborne + air jumps remaining → air jump.
+	if Input.is_action_just_pressed("jump"):
+		if on_floor_now:
+			velocity.y = jump_velocity
+			_jump_sfx.play()
+		elif _air_jumps_used < max_air_jumps:
+			velocity.y = air_jump_velocity
+			_air_jumps_used += 1
+			_jump_sfx.play()
 
-	# 3. Land detection: floor transition airborne → grounded.
+	# 3. Land detection: floor transition airborne → grounded; reset air-jump counter.
 	if on_floor_now and not _was_on_floor:
 		_land_sfx.play()
+		_air_jumps_used = 0
 
+	# Reset air-jump counter when leaving the floor without jumping (walked off ledge).
+	if _was_on_floor and not on_floor_now:
+		_air_jumps_used = 0
 	_was_on_floor = on_floor_now
 
 	# 4. ADS: hold aim to zoom; release to zoom back. Weapon state + FOV tween.
@@ -393,12 +417,14 @@ func collect_pickup(kind: Pickup.Kind, ammo_caliber: StringName = &"light") -> b
 
 ## Shove the player away from hitter_pos. Input locked for knockback_stun_duration seconds.
 ## Duck-typed seam — same signature as Enemy.apply_knockback (godot-composition rule).
-func apply_knockback(hitter_pos: Vector3) -> void:
+## speed_override: positive value overrides knockback_speed (boss impulse). -1.0 = use export.
+func apply_knockback(hitter_pos: Vector3, speed_override: float = -1.0) -> void:
 	var dir: Vector3 = global_position - hitter_pos
 	dir.y = 0.0
 	if dir.length_squared() < 0.0001:
 		dir = global_transform.basis.z
-	_kb_velocity = dir.normalized() * knockback_speed
+	var spd: float = knockback_speed if speed_override < 0.0 else speed_override
+	_kb_velocity = dir.normalized() * spd
 	_kb_stun_timer = knockback_stun_duration
 
 
@@ -414,7 +440,8 @@ func apply_damage(amount: int, type: DamageType.Kind = DamageType.Kind.PHYSICAL)
 		_health_comp.apply_damage(overflow, type)
 
 
-## Expose HealthComponent so WaveManager can wire health_changed → HUD without find_child.
+## Expose HealthComponent so callers (e.g. arena_hud) can wire
+## health_changed → HUD without find_child.
 func get_health_comp() -> HealthComponent:
 	return _health_comp
 
@@ -422,6 +449,20 @@ func get_health_comp() -> HealthComponent:
 ## Handles health pickup signal from WeaponController. Heals the HealthComponent directly.
 func _on_health_pickup_requested() -> void:
 	_health_comp.heal(heal_amount)
+
+
+## Apply a timed stat modifier. Called by BuffEffect (duck-typed seam).
+## Adds modifier to StatBlock and registers expiry through StatusReceiver.
+func apply_buff(modifier: StatModifier, duration: float) -> void:
+	_stats.add_modifier(modifier)
+	_status_receiver.add_status_buff(_stats, modifier.source, duration)
+
+
+## Routes stat_changed to concrete consumers. move_speed feeds the controller directly.
+func _on_stat_changed(stat: StringName, value: float) -> void:
+	match stat:
+		&"move_speed":
+			move_speed = value
 
 
 func _on_health_comp_died() -> void:

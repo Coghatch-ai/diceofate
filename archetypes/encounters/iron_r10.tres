@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="RoomEncounter" format=3 uid="uid://ct44dhgqyuuco"]
+
+[ext_resource type="Script" uid="uid://csxyq8dkp855m" path="res://tools/lib/encounter/room_encounter.gd" id="1_enc"]
+[ext_resource type="Script" uid="uid://doisaastbveeg" path="res://tools/lib/encounter/room_spawn.gd" id="2_spawn"]
+[ext_resource type="Resource" path="res://archetypes/grunt.tres" id="4_grunt"]
+[ext_resource type="Resource" path="res://archetypes/tank_magnet.tres" id="5_tank_magnet"]
+[ext_resource type="Resource" path="res://archetypes/immune_ice.tres" id="6_immune_ice"]
+[ext_resource type="Resource" path="res://archetypes/tank_shooter.tres" id="7_tank_shooter"]
+
+[sub_resource type="Resource" id="RoomSpawn_ir10a"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_grunt")
+spawn_marker_id = &"Spawn_R10_a"
+
+[sub_resource type="Resource" id="RoomSpawn_ir10b"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_grunt")
+spawn_marker_id = &"Spawn_R10_b"
+
+[sub_resource type="Resource" id="RoomSpawn_ir10c"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("5_tank_magnet")
+spawn_marker_id = &"Spawn_R10_c"
+
+[sub_resource type="Resource" id="RoomSpawn_ir10d"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("6_immune_ice")
+spawn_marker_id = &"Spawn_R10_d"
+
+[sub_resource type="Resource" id="RoomSpawn_ir10e"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("7_tank_shooter")
+spawn_marker_id = &"Spawn_R10_e"
+
+[resource]
+script = ExtResource("1_enc")
+id = &"iron_r10"
+spawns = Array[ExtResource("2_spawn")]([SubResource("RoomSpawn_ir10a"), SubResource("RoomSpawn_ir10b"), SubResource("RoomSpawn_ir10c"), SubResource("RoomSpawn_ir10d"), SubResource("RoomSpawn_ir10e")])
+hint_text = "Final gauntlet — boss door opens ahead."
+clear_advances = false

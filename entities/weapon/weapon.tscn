@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://weapon0001"]
 
-[ext_resource type="Script" path="res://entities/weapon/gun.gd" id="1"]
+[ext_resource type="Script" uid="uid://dx4fi7y0cj3vq" path="res://entities/weapon/gun.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://b11035icliyy" path="res://entities/projectile/projectile.tscn" id="2"]
 [ext_resource type="AudioStream" uid="uid://br88af7rl8n1e" path="res://assets/audio/pistol_shoot.wav" id="4"]
 [ext_resource type="PackedScene" uid="uid://ctxx6c3k2hf4j" path="res://assets/models/scifi_pistol.glb" id="4_ug0dp"]
@@ -8,8 +8,9 @@
 [ext_resource type="Script" uid="uid://bfuid10judeot" path="res://entities/weapon/sprint_sway.gd" id="7"]
 [ext_resource type="Script" uid="uid://c5jnxcakqy4un" path="res://entities/vfx/vfx_router.gd" id="8"]
 [ext_resource type="Script" uid="uid://b7jkqwspi6wkm" path="res://entities/vfx/decal_pool_router.gd" id="9"]
-[ext_resource type="Resource" path="res://entities/weapon/pistol_cast.tres" id="10"]
-[ext_resource type="Script" path="res://entities/player/components/bullet_ammo_tracker.gd" id="11"]
+[ext_resource type="Resource" uid="uid://d03n4vp5ks1qw" path="res://entities/weapon/pistol_cast.tres" id="10"]
+[ext_resource type="Script" uid="uid://02iib8daqtrh" path="res://entities/player/components/bullet_ammo_tracker.gd" id="11"]
+[ext_resource type="Script" uid="uid://cvfxb0wxi83rm" path="res://entities/vfx/acid_decal_router.gd" id="12"]
 
 [node name="Pistol" type="Node3D" unique_id=159509955]
 script = ExtResource("1")
@@ -29,6 +30,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, -0.12, -0.25)
 
 [node name="SprintSway" type="Node3D" parent="PistolViewModel" unique_id=724281585]
 editor_description = "Sprint pose + sine sway layer — children inherit this offset; tweens write PistolViewModel above"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12641199, 0)
 script = ExtResource("7")
 sprint_pose_pos = Vector3(0.08, -0.06, 0.02)
 sprint_pose_rot = Vector3(-5, 3, -8)
@@ -40,10 +42,11 @@ sway_vert_deg = 1.8
 transform = Transform3D(-0.0006737068, 0, 0.19999887, 0, 0.2, 0, -0.19999887, 0, -0.0006737068, 0, -0.040578924, 0)
 
 [node name="Muzzle" type="Marker3D" parent="PistolViewModel/SprintSway" unique_id=1849593988]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.10663472, 0.11851523, -0.3)
 
 [node name="MuzzleFlash" type="OmniLight3D" parent="PistolViewModel/SprintSway/Muzzle" unique_id=2079139950]
 editor_description = "Muzzle flash pulse — driven by weapon.gd _flash_pulse(); off by default"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.14443088, 0)
 visible = false
 light_color = Color(1, 0.7, 0.3, 1)
 light_energy = 4.0
@@ -65,3 +68,7 @@ script = ExtResource("8")
 [node name="DecalPoolRouter" type="Node" parent="." unique_id=2012659050]
 editor_description = "Routes vfx_impact/vfx_kill -> ScorchDecalPool. Pool found by name fallback."
 script = ExtResource("9")
+
+[node name="AcidDecalRouter" type="Node" parent="." unique_id=1142444159]
+editor_description = "Routes acid bullet vfx_element_impact/vfx_blast -> AcidCraterPool (cast_index 3 only)."
+script = ExtResource("12")

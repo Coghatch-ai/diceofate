@@ -8,17 +8,14 @@
 [ext_resource type="Resource" path="res://entities/weapon/stun_cast.tres" id="6"]
 [ext_resource type="Resource" path="res://entities/weapon/blast_cast.tres" id="7"]
 [ext_resource type="Resource" path="res://entities/weapon/rapid_cast.tres" id="8"]
+[ext_resource type="Resource" path="res://entities/weapon/rifle_data.tres" id="9"]
 
 [node name="Rifle" unique_id=1379512622 instance=ExtResource("1")]
-editor_description = "Rifle — faster fire rate (0.08), larger mag (30), longer reload (2.0). Q/E/R/T/Y select bullet cast; default Q=pistol_cast (light)."
+editor_description = "Rifle — feel/firing tunables sourced from rifle_data.tres (WeaponData). Q/E/R/T/Y select bullet cast; default Q=pistol_cast (light)."
 view_model_path = NodePath("RifleViewModel")
+weapon_data = ExtResource("9")
 cast_data = ExtResource("4")
 bullet_casts = [ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8")]
-fire_rate = 0.08
-spread_hip = 4.0
-spread_ads = 0.6
-recoil_pitch = 0.06
-recoil_yaw = 0.025
 
 [node name="RifleViewModel" type="Node3D" parent="." index="8" unique_id=766161475]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, -0.12, -0.25)

@@ -79,6 +79,12 @@ func add_status_shock(duration: float) -> void:
 		shock_started.emit()
 
 
+## Register a timed buff expiry. On timer end calls stat_block.remove_all_from_source(source).
+func add_status_buff(stat_block: StatBlock, source: StringName, duration: float) -> void:
+	var timer: SceneTreeTimer = get_tree().create_timer(duration)
+	timer.timeout.connect(stat_block.remove_all_from_source.bind(source))
+
+
 # ── Tick helpers ──────────────────────────────────────────────────────────────
 
 

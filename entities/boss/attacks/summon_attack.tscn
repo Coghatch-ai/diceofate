@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://entities/boss/attacks/summon_attack.gd" id="1_summon"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="2_enemy"]
+[ext_resource type="Resource" path="res://archetypes/grunt.tres" id="3_grunt"]
+
+[node name="SummonAttack" type="Node"]
+script = ExtResource("1_summon")
+enemy_scene = ExtResource("2_enemy")
+add_archetype = ExtResource("3_grunt")
+spawn_count = 2
+spawn_radius = 3.5
+cooldown = 8.0
+max_concurrent_adds = 4
+editor_description = "BossAttack: spawns a small wave of grunt adds around the boss. Data-driven via @export fields."

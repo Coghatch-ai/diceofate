@@ -23,6 +23,14 @@ const _FX_ELEMENT: Array[PackedScene] = [
 	preload("res://entities/vfx/impact_poison.tscn"),
 	preload("res://entities/vfx/impact_kinetic.tscn"),
 ]
+## Per-element muzzle scenes — warmup only. Runtime muzzle is driven by CastData.muzzle_vfx_scene.
+const _FX_MUZZLE_ELEMENT: Array[PackedScene] = [
+	preload("res://entities/vfx/muzzle_electric.tscn"),
+	preload("res://entities/vfx/muzzle_fire.tscn"),
+	preload("res://entities/vfx/muzzle_ice.tscn"),
+	preload("res://entities/vfx/muzzle_poison.tscn"),
+	preload("res://entities/vfx/muzzle_kinetic.tscn"),
+]
 
 ## Warmup position: far off-screen so compiled-shader warmup instances are invisible.
 const _WARMUP_POS := Vector3(0.0, -9999.0, 0.0)
@@ -50,7 +58,13 @@ func _ready() -> void:
 	weapon.vfx_blast.connect(_on_blast)
 	weapon.vfx_element_impact.connect(_on_element_impact)
 	# Cache the Muzzle marker once — avoids find_child() tree walk on every fired signal.
-	var found: Node = weapon.find_child("Muzzle", true, false)
+	# MUST search under weapon.view_model_path, not weapon-wide: a multi-ViewModel scene
+	# (e.g. Rifle inheriting weapon.tscn) has one Muzzle per ViewModel; find_child() returns
+	# the FIRST one in depth-first order (the hidden PistolViewModel's Muzzle), causing all
+	# muzzle VFX to spawn at the wrong position. Search under the active view model instead.
+	var vm_node: Node = weapon.get_node_or_null(weapon.view_model_path)
+	var muzzle_search_root: Node = vm_node if vm_node != null else weapon
+	var found: Node = muzzle_search_root.find_child("Muzzle", true, false)
 	if found is Marker3D:
 		_muzzle_cache = found as Marker3D
 	# Warmup: spawn each effect once off-screen so Forward+ compiles their shader variants
@@ -60,10 +74,16 @@ func _ready() -> void:
 
 
 ## Called on weapon.fired — spawn muzzle spark at Muzzle world position.
+## Uses per-cast muzzle_vfx_scene from active CastData if set; falls back to generic.
 func _on_fired() -> void:
 	if _muzzle_cache == null:
 		return
-	_spawn_vfx(_FX_MUZZLE, _muzzle_cache.global_transform)
+	var weapon: Gun = get_parent() as Gun
+	var per_cast_muzzle: PackedScene
+	if weapon != null and weapon.cast_data != null:
+		per_cast_muzzle = weapon.cast_data.muzzle_vfx_scene
+	var muzzle_scene: PackedScene = per_cast_muzzle if per_cast_muzzle != null else _FX_MUZZLE
+	_spawn_vfx(muzzle_scene, _muzzle_cache.global_transform)
 
 
 ## Called on weapon.vfx_impact — generic impact burst at hit world position (wall/generic).
@@ -149,6 +169,11 @@ func _warmup_vfx() -> void:
 		_FX_ELEMENT[2],
 		_FX_ELEMENT[3],
 		_FX_ELEMENT[4],
+		_FX_MUZZLE_ELEMENT[0],
+		_FX_MUZZLE_ELEMENT[1],
+		_FX_MUZZLE_ELEMENT[2],
+		_FX_MUZZLE_ELEMENT[3],
+		_FX_MUZZLE_ELEMENT[4],
 	]:
 		var fx: Node3D = scene.instantiate() as Node3D
 		root.add_child(fx, true)

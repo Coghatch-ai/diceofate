@@ -45,6 +45,8 @@ gdscript/warnings/assert_always_true=2
 gdscript/warnings/assert_always_false=2
 gdscript/warnings/integer_division=2
 gdscript/warnings/confusable_identifier=2
+enemy_trace=false
+enemy_auto_kill=false
 
 [display]
 
@@ -54,6 +56,10 @@ window/size/mode=2
 window/size/window_width_override=1920
 window/size/window_height_override=1080
 window/stretch/scale_mode="integer"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/raytraced_audio/plugin.cfg")
 
 [input]
 
@@ -146,6 +152,11 @@ aim={
 "events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":0,"position":Vector2(0, 0),"global_position":Vector2(0, 0),"factor":1.0,"button_index":2,"canceled":false,"pressed":false,"double_click":false,"script":null)
 ]
 }
+throw_grenade={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":71,"key_label":0,"unicode":103,"location":0,"echo":false,"script":null)
+]
+}
 
 [layer_names]
 
@@ -153,6 +164,15 @@ aim={
 3d_physics/layer_2="player"
 3d_physics/layer_3="projectile"
 3d_physics/layer_4="target"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[raytraced_audio]
+
+ambient_bus="RaytracedAmbient"
+reverb_bus="RaytracedReverb"
 
 [rendering]
 

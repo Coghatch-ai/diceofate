@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("1_archetype")
+id = &"tank_shooter"
 display_name = "Tank-Shooter"
 tint_color = Color(0.36, 0.28, 0.52, 1)
 max_health = 3
@@ -16,4 +17,8 @@ escape_range = 16.0
 attack_cooldown = 1.6
 score_value = 7
 touch_damage = 25
+hit_flash_color = Color(0.9, 0.05, 0.5, 1)
+hit_flash_duration = 0.14
+hitstop_seconds = 0.08
+push_strength = 9.0
 behaviours = [ExtResource("2_shooter")]

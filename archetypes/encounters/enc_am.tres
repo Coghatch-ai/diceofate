@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RoomEncounter" load_steps=6 format=3]
+
+[ext_resource type="Script" uid="uid://csxyq8dkp855m" path="res://tools/lib/encounter/room_encounter.gd" id="1_enc"]
+[ext_resource type="Script" uid="uid://doisaastbveeg" path="res://tools/lib/encounter/room_spawn.gd" id="2_spawn"]
+[ext_resource type="Script" uid="uid://chpik0xplfk1w" path="res://tools/lib/enemy/enemy_archetype.gd" id="3_arch"]
+[ext_resource type="Resource" path="res://archetypes/immune_kinetic.tres" id="4_immune_kin"]
+[ext_resource type="Resource" path="res://archetypes/immune_fire.tres" id="5_immune_fire"]
+
+[sub_resource type="Resource" id="RoomSpawn_am1"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_immune_kin")
+spawn_marker_id = &"SpawnAM1"
+
+[sub_resource type="Resource" id="RoomSpawn_am2"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("5_immune_fire")
+spawn_marker_id = &"SpawnAM2"
+
+[resource]
+script = ExtResource("1_enc")
+id = &"am"
+spawns = [SubResource("RoomSpawn_am1"), SubResource("RoomSpawn_am2")]
+hint_text = "Plain bullets do nothing — use elements"
+clear_advances = true

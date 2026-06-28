@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RecoilProfile" format=3 uid="uid://b68paiet2pqn6"]
+
+[ext_resource type="Script" uid="uid://bh2md0o51wci0" path="res://tools/lib/recoil/recoil_profile.gd" id="1"]
+
+[sub_resource type="Curve" id="Curve_blast_pitch"]
+_data = [Vector2(0, 2), 0.0, -0.5, 0, 0, Vector2(1, 1.8), -0.5, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Curve" id="Curve_blast_yaw"]
+_data = [Vector2(0, 0.5), 0.0, 0.0, 0, 0, Vector2(1, 0.5), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[resource]
+script = ExtResource("1")
+pitch_curve = SubResource("Curve_blast_pitch")
+pitch_amplitude = 0.16
+yaw_curve = SubResource("Curve_blast_yaw")
+yaw_amplitude = 0.025
+yaw_random = 0.6
+shots_to_plateau = 3

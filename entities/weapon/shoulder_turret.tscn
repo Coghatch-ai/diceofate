@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://ma2py6g3a8km"]
+
+[ext_resource type="PackedScene" uid="uid://weapon0001" path="res://entities/weapon/weapon.tscn" id="1"]
+[ext_resource type="Script" uid="uid://b20rliadmhotx" path="res://entities/weapon/turret_controller.gd" id="3"]
+[ext_resource type="Resource" path="res://archetypes/turret_acquisition.tres" id="4"]
+[ext_resource type="PackedScene" uid="uid://bciaf6pn0l403" path="res://x-shared-assets/models/scouter-eye-glass-frame.glb" id="5"]
+[ext_resource type="Resource" path="res://entities/weapon/turret_cast.tres" id="6"]
+
+[node name="ShoulderTurret" unique_id=900000001 instance=ExtResource("1")]
+editor_description = "Rotate-to-aim shoulder turret — 360° acquire, smooth pivot rotation, fire-when-aligned. Additive: does not replace/hide the player rifle."
+cast_data = ExtResource("6")
+view_model_path = NodePath("TurretPivot/TurretViewModel")
+spread_hip = 0.0
+spread_ads = 0.0
+recoil_pitch = 0.0
+recoil_yaw = 0.0
+
+[node name="PistolViewModel" parent="." index="2" unique_id=1816964481]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0035620257, 0.065748, -0.16881222)
+
+[node name="SprintSway" parent="PistolViewModel" index="0" unique_id=724281585]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.008934796)
+
+[node name="SciPistol" parent="PistolViewModel/SprintSway" index="0" unique_id=306263595]
+transform = Transform3D(0.011554615, 0, 0.19966598, 0, 0.2, 0, -0.19966598, 0, 0.011554615, 0.006492339, 0.0073259994, -0.0056971908)
+
+[node name="Muzzle" parent="PistolViewModel/SprintSway" index="1" unique_id=1849593988]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.06433667, -0.18269429)
+
+[node name="MuzzleFlash" parent="PistolViewModel/SprintSway/Muzzle" index="0" unique_id=2079139950]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.010922477, 0.07497345, 0.43574983)
+
+[node name="TurretPivot" type="Node3D" parent="." index="8" unique_id=900000006]
+editor_description = "Rotated each cycle to face the acquired target via Basis.looking_at at runtime."
+
+[node name="TurretMesh" type="Node3D" parent="TurretPivot" index="0" unique_id=899173730]
+editor_description = "Placeholder visual — procedural GLB (housing+barrel). Rotates with TurretPivot. Swap child instance for sourced .glb when available."
+
+[node name="ShoulderTurretModel" parent="TurretPivot/TurretMesh" index="0" unique_id=171582426 instance=ExtResource("5")]
+transform = Transform3D(-0.02870337, -3.314019e-10, 0.0039353776, 0.0001951222, 0.03550404, 0.0025991446, -0.0029055004, 0.0023843176, -0.038702954, 0, 0, 0.038750887)
+
+[node name="TurretViewModel" type="Node3D" parent="TurretPivot" index="1" unique_id=900000002]
+editor_description = "Minimal view-model: Gun._ready() finds Muzzle as direct child (no SprintSway script -> muzzle_root = this node). Child of TurretPivot so it rotates with aim."
+
+[node name="Muzzle" type="Marker3D" parent="TurretPivot/TurretViewModel" index="0" unique_id=900000004]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.028700002, 0.073766574, -0.15197778)
+
+[node name="MuzzleFlash" type="OmniLight3D" parent="TurretPivot/TurretViewModel/Muzzle" index="0" unique_id=900000005]
+editor_description = "Muzzle flash pulse — driven by gun.gd _flash_pulse(); off by default."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.012823403, 0.08266777, 0.2483677)
+visible = false
+light_color = Color(1, 0.85, 0.1, 1)
+light_energy = 4.0
+omni_range = 1.0
+
+[node name="TurretController" type="Node" parent="." index="9" unique_id=900000007]
+editor_description = "Rotate-to-aim auto-turret: 360 acquire, smooth pivot slerp, fire-when-aligned. gun/muzzle/pivot wired in player.gd _ready()."
+script = ExtResource("3")
+acquisition_cfg = ExtResource("4")

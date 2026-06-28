@@ -2,10 +2,17 @@
 
 [ext_resource type="Script" uid="uid://bh5pypvfo12ut" path="res://main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://entities/vfx/scorch_pool.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://entities/vfx/acid_crater_pool.tscn" id="9"]
 [ext_resource type="Script" path="res://entities/hud/crosshair.gd" id="3"]
 [ext_resource type="Script" path="res://entities/hud/arena_hud.gd" id="4"]
 [ext_resource type="Script" path="res://entities/hud/controls_hud.gd" id="5"]
 [ext_resource type="Shader" path="res://shaders/post/post_process.gdshader" id="7"]
+[ext_resource type="PackedScene" path="res://entities/hud/vignette.tscn" id="8"]
+[ext_resource type="Script" path="res://entities/hud/radar_minimap.gd" id="10"]
+[ext_resource type="Resource" path="res://entities/hud/minimap_config_default.tres" id="11"]
+[ext_resource type="Script" path="res://entities/hud/render_view_panel.gd" id="12"]
+[ext_resource type="Resource" path="res://entities/hud/scouter_view_config.tres" id="14"]
+[ext_resource type="Theme" path="res://resources/hud_theme.tres" id="15"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_post"]
 shader = ExtResource("7")
@@ -18,6 +25,7 @@ size = Vector2(2, 2)
 
 [node name="Main" type="Node" unique_id=1756503177]
 script = ExtResource("1")
+initial_level = "res://levels/iron_floor.tscn"
 
 [node name="VfxRoot" type="Node3D" parent="."]
 editor_description = "Surviving parent for one-shot VFX nodes — outlives LevelHost level swaps."
@@ -25,8 +33,14 @@ editor_description = "Surviving parent for one-shot VFX nodes — outlives Level
 [node name="ScorchPool" parent="VfxRoot" instance=ExtResource("6")]
 editor_description = "Round-robin pool of 8 Decal nodes for impact/death scorches."
 
+[node name="AcidCraterPool" parent="VfxRoot" instance=ExtResource("9")]
+editor_description = "Round-robin acid crater Decal pool — spawned by AcidDecalRouter on acid bullet impact."
+
 [node name="LevelHost" type="Node" parent="." unique_id=96008215]
 unique_name_in_owner = true
+
+[node name="VignetteLayer" parent="." instance=ExtResource("8")]
+editor_description = "Movement vignette — layer 9, below HUD."
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 10
@@ -55,6 +69,7 @@ offset_top = 0.0
 offset_right = 0.0
 offset_bottom = 0.0
 mouse_filter = 2
+theme = ExtResource("15")
 script = ExtResource("4")
 
 [node name="TopCenter" type="VBoxContainer" parent="HUD/ArenaHud"]
@@ -64,10 +79,10 @@ anchor_right = 0.5
 anchor_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 1
-offset_left = -120.0
+offset_left = -200.0
 offset_top = 8.0
-offset_right = 120.0
-offset_bottom = 56.0
+offset_right = 200.0
+offset_bottom = 110.0
 alignment = 0
 editor_description = "Top-center: score + enemy count."
 
@@ -87,14 +102,14 @@ anchor_bottom = 1.0
 grow_horizontal = 1
 grow_vertical = 0
 offset_left = 8.0
-offset_top = -84.0
-offset_right = 200.0
+offset_top = -160.0
+offset_right = 320.0
 offset_bottom = -8.0
 alignment = 2
 editor_description = "Bottom-left: HP bar + stamina bar."
 
 [node name="HpRow" type="HBoxContainer" parent="HUD/ArenaHud/BottomLeft"]
-custom_minimum_size = Vector2(0, 14)
+custom_minimum_size = Vector2(0, 36)
 editor_description = "Label + bar track for player HP."
 
 [node name="HpLabel" type="Label" parent="HUD/ArenaHud/BottomLeft/HpRow"]
@@ -102,7 +117,7 @@ text = "HP"
 vertical_alignment = 1
 
 [node name="HpBar" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/HpRow"]
-custom_minimum_size = Vector2(120, 10)
+custom_minimum_size = Vector2(160, 14)
 size_flags_horizontal = 3
 size_flags_vertical = 4
 color = Color(0.2, 0.2, 0.2, 0.8)
@@ -115,7 +130,7 @@ color = Color(0.85, 0.1, 0.1, 1.0)
 editor_description = "Red fill; width driven by set_health()."
 
 [node name="StaminaRow" type="HBoxContainer" parent="HUD/ArenaHud/BottomLeft"]
-custom_minimum_size = Vector2(0, 14)
+custom_minimum_size = Vector2(0, 36)
 editor_description = "Label + bar track for stamina."
 
 [node name="StaminaLabel" type="Label" parent="HUD/ArenaHud/BottomLeft/StaminaRow"]
@@ -123,7 +138,7 @@ text = "STA"
 vertical_alignment = 1
 
 [node name="StaminaBar" type="ColorRect" parent="HUD/ArenaHud/BottomLeft/StaminaRow"]
-custom_minimum_size = Vector2(120, 10)
+custom_minimum_size = Vector2(160, 14)
 size_flags_horizontal = 3
 size_flags_vertical = 4
 color = Color(0.2, 0.2, 0.2, 0.8)
@@ -142,10 +157,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 0
 grow_vertical = 0
-offset_left = -290.0
-offset_top = -80.0
-offset_right = -8.0
-offset_bottom = -8.0
+offset_left = -690.0
+offset_top = -245.0
+offset_right = -58.0
+offset_bottom = -68.0
 editor_description = "Bottom-right: 5-slot bullet hotbar (built at runtime by ArenaHud._build_hotbar_slots)."
 
 [node name="BulletHotbar" type="HBoxContainer" parent="HUD/ArenaHud/BottomRight"]
@@ -156,6 +171,31 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 2
 theme_override_constants/separation = 4
+
+[node name="RadarMinimap" type="Control" parent="HUD/ArenaHud"]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+grow_horizontal = 0
+grow_vertical = 1
+offset_left = -188.0
+offset_top = 8.0
+offset_right = -28.0
+offset_bottom = 168.0
+mouse_filter = 2
+script = ExtResource("10")
+config = ExtResource("11")
+editor_description = "Circular enemy radar — player at centre, blips rotate by player yaw."
+
+[node name="ScouterView" type="Control" parent="HUD/ArenaHud"]
+unique_name_in_owner = true
+z_index = 50
+mouse_filter = 2
+script = ExtResource("12")
+config = ExtResource("14")
+editor_description = "Scouter panel — green-tinted RTT, centered on screen. Positioned by _center_on_parent() deferred."
 
 [node name="ResultPanel" type="Panel" parent="HUD/ArenaHud"]
 anchors_preset = 15

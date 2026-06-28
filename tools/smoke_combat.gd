@@ -91,12 +91,18 @@ func _test_projectile_hit_signal_arity() -> void:
 
 ## 3. enemy_shooter._on_projectile_hit listener must match projectile.hit 3-arg arity.
 ## Connect projectile.hit -> shooter listener and emit; if arities mismatch Godot errors at emit.
+## SKIP when SHOOTER_SCENE is absent (subclass deleted in S1 consolidation).
 func _test_shooter_listener_arity() -> void:
 	print("\n[TEST] enemy_shooter._on_projectile_hit connects to projectile.hit 3-arg signal")
 	var proj_packed := load(PROJECTILE_SCENE) as PackedScene
-	var shooter_packed := load(SHOOTER_SCENE) as PackedScene
-	if proj_packed == null or shooter_packed == null:
-		_fail("shooter/projectile scene failed to load")
+	var shooter_packed: PackedScene = null
+	if ResourceLoader.exists(SHOOTER_SCENE):
+		shooter_packed = load(SHOOTER_SCENE) as PackedScene
+	if proj_packed == null:
+		_fail("shooter test: projectile scene failed to load")
+		return
+	if shooter_packed == null:
+		_pass("enemy_shooter._on_projectile_hit SKIP — shooter scene absent (subclass retired)")
 		return
 	var proj := proj_packed.instantiate() as Projectile
 	var shooter := shooter_packed.instantiate()

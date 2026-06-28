@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="RoomEncounter" format=3 uid="uid://im3b5t0a621y"]
+
+[ext_resource type="Script" uid="uid://csxyq8dkp855m" path="res://tools/lib/encounter/room_encounter.gd" id="1_enc"]
+[ext_resource type="Script" uid="uid://doisaastbveeg" path="res://tools/lib/encounter/room_spawn.gd" id="2_spawn"]
+[ext_resource type="Resource" uid="uid://bo0rgrt1r6fxs" path="res://archetypes/immune_fire.tres" id="4_immune_fire"]
+
+[sub_resource type="Resource" id="RoomSpawn_ir3a"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_immune_fire")
+spawn_marker_id = &"Spawn_R3_a"
+
+[sub_resource type="Resource" id="RoomSpawn_ir3b"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_immune_fire")
+spawn_marker_id = &"Spawn_R3_b"
+
+[sub_resource type="Resource" id="RoomSpawn_ir3c"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_immune_fire")
+spawn_marker_id = &"Spawn_R3_c"
+
+[resource]
+script = ExtResource("1_enc")
+id = &"iron_r3"
+spawns = Array[ExtResource("2_spawn")]([SubResource("RoomSpawn_ir3a"), SubResource("RoomSpawn_ir3b"), SubResource("RoomSpawn_ir3c")])
+hint_text = "Fire won't hurt these — switch ammo type."

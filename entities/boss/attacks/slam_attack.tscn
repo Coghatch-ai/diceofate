@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/boss/attacks/slam_attack.gd" id="1_slam"]
+
+[node name="SlamAttack" type="Node"]
+script = ExtResource("1_slam")
+editor_description = "BossAttack: inner wind-up telegraph + instant AoE damage + VFX ring. Reads data from bound Boss.data."

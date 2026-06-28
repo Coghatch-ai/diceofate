@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="RoomEncounter" format=3 uid="uid://d16o0myfu2ey5"]
+
+[ext_resource type="Script" uid="uid://csxyq8dkp855m" path="res://tools/lib/encounter/room_encounter.gd" id="1_enc"]
+[ext_resource type="Script" uid="uid://doisaastbveeg" path="res://tools/lib/encounter/room_spawn.gd" id="2_spawn"]
+[ext_resource type="Resource" path="res://archetypes/grunt.tres" id="4_grunt"]
+
+[sub_resource type="Resource" id="RoomSpawn_ir2a"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_grunt")
+spawn_marker_id = &"Spawn_R2_a"
+
+[sub_resource type="Resource" id="RoomSpawn_ir2b"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_grunt")
+spawn_marker_id = &"Spawn_R2_b"
+
+[sub_resource type="Resource" id="RoomSpawn_ir2c"]
+script = ExtResource("2_spawn")
+archetype = ExtResource("4_grunt")
+spawn_marker_id = &"Spawn_R2_c"
+
+[resource]
+script = ExtResource("1_enc")
+id = &"iron_r2"
+spawns = Array[ExtResource("2_spawn")]([SubResource("RoomSpawn_ir2a"), SubResource("RoomSpawn_ir2b"), SubResource("RoomSpawn_ir2c")])
+hint_text = "Shoot to clear the room."

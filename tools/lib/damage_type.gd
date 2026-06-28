@@ -9,4 +9,5 @@ enum Kind {
 	ICE = 2,
 	ELECTRIC = 3,
 	POISON = 4,
+	ACID = 5,
 }

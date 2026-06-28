@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://cc1ipovlfijnb"]
+
+[ext_resource type="Script" uid="uid://v5w8adr5jhvj" path="res://tools/lib/weapon/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+fire_rate = 0.08
+spread_hip = 4.0
+spread_ads = 0.6
+recoil_pitch = 0.06
+recoil_yaw = 0.025

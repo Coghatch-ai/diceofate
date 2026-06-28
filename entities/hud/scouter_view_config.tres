@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MirrorViewConfig" format=3 uid="uid://wnptboi0yexy"]
+
+[ext_resource type="Script" uid="uid://bp76niluu1fur" path="res://entities/hud/mirror_view_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+render_size = Vector2i(240, 135)
+camera_yaw_offset = 145.0
+camera_pitch_offset = -8.0
+flip_horizontal = false
+panel_size = Vector2(300, 120)
+anchor_preset = 1
+panel_offset = Vector2(-300, 600)
+tint_color = Color(0, 1, 0.2, 0.92)

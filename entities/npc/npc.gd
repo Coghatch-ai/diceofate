@@ -1,4 +1,4 @@
-# entities/npc/npc.gd — rescuable civilian NPC; rewards or penalises via WaveManager.
+# entities/npc/npc.gd — rescuable civilian NPC; rewards or penalises via RoomController.
 class_name Npc
 extends StaticBody3D
 
@@ -7,9 +7,6 @@ signal died(npc: Npc)
 ## Emitted on the saved (+1 life) branch only — used by NpcVfx for the halo effect.
 signal rescued(npc: Npc)
 
-## WaveManager injected by the level root in _ready() (same DI pattern as FiringYard).
-## Kept for injection but no longer used for lives — NPC death/rescue route HP directly.
-@export var wave_manager: WaveManager
 ## HP damage dealt to the player when this NPC is killed. Default matches touch_damage (25).
 @export_range(1, 100, 1) var kill_penalty: int = 25
 ## HP healed to the player when this NPC is rescued.

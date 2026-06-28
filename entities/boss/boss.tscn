@@ -1,0 +1,63 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://entities/boss/boss.gd" id="1_boss"]
+[ext_resource type="Script" path="res://tools/lib/health_component.gd" id="2_hc"]
+[ext_resource type="AudioStream" path="res://assets/audio/enemy_death.wav" id="3_death"]
+[ext_resource type="Script" path="res://entities/boss/boss_visual.gd" id="4_bv"]
+[ext_resource type="PackedScene" path="res://entities/vfx/boss_explode_burst.tscn" id="5_burst"]
+[ext_resource type="PackedScene" path="res://entities/vfx/boss_explode_shockwave.tscn" id="6_shock"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_body"]
+radius = 1.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_body"]
+radius = 1.0
+height = 2.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.55, 0.08, 0.08, 1.0)
+emission_enabled = true
+emission = Color(0.4, 0.05, 0.05, 1.0)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_slam"]
+radius = 0.8
+
+[node name="Boss" type="CharacterBody3D"]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_boss")
+
+[node name="Mesh" type="Node3D" parent="."]
+position = Vector3(0, 1.2, 0)
+
+[node name="Body" type="MeshInstance3D" parent="Mesh"]
+mesh = SubResource("SphereMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+cast_shadow = 0
+editor_description = "Slime-like sphere placeholder — swap for sourced GLB."
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.2, 0)
+shape = SubResource("SphereShape3D_body")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_hc")
+max_health = 20
+
+[node name="DeathSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_death")
+bus = &"SFX"
+editor_description = "Reparented to scene root on death so tail survives queue_free."
+
+[node name="Attacks" type="Node" parent="."]
+editor_description = "BossAttack component children instanced here at runtime from BossData.attacks."
+
+[node name="BossVisual" type="Node" parent="."]
+script = ExtResource("4_bv")
+mesh_root_path = NodePath("../Mesh")
+burst_scene = ExtResource("5_burst")
+editor_description = "Slice-2 visual: connects color_changed + died, swaps material, runs tell tween, spawns tinted burst."
+
+[connection signal="color_changed" from="." to="BossVisual" method="on_color_changed"]
+[connection signal="died" from="." to="BossVisual" method="on_boss_died"]

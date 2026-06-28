@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="BossData" format=3 uid="uid://dngwk2htfq44u"]
+
+[ext_resource type="Script" uid="uid://bbqf62fmwibhg" path="res://tools/lib/enemy/boss_data.gd" id="1_bd"]
+[ext_resource type="Script" uid="uid://cc21ajxfcehxk" path="res://tools/lib/enemy/boss_color_phase.gd" id="2_bcp"]
+[ext_resource type="PackedScene" path="res://entities/vfx/boss_explode_shockwave.tscn" id="3_shock"]
+[ext_resource type="PackedScene" path="res://entities/vfx/boss_explode_burst.tscn" id="4_burst"]
+[ext_resource type="PackedScene" path="res://entities/boss/attacks/charge_attack.tscn" id="5_charge"]
+[ext_resource type="PackedScene" path="res://entities/boss/attacks/slam_attack.tscn" id="6_slam"]
+
+[sub_resource type="Resource" id="BossColorPhase_fire"]
+script = ExtResource("2_bcp")
+body_scale = 1.5
+emission = Color(1, 0.1, 0, 1)
+
+[sub_resource type="Resource" id="BossColorPhase_ice"]
+script = ExtResource("2_bcp")
+damage_type = 2
+body_scale = 2.5
+albedo = Color(0.1, 0.55, 1, 1)
+emission = Color(0, 0.3, 0.9, 1)
+
+[resource]
+script = ExtResource("1_bd")
+display_name = "Slime Boss"
+tint_color = Color(0.1, 0.7, 0.2, 1)
+max_health = 40
+score_value = 200
+body_scale = 1.5
+move_speed = 1.5
+telegraph_drift_speed = 2.0
+escape_range = 50.0
+idle_duration = 1.0
+telegraph_duration = 1.0
+recover_duration = 1.0
+charge_speed = 14.0
+charge_duration = 0.6
+charge_damage = 10
+knockback_impulse = 20.5
+volley_count = 3
+volley_spread_deg = 25.0
+volley_shot_interval = 0.2
+slam_radius = 5.0
+slam_damage = 20
+slam_vfx_scene = ExtResource("3_shock")
+phase2_hp_fraction = 0.0
+phase2_cadence_mult = 0.7
+color_phases = Array[ExtResource("2_bcp")]([SubResource("BossColorPhase_fire"), SubResource("BossColorPhase_ice")])
+color_cycle_interval = 4.0
+attacks = Array[PackedScene]([ExtResource("5_charge"), ExtResource("6_slam")])
+explode_radius = 8.0
+explode_damage = 50
+explode_knockback = 16.0
+explode_vfx_scene = ExtResource("3_shock")
+explode_burst_scene = ExtResource("4_burst")

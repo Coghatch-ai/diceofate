@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/hud/vignette.gd" id="1"]
+[ext_resource type="Shader" path="res://shaders/post/vignette.gdshader" id="2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMat_vignette"]
+shader = ExtResource("2")
+shader_parameter/intensity = 0.0
+shader_parameter/inner_radius = 0.35
+shader_parameter/outer_radius = 0.85
+shader_parameter/max_darkness = 0.55
+
+[node name="VignetteLayer" type="CanvasLayer"]
+layer = 9
+editor_description = "Movement vignette — renders below HUD (layer 10), above 3D world."
+
+[node name="VignetteRect" type="ColorRect" parent="."]
+editor_description = "Full-screen rect; vignette.gdshader darkens edges proportional to player speed."
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+material = SubResource("ShaderMat_vignette")
+script = ExtResource("1")

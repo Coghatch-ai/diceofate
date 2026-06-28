@@ -186,6 +186,92 @@ func play(stream: AudioStream, pitch_scale: float = 1.0) -> void:
 	player.play()
 ```
 
+### 5b. Voice-cap a sound against spiking (suppress the Nth simultaneous copy)
+
+`max_polyphony` lets overlapping shots **layer** — it does NOT suppress the Nth copy when
+dozens of the same SFX collide in one frame (a wave of enemies all dying together, a shotgun
+hitting multiple bodies). Layering N copies at once pushes the sum over 0 dBFS → distortion /
+clipping that `max_polyphony` cannot fix. Fix: track an **active count** per sound id, suppress
+the `play()` call when count ≥ cap, decrement on `finished`.
+
+This is a per-entity component, no autoload. Add a `Node` child — `VoiceLimiter` — to the
+entity that owns the `AudioStreamPlayer`(s):
+
+```gdscript
+# entities/weapon/voice_limiter/voice_limiter.gd
+# Per-entity voice cap — suppresses the Nth simultaneous play() of the same sound id.
+class_name VoiceLimiter
+extends Node
+
+@export var max_voices: int = 4  # default cap; override per-entity in the Inspector
+
+## Active-count map: sound id (StringName) → how many copies are currently playing.
+var _active: Dictionary[StringName, int] = {}
+
+
+## Try to play `stream` identified by `id` through `player`.
+## Returns false and plays nothing if the active count is already at cap.
+## Optionally randomises pitch in [min_pitch, max_pitch] for variation.
+func try_play(
+    id: StringName,
+    player: AudioStreamPlayer,
+    stream: AudioStream,
+    min_pitch: float = 1.0,
+    max_pitch: float = 1.0,
+) -> bool:
+    var count: int = _active.get(id, 0)
+    if count >= max_voices:
+        return false
+    _active[id] = count + 1
+    player.stream = stream
+    player.pitch_scale = randf_range(min_pitch, max_pitch)
+    # Decrement on finish — CONNECT_ONE_SHOT so the callable fires once then auto-disconnects.
+    # Guard with is_connected in case the same player is reused before the signal fires.
+    var callable := _decrement.bind(id)
+    if not player.finished.is_connected(callable):
+        player.finished.connect(callable, CONNECT_ONE_SHOT)
+    player.play()
+    return true
+
+
+func _decrement(id: StringName) -> void:
+    _active[id] = maxi(0, _active.get(id, 0) - 1)
+```
+
+Wire it at the seam where the sound fires — replace a bare `player.play()` call with
+`_voice_limiter.try_play(...)`:
+
+```gdscript
+# entities/weapon/weapon.gd
+@onready var _fire_sfx: AudioStreamPlayer = $FireSfx
+@onready var _voice_limiter: VoiceLimiter = $VoiceLimiter
+
+
+func try_fire() -> bool:
+    if not _cooldown.is_stopped():
+        return false
+    _fire()
+    # id = stable StringName matching the sound; pitch drifts ±5 % for variety.
+    _voice_limiter.try_play(&"weapon_fire", _fire_sfx, _fire_sfx.stream, 0.95, 1.05)
+    _cooldown.start()
+    return true
+```
+
+Key points:
+
+- `Dictionary[StringName, int]` typed dict — strict GDScript compliant.
+- `CONNECT_ONE_SHOT` fires the decrement once and removes itself — no manual disconnect, no
+  "Signal already connected" risk on the next `try_play` for the same `id`.
+- `randf_range(min_pitch, max_pitch)` — pass equal values (both `1.0`) for no pitch drift; widen
+  the range (e.g. `0.9`–`1.1`) on repetitive gen_sfx placeholders to reduce robotic repeat.
+- Cap is an `@export var max_voices: int` — set per-entity in the Inspector, no hardcoded magic
+  number.
+- This lives **alongside** the round-robin pool from step 5: pool = no instancing churn (reuses
+  N players); voice-cap = suppress the spike (stops N copies of one sound from stacking). Both
+  can coexist on the same entity. Pool is optional; voice-cap is the anti-spike fix.
+- For a `AudioStreamPlayer3D` spatial source, same pattern — swap the type in the `try_play`
+  signature (or add an overload); the count/decrement logic is identical.
+
 ### 6. Validate and verify
 
 Run `tools/validate.sh` on any `.gd` touched. Run `godot-verify` — scenes load + render, no "stream not found"/import errors.
@@ -210,6 +296,7 @@ Run `tools/validate.sh` on any `.gd` touched. Run `godot-verify` — scenes load
 | Plays but silent | `bus` name doesn't match (case-sensitive) or that bus is muted — check `bus = "SFX"` and the dock. |
 | SFX loops forever | Import → Loop Mode = Disabled, Reimport (looping is on the stream resource, not the node). |
 | Rapid fire cuts the previous shot | Raise `max_polyphony` (step 5); pool only if that's still not enough. |
+| Dozens of the same SFX hit in one frame → distortion / clipping | N copies of one sound stack and sum over 0 dBFS. `max_polyphony` layers them — it does NOT suppress. Add a `VoiceLimiter` component (step 5b): tracks `Dictionary[StringName id -> int]` active count, suppresses `play()` when count ≥ `max_voices`, decrements on `finished` via `CONNECT_ONE_SHOT`. |
 | Hit/death/impact sound cut short the instant the entity dies | Owner `queue_free()`s mid-sound, taking the player with it — use the despawn pattern (step 4): `reparent(get_tree().current_scene)`, `finished.connect(queue_free)`, then `play()`. |
 | `Signal already connected to given callable` on the despawn-SFX connect | The despawn seam (`body_entered` / `on_hit`) ran more than once before the owner froze, re-connecting `finished` → `queue_free`. Guard it: `if not player.finished.is_connected(player.queue_free): ...` (or connect with `CONNECT_ONE_SHOT`). Also fix the multi-fire at its source — see `godot-travelling-projectile-3d`. |
 | Despawn 3D sound jumps to the world origin (or to the wrong spot) | Reparent dropped the world position — capture `global_position` BEFORE `reparent`, restore it AFTER (step 4, positional case). |

@@ -14,12 +14,16 @@ const ART_STYLE := preload("res://tools/art_style.gd")
 @export_range(0.1, 10.0, 0.1) var bob_speed: float = 2.0
 ## XZ tracking speed while hovering (m/s).
 @export_range(0.5, 20.0, 0.5) var hover_track_speed: float = 2.0
+## Proportional gain for vertical altitude correction (higher = snappier hover).
+@export_range(1.0, 30.0, 0.5) var altitude_gain: float = 8.0
 
 @export_group("Dive")
 ## Duration of dive lunge to player (seconds).
 @export_range(0.2, 3.0, 0.05) var dive_time: float = 0.85
 ## Duration of rise back to hover height (seconds).
 @export_range(0.2, 4.0, 0.05) var rise_time: float = 1.1
+## Y offset above the player's origin that the dive targets (metres).
+@export_range(0.0, 3.0, 0.05) var dive_y_offset: float = 0.9
 
 # Injected enemy ref.
 var _enemy: Enemy = null
@@ -34,7 +38,7 @@ var _floor_y: float = 0.0
 func bind(enemy: Node) -> void:
 	_enemy = enemy as Enemy
 	_apply_stinger_tint()
-	# Defer hover lift: bind() fires in _ready() BEFORE wave manager sets global_position.
+	# Defer hover lift: bind() fires in _ready() BEFORE RoomController sets global_position.
 	_init_hover.call_deferred()
 
 
@@ -72,7 +76,7 @@ func drive_move(_speed: float, delta: float) -> void:
 			var look_target: Vector3 = _enemy.global_position + xz_dir
 			look_target.y = _enemy.global_position.y
 			_enemy.look_at(look_target, Vector3.UP)
-	var y_vel: float = (target_y - _enemy.global_position.y) * 8.0
+	var y_vel: float = (target_y - _enemy.global_position.y) * altitude_gain
 	_enemy.velocity = Vector3(xz_vel.x, y_vel, xz_vel.z)
 	_enemy.move_and_slide()
 
@@ -83,7 +87,7 @@ func drive_stop(delta: float) -> void:
 		return
 	_bob_time += delta
 	var target_y: float = _floor_y + hover_height + sin(_bob_time * bob_speed) * bob_amplitude
-	var y_vel: float = (target_y - _enemy.global_position.y) * 8.0
+	var y_vel: float = (target_y - _enemy.global_position.y) * altitude_gain
 	_enemy.velocity = Vector3(0.0, y_vel, 0.0)
 	_enemy.move_and_slide()
 
@@ -98,7 +102,7 @@ func do_attack() -> void:
 	if t == null:
 		return
 	_diving = true
-	var dive_dest: Vector3 = t.global_position + Vector3(0.0, 0.9, 0.0)
+	var dive_dest: Vector3 = t.global_position + Vector3(0.0, dive_y_offset, 0.0)
 	var dive_tween: Tween = _enemy.create_tween()
 	dive_tween.tween_property(_enemy, "global_position", dive_dest, dive_time).set_trans(
 		Tween.TRANS_SINE

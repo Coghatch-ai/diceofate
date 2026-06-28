@@ -1,10 +1,13 @@
-[gd_resource type="Resource" script_class="CastData" format=3]
+[gd_resource type="Resource" script_class="CastData" format=3 uid="uid://cek3j363hyjls"]
 
-[ext_resource type="Script" path="res://tools/lib/cast/cast_data.gd" id="1"]
-[ext_resource type="Script" path="res://tools/lib/cast/damage_effect.gd" id="2"]
-[ext_resource type="Script" path="res://tools/lib/cast/knockback_effect.gd" id="3"]
-[ext_resource type="Script" path="res://tools/lib/cast/burn_effect.gd" id="4"]
-[ext_resource type="Script" path="res://tools/lib/cast/hit_target_resolver.gd" id="5"]
+[ext_resource type="Script" uid="uid://qepjgeqnac7d" path="res://tools/lib/cast/cast_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://dcd2iut0hyedi" path="res://tools/lib/cast/effect.gd" id="1_smfp1"]
+[ext_resource type="Script" uid="uid://uuglks3hq3a5" path="res://tools/lib/cast/damage_effect.gd" id="2"]
+[ext_resource type="Script" uid="uid://1jxibdhchpuw" path="res://tools/lib/cast/knockback_effect.gd" id="3"]
+[ext_resource type="Script" uid="uid://daout5o8g1v40" path="res://tools/lib/cast/burn_effect.gd" id="4"]
+[ext_resource type="Script" uid="uid://ngah3pqca7b1" path="res://tools/lib/cast/hit_target_resolver.gd" id="5"]
+[ext_resource type="Resource" uid="uid://coo8ytutj1p7m" path="res://entities/weapon/recoil/fire_recoil.tres" id="6"]
+[ext_resource type="PackedScene" path="res://entities/vfx/muzzle_fire.tscn" id="7"]
 
 [sub_resource type="Resource" id="1"]
 script = ExtResource("2")
@@ -16,19 +19,19 @@ script = ExtResource("3")
 
 [sub_resource type="Resource" id="3"]
 script = ExtResource("4")
-dps = 2
-duration = 3.0
-damage_type = 1
 
 [sub_resource type="Resource" id="4"]
 script = ExtResource("5")
 
 [resource]
 script = ExtResource("1")
-effects = [SubResource("1"), SubResource("2"), SubResource("3")]
+effects = Array[ExtResource("1_smfp1")]([SubResource("1"), SubResource("2"), SubResource("3")])
 resolver = SubResource("4")
 bullet_color = Color(1, 0.2, 0.15, 1)
 pierces_barriers = true
+recoil_profile = ExtResource("6")
+muzzle_color = Color(1, 0.35, 0.05, 1)
+muzzle_energy = 6.0
+muzzle_vfx_scene = ExtResource("7")
 max_ammo = 8
-ammo_cost = 1
 ammo_regen = 0.5
